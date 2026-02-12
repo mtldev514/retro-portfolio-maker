@@ -591,10 +591,27 @@
             }
         }
 
-        // Auto-switch to Manage tab if returning from edit page
+        // Auto-switch to Manage tab if returning from edit page or config manager
         if (window.location.hash === '#manage') {
             const manageTab = document.querySelectorAll('.tab')[1];
             if (manageTab) showTab('manage', manageTab);
+
+            // Check if a category was specified in URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const categoryParam = urlParams.get('category');
+            if (categoryParam) {
+                const categorySelect = document.getElementById('manageCategory');
+                if (categorySelect) {
+                    categorySelect.value = categoryParam;
+                    loadContent();
+                }
+            }
+        }
+
+        // Auto-switch to Config tab if hash is #config
+        if (window.location.hash === '#config') {
+            const configTab = document.querySelectorAll('.tab')[4];
+            if (configTab) showTab('config', configTab);
         }
 
         // ── Bulk Edit ──

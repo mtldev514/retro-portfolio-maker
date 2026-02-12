@@ -44,6 +44,14 @@
             margin-bottom: 10px;
             padding-bottom: 8px;
             border-bottom: 1px solid #ccc;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .config-card-header:hover {
+            background-color: #f0f0f0;
+            margin: -12px -12px 10px -12px;
+            padding: 12px 12px 8px 12px;
         }
 
         .config-card-icon {
@@ -86,11 +94,21 @@
             margin-top: 10px;
             display: flex;
             gap: 5px;
+            flex-wrap: wrap;
         }
 
         .btn-small {
             padding: 4px 10px;
             font-size: 11px;
+        }
+
+        .btn-small[style*="background: #0080ff"] {
+            font-weight: bold;
+            border: 2px outset #fff;
+        }
+
+        .btn-small[style*="background: #0080ff"]:hover {
+            background: #0060c0 !important;
         }
 
         .add-new-section {
@@ -388,7 +406,7 @@
             const grid = document.getElementById('mediaTypesGrid');
             grid.innerHTML = currentMediaTypes.map((mt, index) => `
                 <div class="config-card">
-                    <div class="config-card-header">
+                    <div class="config-card-header" onclick="viewMediaTypeContent('${mt.id}')" title="Click to view content using this media type">
                         <span class="config-card-icon">${mt.icon}</span>
                         <span class="config-card-title">${mt.name}</span>
                     </div>
@@ -407,6 +425,7 @@
                             <span class="config-field-label">Formats:</span> ${mt.acceptedFormats.join(', ')}
                         </div>
                         <div class="config-actions">
+                            <button class="btn-small" onclick="viewMediaTypeContent('${mt.id}')" style="background: #0080ff; color: white;">View Content</button>
                             <button class="btn-small" onclick="editMediaType(${index})">Edit</button>
                             <button class="btn-small" onclick="deleteMediaType(${index})">Delete</button>
                         </div>
@@ -423,7 +442,7 @@
 
                 return `
                     <div class="config-card">
-                        <div class="config-card-header">
+                        <div class="config-card-header" onclick="viewContentTypeItems('${ct.id}')" title="Click to view all ${ct.name.toLowerCase()} items">
                             <span class="config-card-icon">${ct.icon}</span>
                             <span class="config-card-title">${ct.name}</span>
                         </div>
@@ -442,6 +461,7 @@
                                 <span class="config-field-label">Custom Fields:</span> ${fieldCount} field(s)
                             </div>
                             <div class="config-actions">
+                                <button class="btn-small" onclick="viewContentTypeItems('${ct.id}')" style="background: #0080ff; color: white;">View Items</button>
                                 <button class="btn-small" onclick="editContentType(${index})">Edit</button>
                                 <button class="btn-small" onclick="deleteContentType(${index})">Delete</button>
                             </div>
@@ -694,6 +714,34 @@
             a.download = `portfolio-config-${new Date().toISOString().split('T')[0]}.json`;
             a.click();
             URL.revokeObjectURL(url);
+        }
+
+        // Navigation functions
+        function viewMediaTypeContent(mediaTypeId) {
+            // Find all content types that use this media type
+            const relatedContentTypes = currentContentTypes.filter(ct => ct.mediaType === mediaTypeId);
+
+            if (relatedContentTypes.length === 0) {
+                alert(`No content types use the "${mediaTypeId}" media type yet.`);
+                return;
+            }
+
+            // If only one content type, navigate directly to it
+            if (relatedContentTypes.length === 1) {
+                window.location.href = `admin.html?category=${relatedContentTypes[0].id}#manage`;
+                return;
+            }
+
+            // If multiple, show a choice
+            const choices = relatedContentTypes.map(ct => `${ct.icon} ${ct.name} (${ct.id})`).join('\n');
+            const message = `Multiple content types use "${mediaTypeId}":\n\n${choices}\n\nOpening admin panel...`;
+            alert(message);
+            window.location.href = 'admin.html#manage';
+        }
+
+        function viewContentTypeItems(contentTypeId) {
+            // Navigate to admin panel with this category pre-selected
+            window.location.href = `admin.html?category=${contentTypeId}#manage`;
         }
 
         // Initialize on page load
