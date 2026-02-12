@@ -31,3 +31,15 @@ dist/
 # Environment files
 .env
 .env.*
+
+# Backup files
+*.bak
+*.bak[0-9]
+*.bak[0-9][0-9]
+*~
+
+# Package tarballs (for local testing)
+*.tgz
+
+# Claude Code
+.claude/
