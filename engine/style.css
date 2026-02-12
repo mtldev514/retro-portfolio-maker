@@ -399,6 +399,20 @@ body {
     font-size: 16px;
 }
 
+.admin-icon {
+    font-size: 16px;
+}
+
+.admin-link {
+    color: var(--accent-color, #ff00ff) !important;
+    font-weight: bold;
+}
+
+.admin-link:hover {
+    background: linear-gradient(180deg, rgba(255, 0, 255, 0.2) 0%, rgba(255, 0, 255, 0.3) 50%, rgba(255, 0, 255, 0.2) 100%) !important;
+    color: var(--btn-text-active);
+}
+
 header {
     background-color: var(--header-bg);
     background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 40%, rgba(0, 0, 0, 0.05) 100%);
@@ -2021,6 +2035,63 @@ nav {
 @keyframes retro-spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* ═══ Party Mode GIFs ═══ */
+.party-gif {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0;
+    animation: party-gif-float 15s ease-in-out infinite;
+    image-rendering: auto;
+    will-change: transform, opacity;
+}
+
+@keyframes party-gif-float {
+    0% {
+        opacity: 0;
+        transform: translate(0, 0) rotate(0deg) scale(1);
+    }
+    10% {
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 0.9;
+        transform: translate(var(--drift-x, 20px), var(--drift-y, -30px)) rotate(var(--drift-rotate, 5deg)) scale(1.1);
+    }
+    90% {
+        opacity: 0.8;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(0, 0) rotate(0deg) scale(1);
+    }
+}
+
+/* Generate random drift values for variety */
+.party-gif:nth-child(odd) {
+    --drift-x: 30px;
+    --drift-y: -40px;
+    --drift-rotate: -8deg;
+}
+
+.party-gif:nth-child(even) {
+    --drift-x: -25px;
+    --drift-y: -35px;
+    --drift-rotate: 10deg;
+}
+
+.party-gif:nth-child(3n) {
+    --drift-x: 15px;
+    --drift-y: -50px;
+    --drift-rotate: -5deg;
+}
+
+.party-gif:nth-child(5n) {
+    --drift-x: -30px;
+    --drift-y: -25px;
+    --drift-rotate: 12deg;
 }
 
 /* Show overlay ONLY on portrait screens narrower than 768px */
