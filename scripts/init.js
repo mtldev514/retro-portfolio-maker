@@ -49,7 +49,7 @@ async function init(targetDir, options = {}) {
       postinstall: 'pip3 install flask flask-cors 2>/dev/null || pip install flask flask-cors 2>/dev/null || echo "⚠️  Please install Flask manually: pip install flask flask-cors"'
     },
     dependencies: {
-      '@mtldev514/retro-portfolio-engine': '^1.0.0'
+      '@mtldev514/retro-portfolio-maker': '^1.0.0'
     }
   };
 
@@ -108,6 +108,73 @@ GITHUB_TOKEN=your_github_token_here
     await fs.writeFile(envPath, envExample);
     console.log(chalk.green('  ✓'), '.env (created from example)');
   }
+
+  // Create GitHub Actions workflow for deployment
+  console.log(chalk.cyan('\n⚙️  Creating GitHub Actions workflow...'));
+  const workflowDir = path.join(targetPath, '.github', 'workflows');
+  await fs.ensureDir(workflowDir);
+
+  const deployWorkflow = `name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🏗️ Build site
+        run: npm run build
+
+      - name: 📊 Build summary
+        run: |
+          echo "### 🎨 Build Complete" >> \\$GITHUB_STEP_SUMMARY
+          echo "" >> \\$GITHUB_STEP_SUMMARY
+          echo "**Build date:** \\$(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> \\$GITHUB_STEP_SUMMARY
+          echo "**Output:** dist/" >> \\$GITHUB_STEP_SUMMARY
+
+      - name: 📤 Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: ✅ Deployment complete
+        run: |
+          echo "### 🎉 Site deployed!" >> \\$GITHUB_STEP_SUMMARY
+          echo "" >> \\$GITHUB_STEP_SUMMARY
+          echo "**URL:** \\${{ steps.deployment.outputs.page_url }}" >> \\$GITHUB_STEP_SUMMARY
+`;
+
+  await fs.writeFile(path.join(workflowDir, 'deploy.yml'), deployWorkflow);
+  console.log(chalk.green('  ✓'), '.github/workflows/deploy.yml');
 
   // Create config files
   const configFiles = {
@@ -202,7 +269,7 @@ GITHUB_TOKEN=your_github_token_here
   // Create README
   const readme = `# ${path.basename(targetPath)}
 
-A retro-styled portfolio powered by [@mtldev514/retro-portfolio-engine](https://www.npmjs.com/package/@mtldev514/retro-portfolio-engine).
+A retro-styled portfolio powered by [@mtldev514/retro-portfolio-maker](https://www.npmjs.com/package/@mtldev514/retro-portfolio-maker).
 
 ## 🚀 Quick Start
 
@@ -337,7 +404,7 @@ Make sure all required files exist in \`config/\`, \`data/\`, and \`lang/\` dire
 ## 📖 Documentation
 
 - [Engine Documentation](https://github.com/mtldev514/retro-portfolio-engine)
-- [NPM Package](https://www.npmjs.com/package/@mtldev514/retro-portfolio-engine)
+- [NPM Package](https://www.npmjs.com/package/@mtldev514/retro-portfolio-maker)
 
 ## 📄 License
 
@@ -345,7 +412,7 @@ MIT
 
 ---
 
-**Made with 💜 using @mtldev514/retro-portfolio-engine**
+**Made with 💜 using @mtldev514/retro-portfolio-maker**
 `;
 
   await fs.writeFile(path.join(targetPath, 'README.md'), readme);
