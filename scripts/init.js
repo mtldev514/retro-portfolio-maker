@@ -221,10 +221,10 @@ jobs:
 
       - name: 📊 Build summary
         run: |
-          echo "### 🎨 Build Complete" >> \\$GITHUB_STEP_SUMMARY
-          echo "" >> \\$GITHUB_STEP_SUMMARY
-          echo "**Build date:** \\$(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> \\$GITHUB_STEP_SUMMARY
-          echo "**Output:** dist/" >> \\$GITHUB_STEP_SUMMARY
+          echo "### 🎨 Build Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Build date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "**Output:** dist/" >> $GITHUB_STEP_SUMMARY
 
       - name: 📤 Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -237,9 +237,9 @@ jobs:
 
       - name: ✅ Deployment complete
         run: |
-          echo "### 🎉 Site deployed!" >> \\$GITHUB_STEP_SUMMARY
-          echo "" >> \\$GITHUB_STEP_SUMMARY
-          echo "**URL:** \\${{ steps.deployment.outputs.page_url }}" >> \\$GITHUB_STEP_SUMMARY
+          echo "### 🎉 Site deployed!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** $` + '{{ steps.deployment.outputs.page_url }}' + `" >> $GITHUB_STEP_SUMMARY
 `;
 
   await fs.writeFile(path.join(workflowDir, 'deploy.yml'), deployWorkflow);
