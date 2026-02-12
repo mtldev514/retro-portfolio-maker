@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="fonts.css">
+    <script src="js/config-loader.js"></script>
 </head>
 
 <body class="admin-page">
@@ -53,14 +54,9 @@
         <div id="bulkedit" class="tab-content">
             <div class="admin-flex-between">
                 <label>Select Category:</label>
-                <select id="bulkEditCategory" onchange="loadBulkEditContent()" style="width: 150px;">
+                <select id="bulkEditCategory" onchange="loadBulkEditContent()" style="width: 200px;">
                     <option value="">-- Select Category --</option>
-                    <option value="painting">Painting</option>
-                    <option value="drawing">Drawing</option>
-                    <option value="photography">Photography</option>
-                    <option value="sculpting">Sculpting</option>
-                    <option value="music">Music</option>
-                    <option value="projects">Projects</option>
+                    <!-- Populated dynamically from config -->
                 </select>
             </div>
             <div class="admin-hint">
@@ -83,14 +79,9 @@
         <div id="manage" class="tab-content">
             <div class="admin-flex-between">
                 <label>Filter Category:</label>
-                <select id="manageCategory" onchange="loadContent()" style="width: 150px;">
+                <select id="manageCategory" onchange="loadContent()" style="width: 200px;">
                     <option value="all">All Categories</option>
-                    <option value="painting">Painting</option>
-                    <option value="drawing">Drawing</option>
-                    <option value="photography">Photography</option>
-                    <option value="sculpting">Sculpting</option>
-                    <option value="music">Music</option>
-                    <option value="projects">Projects</option>
+                    <!-- Populated dynamically from config -->
                 </select>
                 <button class="action" onclick="loadContent()" style="margin: 0; font-size: 11px;">Refresh List</button>
             </div>
@@ -162,6 +153,47 @@
     <script>
         const API_URL = 'http://127.0.0.1:5001';
 
+        // Initialize config and populate category dropdowns
+        let categoriesLoaded = false;
+        async function initializeCategories() {
+            if (categoriesLoaded) return;
+
+            try {
+                await AppConfig.load();
+                const contentTypes = AppConfig.getAllContentTypes();
+
+                // Populate all category dropdowns
+                const dropdowns = [
+                    'bulkEditCategory',
+                    'manageCategory'
+                ];
+
+                dropdowns.forEach(dropdownId => {
+                    const select = document.getElementById(dropdownId);
+                    if (!select) return;
+
+                    // Keep the first option (placeholder)
+                    const firstOption = select.options[0];
+                    select.innerHTML = '';
+                    if (firstOption) select.appendChild(firstOption);
+
+                    // Add categories from config
+                    contentTypes.forEach(ct => {
+                        const option = document.createElement('option');
+                        option.value = ct.id;
+                        option.textContent = `${ct.icon} ${ct.name}`;
+                        select.appendChild(option);
+                    });
+                });
+
+                categoriesLoaded = true;
+                console.log('✅ Categories loaded from config');
+            } catch (error) {
+                console.error('Failed to load categories:', error);
+                // Fallback to hardcoded if config fails
+            }
+        }
+
         function showTab(tabId, el) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -175,8 +207,21 @@
 
         // ── Bulk Upload ──
         const AUDIO_EXTS = ['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.aac'];
-        const IMAGE_CATS = ['painting', 'drawing', 'photography', 'sculpting'];
         let bulkFiles = []; // { file, isAudio, title, category }
+
+        // Get default category for file type
+        function getDefaultCategory(isAudio) {
+            if (!AppConfig.loaded) return isAudio ? 'music' : 'painting';
+
+            const contentTypes = AppConfig.getAllContentTypes();
+            if (isAudio) {
+                const audioType = contentTypes.find(ct => ct.mediaType === 'audio');
+                return audioType ? audioType.id : 'music';
+            } else {
+                const imageType = contentTypes.find(ct => ct.mediaType === 'image');
+                return imageType ? imageType.id : 'painting';
+            }
+        }
 
         const dropZone = document.getElementById('bulkDropZone');
         const fileInput = document.getElementById('bulkFileInput');
@@ -200,7 +245,7 @@
                     file,
                     isAudio,
                     title: baseName,
-                    category: isAudio ? 'music' : 'painting'
+                    category: getDefaultCategory(isAudio)
                 });
             }
             renderBulkQueue();
@@ -229,11 +274,19 @@
                     : `<img src="${URL.createObjectURL(entry.file)}">`;
 
                 let catOptions = '';
+                const contentTypes = AppConfig.loaded ? AppConfig.getAllContentTypes() : [];
+
                 if (entry.isAudio) {
-                    catOptions = '<option value="music">Music</option>';
+                    // For audio, only show audio-compatible categories
+                    const audioCategories = contentTypes.filter(ct => ct.mediaType === 'audio');
+                    catOptions = audioCategories.map(ct =>
+                        `<option value="${ct.id}"${ct.id === entry.category ? ' selected' : ''}>${ct.icon} ${ct.name}</option>`
+                    ).join('');
                 } else {
-                    catOptions = IMAGE_CATS.map(c =>
-                        `<option value="${c}"${c === entry.category ? ' selected' : ''}>${c.charAt(0).toUpperCase() + c.slice(1)}</option>`
+                    // For images, show image-compatible categories
+                    const imageCategories = contentTypes.filter(ct => ct.mediaType === 'image');
+                    catOptions = imageCategories.map(ct =>
+                        `<option value="${ct.id}"${ct.id === entry.category ? ' selected' : ''}>${ct.icon} ${ct.name}</option>`
                     ).join('');
                 }
 
@@ -378,8 +431,13 @@
             }
         }
 
-        const IMAGE_CATEGORIES = ['painting', 'drawing', 'photography', 'sculpting'];
         let loadedContent = {}; // cached for pile picker
+
+        // Helper to check if category supports images/galleries
+        function isImageCategory(categoryId) {
+            const ct = AppConfig.getContentType(categoryId);
+            return ct && ct.mediaType === 'image';
+        }
 
         async function loadContent() {
             const cat = document.getElementById('manageCategory').value;
@@ -397,14 +455,20 @@
                     if (cat !== 'all' && cat !== category) return;
                     if (!items || items.length === 0) return;
 
-                    html += `<h4 class="content-header">${category.toUpperCase()}</h4>`;
+                    // Get category info from config for icon
+                    const categoryInfo = AppConfig.getContentType(category);
+                    const categoryDisplay = categoryInfo
+                        ? `${categoryInfo.icon} ${categoryInfo.name.toUpperCase()}`
+                        : category.toUpperCase();
+
+                    html += `<h4 class="content-header">${categoryDisplay}</h4>`;
                     items.forEach(item => {
                         const titleStr = (typeof item.title === 'object' && item.title !== null) ? (item.title.en || '') : (item.title || '');
                         const id = item.id || titleStr;
                         const safeId = id.replace(/"/g, '&quot;');
                         const galleryCount = (item.gallery && item.gallery.length) ? item.gallery.length + 1 : 0;
                         const pileBadge = galleryCount > 1 ? ` <span class="admin-muted">[${galleryCount} imgs]</span>` : '';
-                        const isImage = IMAGE_CATEGORIES.includes(category);
+                        const isImage = isImageCategory(category);
                         const isPile = galleryCount > 1;
                         const pileButtonText = isPile ? 'Merge' : 'Pile';
                         const pileButtonTitle = isPile ? 'Merge this pile into another pile' : 'Move this item into another pile';
@@ -811,6 +875,11 @@
                 }, 1500);
             }
         };
+
+        // Initialize categories on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeCategories();
+        });
 
     </script>
 </body>
