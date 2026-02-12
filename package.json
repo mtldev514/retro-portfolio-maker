@@ -1,6 +1,6 @@
 {
   "name": "@mtldev514/retro-portfolio-maker",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Retro portfolio maker - Site-as-a-Package. Install the engine, provide your data, build your 90s-aesthetic portfolio.",
   "main": "index.js",
   "bin": {
