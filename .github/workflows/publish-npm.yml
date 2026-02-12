@@ -1,5 +1,7 @@
 name: Publish to NPM
-
+permissions:
+    contents: write  # Allow pushing commits and tags
+    
 on:
   push:
     branches:
