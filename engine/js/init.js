@@ -73,35 +73,3 @@ function initThemeSelector() {
     // This will be implemented when we externalize themes.js
     // For now, themes are still in themes.js
 }
-
-/**
- * Dynamically build category filters from config
- */
-function initCategoryFilters() {
-    const filterButtons = document.querySelector('.filter-buttons');
-    if (!filterButtons || !AppConfig.categories) return;
-
-    // Clear existing filters except "All"
-    const allButton = filterButtons.querySelector('[data-filter="all"]');
-    filterButtons.innerHTML = '';
-    if (allButton) {
-        filterButtons.appendChild(allButton);
-    }
-
-    // Add category filters from config
-    AppConfig.getAllCategories().forEach(category => {
-        const button = document.createElement('button');
-        button.className = 'filter-btn';
-        button.setAttribute('data-filter', category.id);
-        button.textContent = `${category.icon} ${category.name}`;
-        button.onclick = () => {
-            if (typeof render !== 'undefined' && render.filterCategory) {
-                render.filterCategory(category.id);
-            }
-        };
-        filterButtons.appendChild(button);
-    });
-}
-
-// Export for use in other modules
-window.initCategoryFilters = initCategoryFilters;

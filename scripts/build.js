@@ -54,6 +54,11 @@ async function build(options = {}) {
   const engineFiles = await fs.readdir(enginePath);
   console.log(chalk.green(`  ✓ Copied ${engineFiles.length} engine files\n`));
 
+  // Generate dynamic filter buttons from categories
+  console.log(chalk.cyan('🔧 Generating filter buttons from categories...'));
+  await generateFilterButtons(cwd, outputDir);
+  console.log(chalk.green('  ✓ Filter buttons generated\n'));
+
   // Copy user data
   console.log(chalk.cyan('📄 Copying your data...'));
 
@@ -103,6 +108,61 @@ async function build(options = {}) {
   console.log(chalk.gray('  • Deploy: npm run deploy\n'));
 
   return outputDir;
+}
+
+/**
+ * Generate filter buttons from categories.json and inject into index.html
+ */
+async function generateFilterButtons(userDir, outputDir) {
+  // Read categories config
+  const categoriesPath = path.join(userDir, 'config', 'categories.json');
+  const categories = await fs.readJson(categoriesPath);
+
+  // Build filter buttons HTML
+  const contentTypes = categories.contentTypes || categories.categories || [];
+
+  // Validate category count (max 7 for optimal UI)
+  if (contentTypes.length > 7) {
+    console.warn(chalk.yellow(`  ⚠ Warning: You have ${contentTypes.length} categories. For best UI experience, limit to 7 or fewer.`));
+    console.warn(chalk.yellow('  ⚠ Only the first 7 categories will be shown in the filter bar.'));
+  }
+
+  // Take only first 7 categories
+  const displayCategories = contentTypes.slice(0, 7);
+
+  let filterButtonsHtml = '<!-- Auto-generated filter buttons from categories.json -->\n';
+  filterButtonsHtml += '                    <button class="filter-btn active" data-filter="all" data-i18n="filter_all">All</button>\n';
+
+  displayCategories.forEach(category => {
+    filterButtonsHtml += `                    <button class="filter-btn" data-filter="${category.id}" data-i18n="nav_${category.id}">${category.name}</button>\n`;
+  });
+
+  // Read index.html
+  const indexPath = path.join(outputDir, 'index.html');
+  let indexHtml = await fs.readFile(indexPath, 'utf8');
+
+  // Replace the hardcoded filter buttons with generated ones
+  // Find the section between <div id="filter-nav" and the sort controls
+  const filterNavStart = indexHtml.indexOf('<div id="filter-nav"');
+  const sortControlsStart = indexHtml.indexOf('<span class="sort-controls">', filterNavStart);
+
+  if (filterNavStart === -1 || sortControlsStart === -1) {
+    console.warn(chalk.yellow('  ⚠ Could not find filter nav section in index.html'));
+    return;
+  }
+
+  // Find where the buttons section starts (after the opening div and class)
+  const buttonsStart = indexHtml.indexOf('>', filterNavStart) + 1;
+
+  // Extract the part before buttons, the buttons we'll replace, and the part after
+  const before = indexHtml.substring(0, buttonsStart);
+  const after = indexHtml.substring(sortControlsStart);
+
+  // Reconstruct HTML with generated buttons
+  indexHtml = before + '\n' + filterButtonsHtml + '                    ' + after;
+
+  // Write back to index.html
+  await fs.writeFile(indexPath, indexHtml, 'utf8');
 }
 
 /**

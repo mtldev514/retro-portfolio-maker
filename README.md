@@ -227,6 +227,61 @@ Ou utilisez la GitHub Action fournie (voir section Déploiement).
 
 ## 🎨 Personnalisation
 
+### Définir vos propres catégories
+
+**Vous pouvez créer n'importe quelles catégories que vous voulez (jusqu'à 7 max) !**
+
+1. **Éditez `config/categories.json`** :
+
+```json
+{
+  "contentTypes": [
+    {
+      "id": "pottery",
+      "name": "Pottery",
+      "icon": "🏺",
+      "mediaType": "image",
+      "dataFile": "data/pottery.json",
+      "description": "My ceramic works"
+    },
+    {
+      "id": "videos",
+      "name": "Videos",
+      "icon": "🎬",
+      "mediaType": "video",
+      "dataFile": "data/videos.json",
+      "description": "Video projects"
+    }
+  ]
+}
+```
+
+2. **Créez le fichier de données correspondant** (ex: `data/pottery.json`) :
+
+```json
+[
+  {
+    "id": "vase-001",
+    "title": { "en": "Blue Vase", "fr": "Vase bleu" },
+    "url": "https://your-image-url.com/vase.jpg",
+    "date": "2026-01-15"
+  }
+]
+```
+
+3. **Ajoutez les traductions dans `lang/en.json` et `lang/fr.json`** :
+
+```json
+{
+  "nav_pottery": "Pottery",
+  "nav_videos": "Videos"
+}
+```
+
+4. **Rebuild** : `npm run build`
+
+Les filtres seront automatiquement générés à partir de votre configuration ! 🎉
+
 ### Ajouter un thème custom
 
 Créez `assets/custom-theme.css` :
