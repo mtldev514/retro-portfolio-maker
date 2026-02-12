@@ -1,6 +1,27 @@
 name: Publish to NPM
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      # Include all files that are published to NPM
+      - 'engine/**'
+      - 'scripts/**'
+      - 'bin/**'
+      - 'templates/**'
+      - 'index.js'
+      - 'package.json'
+      - 'README.md'
+      - 'LICENSE'
+      # Exclude files that don't affect the package
+      - '!**/*.md'
+      - '!CHANGELOG.md'
+      - '!QUICKSTART.md'
+      - '!PUBLISHING.md'
+      - '!FIX-SCRIPTS.md'
+      - '!PUBLISH-*.md'
+      - '!.github/**'
   release:
     types: [created]
   workflow_dispatch:
@@ -45,12 +66,19 @@ jobs:
       - name: 📦 Create package tarball (test)
         run: npm pack --dry-run
 
-      - name: 🏷️ Bump version (if manual trigger)
-        if: github.event_name == 'workflow_dispatch'
+      - name: 🏷️ Bump version
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          npm version ${{ github.event.inputs.version }} -m "chore: release v%s"
+
+          # Determine version bump type
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION_TYPE="${{ github.event.inputs.version }}"
+          else
+            VERSION_TYPE="patch"
+          fi
+
+          npm version $VERSION_TYPE -m "chore: release v%s"
           git push --follow-tags
 
       - name: 📊 Build summary
