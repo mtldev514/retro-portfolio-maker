@@ -234,6 +234,135 @@ def save_config(config_name):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/content/delete', methods=['POST'])
+def delete_content():
+    """Delete content item from both cloud storage and JSON"""
+    try:
+        data = request.json
+        category = data.get('category')
+        item_id = data.get('id')
+
+        if not category or not item_id:
+            return jsonify({"error": "Category and ID are required"}), 400
+
+        # Use manager's delete function
+        result = manager.delete_item(category, item_id)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/content/update', methods=['POST'])
+def update_content():
+    """Update content item fields"""
+    try:
+        data = request.json
+        category = data.get('category')
+        item_id = data.get('id')
+        updates = data.get('updates', {})
+
+        if not category or not item_id:
+            return jsonify({"error": "Category and ID are required"}), 400
+
+        data_file = os.path.join(USER_DATA_DIR, f'{category}.json')
+        if not os.path.exists(data_file):
+            return jsonify({"error": f"Data file not found for category '{category}'"}), 404
+
+        # Load existing data
+        with open(data_file, 'r', encoding='utf-8') as f:
+            content = f.read().strip()
+            items = json.loads(content) if content else []
+
+        # Find and update the item
+        item_found = False
+        for item in items:
+            item_title = item.get("title")
+            if isinstance(item_title, dict):
+                item_title = item_title.get("en", "")
+
+            if item.get("id") == item_id or item_title == item_id:
+                # Update fields
+                for key, value in updates.items():
+                    item[key] = value
+                item_found = True
+                break
+
+        if not item_found:
+            return jsonify({"error": f"Item '{item_id}' not found"}), 404
+
+        # Save updated data
+        with open(data_file, 'w', encoding='utf-8') as f:
+            json.dump(items, f, indent=2, ensure_ascii=False)
+
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/content/move-to-pile', methods=['POST'])
+def move_to_pile():
+    """Move an item's images into another item's gallery (pile feature)"""
+    try:
+        data = request.json
+        category = data.get('category')
+        source_id = data.get('sourceId')
+        target_id = data.get('targetId')
+
+        if not all([category, source_id, target_id]):
+            return jsonify({"error": "Category, sourceId, and targetId are required"}), 400
+
+        data_file = os.path.join(USER_DATA_DIR, f'{category}.json')
+        if not os.path.exists(data_file):
+            return jsonify({"error": f"Data file not found for category '{category}'"}), 404
+
+        # Load existing data
+        with open(data_file, 'r', encoding='utf-8') as f:
+            content = f.read().strip()
+            items = json.loads(content) if content else []
+
+        source_item = None
+        target_item = None
+        remaining_items = []
+
+        # Find source and target items
+        for item in items:
+            item_title = item.get("title")
+            if isinstance(item_title, dict):
+                item_title = item_title.get("en", "")
+
+            item_identifier = item.get("id") or item_title
+
+            if item_identifier == source_id:
+                source_item = item
+            elif item_identifier == target_id:
+                target_item = item
+                remaining_items.append(item)
+            else:
+                remaining_items.append(item)
+
+        if not source_item or not target_item:
+            return jsonify({"error": "Source or target item not found"}), 404
+
+        # Move images from source to target's gallery
+        if 'gallery' not in target_item:
+            target_item['gallery'] = []
+
+        # Add source's main URL
+        target_item['gallery'].append(source_item['url'])
+
+        # Add source's gallery images
+        if 'gallery' in source_item:
+            target_item['gallery'].extend(source_item['gallery'])
+
+        # Save updated data (without source item)
+        with open(data_file, 'w', encoding='utf-8') as f:
+            json.dump(remaining_items, f, indent=2, ensure_ascii=False)
+
+        return jsonify({
+            "success": True,
+            "targetGalleryCount": len(target_item['gallery'])
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     print(f"🔧 Admin API starting...")
     print(f"   Data dir: {os.path.abspath(USER_DATA_DIR)}")

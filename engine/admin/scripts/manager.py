@@ -291,6 +291,183 @@ def save_from_url(url, title, category, medium=None, genre=None, description=Non
     update_site_timestamp()
     return new_entry
 
+
+def extract_cloudinary_public_id(url):
+    """Extract the public_id from a Cloudinary URL.
+    Example: https://res.cloudinary.com/demo/image/upload/v1234567890/portfolio/painting/sample.jpg
+    Returns: portfolio/painting/sample"""
+    if "cloudinary.com" not in url:
+        return None
+
+    # Split by /upload/ and take the part after it
+    parts = url.split("/upload/")
+    if len(parts) < 2:
+        return None
+
+    # Remove version (v1234567890) and file extension
+    path = parts[1]
+    path = re.sub(r'^v\d+/', '', path)  # Remove version prefix
+    path = re.sub(r'\.[^.]+$', '', path)  # Remove extension
+
+    return path
+
+
+def delete_from_cloudinary(url):
+    """Delete a media file from Cloudinary using its URL."""
+    public_id = extract_cloudinary_public_id(url)
+    if not public_id:
+        print(f"Skipping Cloudinary delete: URL is not a Cloudinary URL ({url})")
+        return False
+
+    try:
+        print(f"Deleting from Cloudinary: {public_id}")
+        result = cloudinary.uploader.destroy(public_id, resource_type="image")
+
+        # Also try as video if image deletion failed
+        if result.get("result") != "ok":
+            result = cloudinary.uploader.destroy(public_id, resource_type="video")
+
+        if result.get("result") == "ok":
+            print(f"Successfully deleted from Cloudinary: {public_id}")
+            return True
+        else:
+            print(f"Cloudinary deletion returned: {result.get('result')} for {public_id}")
+            return False
+    except Exception as e:
+        print(f"Error deleting from Cloudinary: {e}")
+        return False
+
+
+def delete_from_github_release(url):
+    """Delete a media file from GitHub Release using its URL."""
+    if "github.com" not in url and "githubusercontent.com" not in url:
+        return False
+
+    # Extract filename from URL
+    filename = url.split("/")[-1]
+
+    try:
+        release = get_or_create_release()
+        assets = release.get("assets", [])
+
+        # Find the asset with matching name
+        for asset in assets:
+            if asset["name"] == filename:
+                headers = {
+                    "Authorization": f"token {GITHUB_TOKEN}",
+                    "Accept": "application/vnd.github.v3+json",
+                }
+
+                print(f"Deleting from GitHub Release: {filename}")
+                r = requests.delete(
+                    f"https://api.github.com/repos/{GITHUB_REPO}/releases/assets/{asset['id']}",
+                    headers=headers
+                )
+
+                if r.status_code == 204:
+                    print(f"Successfully deleted from GitHub Release: {filename}")
+                    return True
+                else:
+                    print(f"GitHub deletion failed with status {r.status_code}")
+                    return False
+
+        print(f"Asset not found in GitHub Release: {filename}")
+        return False
+    except Exception as e:
+        print(f"Error deleting from GitHub Release: {e}")
+        return False
+
+
+def delete_item(category, item_id):
+    """Delete an item from both cloud storage and JSON database.
+
+    Args:
+        category: The category (painting, music, etc.)
+        item_id: The item ID or title to delete
+
+    Returns:
+        dict: Result with success status and message
+    """
+    print(f"--- Deleting: {item_id} from {category} ---")
+
+    json_path = JSON_MAP.get(category)
+    if not json_path:
+        return {"success": False, "error": f"Category '{category}' is invalid"}
+
+    if not os.path.exists(json_path):
+        return {"success": False, "error": f"Data file not found for category '{category}'"}
+
+    # Load existing data
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            content = f.read().strip()
+            data = json.loads(content) if content else []
+    except json.JSONDecodeError:
+        return {"success": False, "error": "Invalid JSON in data file"}
+
+    # Find the item to delete
+    item_to_delete = None
+    new_data = []
+
+    for item in data:
+        # Match by ID or by title (for backward compatibility)
+        item_title = item.get("title")
+        if isinstance(item_title, dict):
+            item_title = item_title.get("en", "")
+
+        if item.get("id") == item_id or item_title == item_id:
+            item_to_delete = item
+        else:
+            new_data.append(item)
+
+    if not item_to_delete:
+        return {"success": False, "error": f"Item '{item_id}' not found in {category}"}
+
+    # Delete from cloud storage
+    deleted_urls = []
+    failed_urls = []
+
+    # Delete main URL
+    main_url = item_to_delete.get("url")
+    if main_url:
+        if delete_from_cloudinary(main_url):
+            deleted_urls.append(main_url)
+        elif delete_from_github_release(main_url):
+            deleted_urls.append(main_url)
+        else:
+            failed_urls.append(main_url)
+
+    # Delete gallery images if present
+    gallery = item_to_delete.get("gallery", [])
+    for gallery_url in gallery:
+        if delete_from_cloudinary(gallery_url):
+            deleted_urls.append(gallery_url)
+        else:
+            failed_urls.append(gallery_url)
+
+    # Save updated data back to JSON
+    try:
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(new_data, f, indent=4, ensure_ascii=False)
+        print(f"Removed item from {json_path}")
+    except Exception as e:
+        return {"success": False, "error": f"Failed to update JSON: {str(e)}"}
+
+    # Update site timestamp
+    update_site_timestamp()
+
+    result = {
+        "success": True,
+        "message": f"Deleted '{item_id}' from {category}",
+        "deleted_urls": len(deleted_urls),
+        "failed_urls": len(failed_urls)
+    }
+
+    if failed_urls:
+        result["warning"] = f"Some cloud files could not be deleted: {failed_urls}"
+
+    return result
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Alex's Portfolio Content Manager")
     parser.add_argument("--file", required=True, help="Path to the media file or directory (with --pile)")

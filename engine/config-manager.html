@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CONFIG MANAGER - PORTFOLIO V2.0</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="fonts.css">
+    <script src="js/config.js"></script>
+    <style>
+        .config-section {
+            background: var(--admin-win-bg);
+            border: 2px outset var(--admin-win-border-light);
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .config-section-header {
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--admin-win-border-dark);
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .config-card {
+            background: white;
+            border: 2px inset var(--admin-win-border-dark);
+            padding: 12px;
+            position: relative;
+        }
+
+        .config-card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .config-card-icon {
+            font-size: 24px;
+        }
+
+        .config-card-title {
+            font-weight: bold;
+            font-size: 12px;
+            flex: 1;
+        }
+
+        .config-card-body {
+            font-size: 11px;
+        }
+
+        .config-field {
+            margin-bottom: 8px;
+            padding: 4px;
+            background: #f0f0f0;
+            border-radius: 2px;
+        }
+
+        .config-field-label {
+            font-weight: bold;
+            color: #000080;
+        }
+
+        .config-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            background: #000080;
+            color: white;
+            border-radius: 2px;
+            font-size: 10px;
+            margin-right: 4px;
+        }
+
+        .config-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-small {
+            padding: 4px 10px;
+            font-size: 11px;
+        }
+
+        .add-new-section {
+            text-align: center;
+            padding: 30px;
+            background: #f0f0f0;
+            border: 2px dashed var(--admin-win-border-dark);
+        }
+
+        .add-new-section button {
+            font-size: 14px;
+            padding: 10px 20px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--admin-win-bg);
+            border: 3px outset var(--admin-win-border-light);
+            min-width: 500px;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            background: var(--admin-win-title-bg);
+            color: white;
+            padding: 4px 8px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-row {
+            margin-bottom: 15px;
+        }
+
+        .form-row label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 4px;
+            font-size: 11px;
+        }
+
+        .form-row input,
+        .form-row select,
+        .form-row textarea {
+            width: 100%;
+            padding: 4px;
+            font-family: 'MS Sans Serif', sans-serif;
+            font-size: 11px;
+            border: 2px inset var(--admin-win-border-dark);
+        }
+
+        .field-list {
+            border: 2px inset var(--admin-win-border-dark);
+            padding: 10px;
+            background: white;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .field-item {
+            background: #f0f0f0;
+            padding: 8px;
+            margin-bottom: 5px;
+            border: 1px solid #ccc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body class="admin-page">
+    <div class="window">
+        <div class="title-bar">
+            <span>CONFIGURATION MANAGER V2.0</span>
+            <div class="title-bar-controls">
+                <button>_</button>
+                <button>[]</button>
+                <button onclick="window.location.href='admin.html'">X</button>
+            </div>
+        </div>
+
+        <div class="menu-bar">
+            <button onclick="location.href='admin.html'">« Back to Admin</button>
+            <button onclick="saveAllConfigurations()">💾 Save All</button>
+            <button onclick="reloadConfigurations()">🔄 Reload</button>
+            <button onclick="exportConfigurations()">📤 Export</button>
+        </div>
+
+        <div class="admin-body">
+            <!-- Media Types Section -->
+            <div class="config-section">
+                <div class="config-section-header">
+                    🎬 MEDIA TYPES (How content is displayed)
+                </div>
+                <p style="font-size: 11px; margin: 10px 0; color: #666;">
+                    Media types define how different kinds of content are rendered (image viewer, audio player, video player, etc.)
+                </p>
+                <div id="mediaTypesGrid" class="config-grid"></div>
+                <div class="add-new-section">
+                    <button onclick="openMediaTypeModal()">➕ Add New Media Type</button>
+                </div>
+            </div>
+
+            <!-- Content Types Section -->
+            <div class="config-section">
+                <div class="config-section-header">
+                    📂 CONTENT TYPES (What you create)
+                </div>
+                <p style="font-size: 11px; margin: 10px 0; color: #666;">
+                    Content types define categories of work (painting, photography, music, etc.) and their custom fields
+                </p>
+                <div id="contentTypesGrid" class="config-grid"></div>
+                <div class="add-new-section">
+                    <button onclick="openContentTypeModal()">➕ Add New Content Type</button>
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <span id="statusText">Ready</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Media Type Modal -->
+    <div id="mediaTypeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="mediaTypeModalTitle">Add Media Type</span>
+                <button onclick="closeMediaTypeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="mediaTypeForm">
+                    <div class="form-row">
+                        <label>ID (unique identifier):</label>
+                        <input type="text" id="mtId" required placeholder="e.g., image, audio, video">
+                    </div>
+                    <div class="form-row">
+                        <label>Name:</label>
+                        <input type="text" id="mtName" required placeholder="e.g., Image, Audio">
+                    </div>
+                    <div class="form-row">
+                        <label>Icon (emoji):</label>
+                        <input type="text" id="mtIcon" required placeholder="e.g., 🖼️, 🎵">
+                    </div>
+                    <div class="form-row">
+                        <label>Viewer Component:</label>
+                        <input type="text" id="mtViewer" required placeholder="e.g., ImageViewer, AudioPlayer">
+                    </div>
+                    <div class="form-row">
+                        <label>
+                            <input type="checkbox" id="mtSupportsGallery"> Supports Gallery
+                        </label>
+                    </div>
+                    <div class="form-row">
+                        <label>
+                            <input type="checkbox" id="mtSupportsMetadata"> Supports Per-Item Metadata
+                        </label>
+                    </div>
+                    <div class="form-row">
+                        <label>Accepted Formats (comma-separated):</label>
+                        <input type="text" id="mtFormats" placeholder="e.g., .jpg, .png, .webp">
+                    </div>
+                    <div class="form-row">
+                        <label>Upload Destination:</label>
+                        <select id="mtDestination">
+                            <option value="cloudinary">Cloudinary</option>
+                            <option value="github">GitHub Releases</option>
+                            <option value="none">None (URL only)</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label>Description:</label>
+                        <textarea id="mtDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-row" style="text-align: right;">
+                        <button type="button" onclick="closeMediaTypeModal()">Cancel</button>
+                        <button type="submit">Save Media Type</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Type Modal -->
+    <div id="contentTypeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="contentTypeModalTitle">Add Content Type</span>
+                <button onclick="closeContentTypeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="contentTypeForm">
+                    <div class="form-row">
+                        <label>ID (unique identifier):</label>
+                        <input type="text" id="ctId" required placeholder="e.g., painting, photography">
+                    </div>
+                    <div class="form-row">
+                        <label>Name:</label>
+                        <input type="text" id="ctName" required placeholder="e.g., Painting, Photography">
+                    </div>
+                    <div class="form-row">
+                        <label>Icon (emoji):</label>
+                        <input type="text" id="ctIcon" required placeholder="e.g., 🎨, 📷">
+                    </div>
+                    <div class="form-row">
+                        <label>Media Type:</label>
+                        <select id="ctMediaType" required></select>
+                    </div>
+                    <div class="form-row">
+                        <label>Data File Path:</label>
+                        <input type="text" id="ctDataFile" required placeholder="e.g., data/painting.json">
+                    </div>
+                    <div class="form-row">
+                        <label>Description:</label>
+                        <textarea id="ctDescription" rows="2"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <label>Custom Fields:</label>
+                        <div id="fieldsList" class="field-list"></div>
+                        <button type="button" onclick="addField()" style="margin-top: 5px;">+ Add Field</button>
+                    </div>
+
+                    <div class="form-row" style="text-align: right;">
+                        <button type="button" onclick="closeContentTypeModal()">Cancel</button>
+                        <button type="submit">Save Content Type</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:5001';
+        let currentMediaTypes = [];
+        let currentContentTypes = [];
+        let editingMediaTypeIndex = null;
+        let editingContentTypeIndex = null;
+        let currentFields = [];
+
+        // Load configuration on page load
+        async function init() {
+            await AppConfig.load();
+            await loadConfigurations();
+            renderMediaTypes();
+            renderContentTypes();
+            populateMediaTypeSelect();
+        }
+
+        async function loadConfigurations() {
+            try {
+                // Load media-types.json
+                const mediaTypesResponse = await fetch(`${API_URL}/api/config/media-types`);
+                const mediaTypesData = await mediaTypesResponse.json();
+                currentMediaTypes = mediaTypesData.mediaTypes || [];
+
+                // Load categories.json
+                const categoriesResponse = await fetch(`${API_URL}/api/config/categories`);
+                const categoriesData = await categoriesResponse.json();
+                currentContentTypes = categoriesData.contentTypes || categoriesData.categories || [];
+
+                document.getElementById('statusText').textContent = 'Configuration loaded';
+            } catch (error) {
+                console.error('Error loading config:', error);
+                document.getElementById('statusText').textContent = 'Error loading configuration';
+            }
+        }
+
+        function renderMediaTypes() {
+            const grid = document.getElementById('mediaTypesGrid');
+            grid.innerHTML = currentMediaTypes.map((mt, index) => `
+                <div class="config-card">
+                    <div class="config-card-header">
+                        <span class="config-card-icon">${mt.icon}</span>
+                        <span class="config-card-title">${mt.name}</span>
+                    </div>
+                    <div class="config-card-body">
+                        <div class="config-field">
+                            <span class="config-field-label">ID:</span> ${mt.id}
+                        </div>
+                        <div class="config-field">
+                            <span class="config-field-label">Viewer:</span> ${mt.viewer}
+                        </div>
+                        <div class="config-field">
+                            ${mt.supportsGallery ? '<span class="config-badge">Gallery</span>' : ''}
+                            ${mt.supportsMetadata ? '<span class="config-badge">Metadata</span>' : ''}
+                        </div>
+                        <div class="config-field">
+                            <span class="config-field-label">Formats:</span> ${mt.acceptedFormats.join(', ')}
+                        </div>
+                        <div class="config-actions">
+                            <button class="btn-small" onclick="editMediaType(${index})">Edit</button>
+                            <button class="btn-small" onclick="deleteMediaType(${index})">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderContentTypes() {
+            const grid = document.getElementById('contentTypesGrid');
+            grid.innerHTML = currentContentTypes.map((ct, index) => {
+                const mediaType = AppConfig.getMediaType(ct.mediaType);
+                const fieldCount = (ct.fields?.optional || []).length;
+
+                return `
+                    <div class="config-card">
+                        <div class="config-card-header">
+                            <span class="config-card-icon">${ct.icon}</span>
+                            <span class="config-card-title">${ct.name}</span>
+                        </div>
+                        <div class="config-card-body">
+                            <div class="config-field">
+                                <span class="config-field-label">ID:</span> ${ct.id}
+                            </div>
+                            <div class="config-field">
+                                <span class="config-field-label">Media Type:</span>
+                                ${mediaType?.icon || ''} ${ct.mediaType}
+                            </div>
+                            <div class="config-field">
+                                <span class="config-field-label">Data File:</span> ${ct.dataFile}
+                            </div>
+                            <div class="config-field">
+                                <span class="config-field-label">Custom Fields:</span> ${fieldCount} field(s)
+                            </div>
+                            <div class="config-actions">
+                                <button class="btn-small" onclick="editContentType(${index})">Edit</button>
+                                <button class="btn-small" onclick="deleteContentType(${index})">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function populateMediaTypeSelect() {
+            const select = document.getElementById('ctMediaType');
+            select.innerHTML = currentMediaTypes.map(mt =>
+                `<option value="${mt.id}">${mt.icon} ${mt.name}</option>`
+            ).join('');
+        }
+
+        // Modal handlers
+        function openMediaTypeModal(index = null) {
+            editingMediaTypeIndex = index;
+            const modal = document.getElementById('mediaTypeModal');
+            const form = document.getElementById('mediaTypeForm');
+
+            if (index !== null) {
+                const mt = currentMediaTypes[index];
+                document.getElementById('mediaTypeModalTitle').textContent = 'Edit Media Type';
+                document.getElementById('mtId').value = mt.id;
+                document.getElementById('mtName').value = mt.name;
+                document.getElementById('mtIcon').value = mt.icon;
+                document.getElementById('mtViewer').value = mt.viewer;
+                document.getElementById('mtSupportsGallery').checked = mt.supportsGallery;
+                document.getElementById('mtSupportsMetadata').checked = mt.supportsMetadata;
+                document.getElementById('mtFormats').value = mt.acceptedFormats.join(', ');
+                document.getElementById('mtDestination').value = mt.uploadDestination;
+                document.getElementById('mtDescription').value = mt.description || '';
+                document.getElementById('mtId').disabled = true;
+            } else {
+                document.getElementById('mediaTypeModalTitle').textContent = 'Add Media Type';
+                form.reset();
+                document.getElementById('mtId').disabled = false;
+            }
+
+            modal.classList.add('active');
+        }
+
+        function closeMediaTypeModal() {
+            document.getElementById('mediaTypeModal').classList.remove('active');
+            editingMediaTypeIndex = null;
+        }
+
+        function openContentTypeModal(index = null) {
+            editingContentTypeIndex = index;
+            const modal = document.getElementById('contentTypeModal');
+            const form = document.getElementById('contentTypeForm');
+
+            if (index !== null) {
+                const ct = currentContentTypes[index];
+                document.getElementById('contentTypeModalTitle').textContent = 'Edit Content Type';
+                document.getElementById('ctId').value = ct.id;
+                document.getElementById('ctName').value = ct.name;
+                document.getElementById('ctIcon').value = ct.icon;
+                document.getElementById('ctMediaType').value = ct.mediaType;
+                document.getElementById('ctDataFile').value = ct.dataFile;
+                document.getElementById('ctDescription').value = ct.description || '';
+                currentFields = ct.fields?.optional || [];
+                document.getElementById('ctId').disabled = true;
+            } else {
+                document.getElementById('contentTypeModalTitle').textContent = 'Add Content Type';
+                form.reset();
+                currentFields = [];
+                document.getElementById('ctId').disabled = false;
+            }
+
+            renderFields();
+            modal.classList.add('active');
+        }
+
+        function closeContentTypeModal() {
+            document.getElementById('contentTypeModal').classList.remove('active');
+            editingContentTypeIndex = null;
+            currentFields = [];
+        }
+
+        // Field management
+        function addField() {
+            currentFields.push({
+                name: '',
+                type: 'text',
+                label: '',
+                placeholder: ''
+            });
+            renderFields();
+        }
+
+        function removeField(index) {
+            currentFields.splice(index, 1);
+            renderFields();
+        }
+
+        function renderFields() {
+            const list = document.getElementById('fieldsList');
+            list.innerHTML = currentFields.map((field, index) => `
+                <div class="field-item">
+                    <div>
+                        <input type="text" placeholder="Field Name (e.g., medium)"
+                               value="${field.name}"
+                               onchange="currentFields[${index}].name = this.value"
+                               style="width: 120px; margin-right: 5px;">
+                        <select onchange="currentFields[${index}].type = this.value"
+                                style="width: 100px; margin-right: 5px;">
+                            <option value="text" ${field.type === 'text' ? 'selected' : ''}>Text</option>
+                            <option value="textarea" ${field.type === 'textarea' ? 'selected' : ''}>Textarea</option>
+                        </select>
+                        <input type="text" placeholder="Label"
+                               value="${field.label}"
+                               onchange="currentFields[${index}].label = this.value"
+                               style="width: 120px;">
+                    </div>
+                    <button type="button" onclick="removeField(${index})">×</button>
+                </div>
+            `).join('');
+        }
+
+        // Form submissions
+        document.getElementById('mediaTypeForm').onsubmit = (e) => {
+            e.preventDefault();
+
+            const mediaType = {
+                id: document.getElementById('mtId').value,
+                name: document.getElementById('mtName').value,
+                icon: document.getElementById('mtIcon').value,
+                viewer: document.getElementById('mtViewer').value,
+                supportsGallery: document.getElementById('mtSupportsGallery').checked,
+                supportsMetadata: document.getElementById('mtSupportsMetadata').checked,
+                acceptedFormats: document.getElementById('mtFormats').value.split(',').map(f => f.trim()),
+                uploadDestination: document.getElementById('mtDestination').value,
+                description: document.getElementById('mtDescription').value
+            };
+
+            if (editingMediaTypeIndex !== null) {
+                currentMediaTypes[editingMediaTypeIndex] = mediaType;
+            } else {
+                currentMediaTypes.push(mediaType);
+            }
+
+            renderMediaTypes();
+            populateMediaTypeSelect();
+            closeMediaTypeModal();
+            document.getElementById('statusText').textContent = 'Media type saved (click Save All to persist)';
+        };
+
+        document.getElementById('contentTypeForm').onsubmit = (e) => {
+            e.preventDefault();
+
+            const contentType = {
+                id: document.getElementById('ctId').value,
+                name: document.getElementById('ctName').value,
+                icon: document.getElementById('ctIcon').value,
+                mediaType: document.getElementById('ctMediaType').value,
+                dataFile: document.getElementById('ctDataFile').value,
+                description: document.getElementById('ctDescription').value,
+                fields: {
+                    required: ['title', 'url'],
+                    optional: currentFields
+                }
+            };
+
+            if (editingContentTypeIndex !== null) {
+                currentContentTypes[editingContentTypeIndex] = contentType;
+            } else {
+                currentContentTypes.push(contentType);
+            }
+
+            renderContentTypes();
+            closeContentTypeModal();
+            document.getElementById('statusText').textContent = 'Content type saved (click Save All to persist)';
+        };
+
+        // CRUD operations
+        function editMediaType(index) {
+            openMediaTypeModal(index);
+        }
+
+        function deleteMediaType(index) {
+            if (confirm(`Delete media type "${currentMediaTypes[index].name}"?`)) {
+                currentMediaTypes.splice(index, 1);
+                renderMediaTypes();
+                document.getElementById('statusText').textContent = 'Media type deleted (click Save All to persist)';
+            }
+        }
+
+        function editContentType(index) {
+            openContentTypeModal(index);
+        }
+
+        function deleteContentType(index) {
+            if (confirm(`Delete content type "${currentContentTypes[index].name}"?`)) {
+                currentContentTypes.splice(index, 1);
+                renderContentTypes();
+                document.getElementById('statusText').textContent = 'Content type deleted (click Save All to persist)';
+            }
+        }
+
+        // Save/Export
+        async function saveAllConfigurations() {
+            if (!confirm('Save all configuration changes? This will update your config files.')) return;
+
+            try {
+                // Save media-types.json
+                const mtResponse = await fetch(`${API_URL}/api/config/media-types`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mediaTypes: currentMediaTypes })
+                });
+
+                // Save categories.json
+                const ctResponse = await fetch(`${API_URL}/api/config/categories`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contentTypes: currentContentTypes })
+                });
+
+                if (mtResponse.ok && ctResponse.ok) {
+                    document.getElementById('statusText').textContent = 'Configuration saved successfully!';
+                    alert('Configuration saved! Reload the page to see changes.');
+                } else {
+                    throw new Error('Failed to save configuration');
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                alert('Error saving configuration: ' + error.message);
+            }
+        }
+
+        function reloadConfigurations() {
+            if (confirm('Reload configurations from server? Unsaved changes will be lost.')) {
+                location.reload();
+            }
+        }
+
+        function exportConfigurations() {
+            const config = {
+                mediaTypes: { mediaTypes: currentMediaTypes },
+                contentTypes: { contentTypes: currentContentTypes }
+            };
+
+            const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `portfolio-config-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize on page load
+        init();
+    </script>
+</body>
+</html>
