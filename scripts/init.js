@@ -107,17 +107,37 @@ temp_uploads/
   console.log(chalk.green('  ✓'), '.gitignore');
 
   // Interactive environment configuration
-  console.log(chalk.cyan('\n🔧 Environment Configuration'));
-  console.log(chalk.gray('  The admin interface needs Cloudinary for image uploads.'));
-  console.log(chalk.gray('  Get free credentials at: ') + chalk.blue.underline('https://cloudinary.com/console'));
-  console.log(chalk.gray('  (Press Enter to skip and configure later)\n'));
+  console.log('\n' + chalk.cyan('╔═══════════════════════════════════════════════════════════════════╗'));
+  console.log(chalk.cyan('║') + chalk.bold.white('              🔧 Environment Configuration                       ') + chalk.cyan('║'));
+  console.log(chalk.cyan('╚═══════════════════════════════════════════════════════════════════╝'));
+  console.log('');
 
-  const cloudName = await prompt(chalk.yellow('  Cloudinary Cloud Name'));
-  const apiKey = await prompt(chalk.yellow('  Cloudinary API Key'));
-  const apiSecret = await prompt(chalk.yellow('  Cloudinary API Secret'));
+  // Cloudinary section
+  console.log(chalk.cyan('┌─ ') + chalk.bold('☁️  Cloudinary Configuration') + ' ' + chalk.bgBlue.white.bold(' FREE ACCOUNT '));
+  console.log(chalk.cyan('│'));
+  console.log(chalk.cyan('│  ') + chalk.gray('Required for image uploads in the admin interface'));
+  console.log(chalk.cyan('│  ') + chalk.gray('Sign up: ') + chalk.blue.underline('https://cloudinary.com'));
+  console.log(chalk.cyan('│  ') + chalk.gray('Get credentials: ') + chalk.blue.underline('https://cloudinary.com/console'));
+  console.log(chalk.cyan('│'));
+  console.log(chalk.cyan('│  ') + chalk.dim('💡 Tip: Press Enter to skip and configure later in .env file'));
+  console.log(chalk.cyan('└─'));
+  console.log('');
 
-  console.log(chalk.gray('\n  GitHub token is optional (for hosting large audio/video files)'));
-  const githubToken = await prompt(chalk.yellow('  GitHub Token'), 'skip');
+  const cloudName = await prompt(chalk.cyan('  ☁️  ') + chalk.white('Cloud Name'));
+  const apiKey = await prompt(chalk.cyan('  🔑 ') + chalk.white('API Key'));
+  const apiSecret = await prompt(chalk.cyan('  🔐 ') + chalk.white('API Secret'));
+
+  console.log('');
+  console.log(chalk.cyan('┌─ ') + chalk.bold('🐙 GitHub Configuration') + ' ' + chalk.bgGray.white.bold(' OPTIONAL '));
+  console.log(chalk.cyan('│'));
+  console.log(chalk.cyan('│  ') + chalk.gray('Only needed for hosting large audio/video files'));
+  console.log(chalk.cyan('│  ') + chalk.gray('Create token: ') + chalk.blue.underline('https://github.com/settings/tokens'));
+  console.log(chalk.cyan('│'));
+  console.log(chalk.cyan('│  ') + chalk.dim('💡 Tip: Enter "skip" or press Enter to skip'));
+  console.log(chalk.cyan('└─'));
+  console.log('');
+
+  const githubToken = await prompt(chalk.cyan('  🐙 ') + chalk.white('GitHub Token'), 'skip');
 
   // Create .env.example template
   const envExample = `# Cloudinary Configuration (Required for Admin uploads)
