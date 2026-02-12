@@ -1,0 +1,81 @@
+name: Publish to NPM
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version bump type (patch, minor, major) or specific version'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Verify package structure
+        run: |
+          echo "Checking required directories..."
+          ls -la engine/
+          ls -la scripts/
+          ls -la bin/
+          ls -la templates/
+
+      - name: 📦 Create package tarball (test)
+        run: npm pack --dry-run
+
+      - name: 🏷️ Bump version (if manual trigger)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          npm version ${{ github.event.inputs.version }} -m "chore: release v%s"
+          git push --follow-tags
+
+      - name: 📊 Build summary
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "### 📦 Publishing to NPM" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Package:** @mtldev514/retro-portfolio-engine" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** $VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "**Registry:** npmjs.org" >> $GITHUB_STEP_SUMMARY
+
+      - name: 🚀 Publish to NPM
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: ✅ Publication complete
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "### 🎉 Published successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Package URL:** https://www.npmjs.com/package/@mtldev514/retro-portfolio-engine" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** $VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Users can now install with:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "npm install @mtldev514/retro-portfolio-engine@$VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

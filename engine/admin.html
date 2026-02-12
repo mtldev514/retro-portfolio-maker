@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>YOUR-CONTROL-PANEL V1.0</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="fonts.css">
+</head>
+
+<body class="admin-page">
+
+    <div class="window">
+        <div class="title-bar">
+            <span data-i18n="admin_title">PORTFOLIO MANAGER V1.0</span>
+            <div class="title-bar-controls">
+                <button>_</button>
+                <button>[]</button>
+                <button onclick="window.location.href='/'">X</button>
+            </div>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab active" onclick="showTab('upload', this)" data-i18n="admin_tab_add">Add Media</div>
+            <div class="tab" onclick="showTab('manage', this)" data-i18n="admin_tab_manage">Manage Content</div>
+            <div class="tab" onclick="showTab('bulkedit', this)" data-i18n="admin_tab_bulk">Bulk Edit</div>
+            <div class="tab" onclick="showTab('translations', this)" data-i18n="admin_tab_translations">Translations</div>
+            <div class="tab" onclick="showTab('config', this)" data-i18n="admin_tab_config">Configuration</div>
+        </div>
+
+        <!-- UPLOAD TAB -->
+        <div id="upload" class="tab-content active">
+            <div id="bulkDropZone" class="bulk-drop-zone">
+                <p style="font-size: 14px; font-weight: bold;" data-i18n="admin_drop_title">DROP FILES HERE</p>
+                <p class="admin-muted" data-i18n="admin_drop_subtitle">or click to browse — images + audio supported</p>
+                <input type="file" id="bulkFileInput" multiple accept="image/*,audio/*" style="display:none;">
+            </div>
+
+            <div id="bulkQueue" class="bulk-queue" style="display:none;">
+                <div class="admin-flex-between" style="margin-bottom: 8px;">
+                    <b id="bulkCount">0 files queued</b>
+                    <div style="display: flex; gap: 5px;">
+                        <button type="button" class="action" style="margin:0; font-size:11px;" onclick="clearBulkQueue()">Clear All</button>
+                        <button type="button" class="action src-btn-active" style="margin:0; font-size:11px;" id="bulkUploadBtn" onclick="startBulkUpload()">UPLOAD ALL</button>
+                    </div>
+                </div>
+                <div id="bulkItems" class="bulk-items"></div>
+            </div>
+        </div>
+
+        <!-- BULK EDIT TAB -->
+        <div id="bulkedit" class="tab-content">
+            <div class="admin-flex-between">
+                <label>Select Category:</label>
+                <select id="bulkEditCategory" onchange="loadBulkEditContent()" style="width: 150px;">
+                    <option value="">-- Select Category --</option>
+                    <option value="painting">Painting</option>
+                    <option value="drawing">Drawing</option>
+                    <option value="photography">Photography</option>
+                    <option value="sculpting">Sculpting</option>
+                    <option value="music">Music</option>
+                    <option value="projects">Projects</option>
+                </select>
+            </div>
+            <div class="admin-hint">
+                Select items below and apply bulk edits to titles and descriptions. Changes apply to the English (EN) version.
+            </div>
+            <div id="bulkEditList" class="bulk-edit-list">
+                <p align="center" class="admin-muted">Select a category to begin bulk editing</p>
+            </div>
+            <div id="bulkEditActions" style="display: none;">
+                <div class="admin-flex-between" style="margin-top: 15px; padding-top: 10px; border-top: 2px solid var(--admin-win-border-dark);">
+                    <div>
+                        <span id="bulkEditSelectedCount" style="font-weight: bold;">0 selected</span>
+                    </div>
+                    <button class="action src-btn-active" style="margin: 0; font-size: 11px;" onclick="showBulkEditForm()">Edit Selected Items</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MANAGE CONTENT TAB -->
+        <div id="manage" class="tab-content">
+            <div class="admin-flex-between">
+                <label>Filter Category:</label>
+                <select id="manageCategory" onchange="loadContent()" style="width: 150px;">
+                    <option value="all">All Categories</option>
+                    <option value="painting">Painting</option>
+                    <option value="drawing">Drawing</option>
+                    <option value="photography">Photography</option>
+                    <option value="sculpting">Sculpting</option>
+                    <option value="music">Music</option>
+                    <option value="projects">Projects</option>
+                </select>
+                <button class="action" onclick="loadContent()" style="margin: 0; font-size: 11px;">Refresh List</button>
+            </div>
+            <div id="contentList" class="admin-content-list">
+                <!-- Populated by JS -->
+                <p align="center">Loading content...</p>
+            </div>
+        </div>
+
+        <!-- TRANSLATIONS TAB -->
+        <div id="translations" class="tab-content">
+            <div class="admin-flex-between">
+                <label>Language:</label>
+                <select id="langSelect" onchange="loadTranslations()" style="width: 100px;">
+                    <option value="en">English</option>
+                    <option value="fr">Français</option>
+                    <option value="ht">Haitian</option>
+                    <option value="mx">Spanish (MX)</option>
+                    <option value="qc">Québécois</option>
+                </select>
+                <button class="action" onclick="askAgentForTranslation()"
+                    style="margin: 0 0 0 10px; font-size: 11px;">Ask Agent for Missing</button>
+            </div>
+            <div id="translationGrid" class="translation-grid">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- CONFIG TAB -->
+        <div id="config" class="tab-content">
+            <p>Cloudinary status: <span class="admin-connected">CONNECTED</span></p>
+            <p>Current Server Port: 5001</p>
+            <hr>
+            <p style="font-size: 12px;">Need high-res uploads? Make sure your .env is active.</p>
+
+            <div class="field-row" style="margin-top: 20px;">
+                <button onclick="window.location.href='config-manager.html'" style="width: 100%; height: 50px; font-weight: bold; cursor: pointer; background: linear-gradient(to bottom, #0080ff, #0060c0); color: white; border: 2px outset #fff;">
+                    ⚙️ ADVANCED CONFIGURATION MANAGER
+                </button>
+                <p class="admin-muted" style="margin-top: 5px;">
+                    * Manage media types, content types, and custom fields through a visual interface
+                </p>
+            </div>
+
+            <hr style="margin: 20px 0;">
+
+            <div class="field-row" style="margin-top: 20px;">
+                <button onclick="syncGitHub()" style="width: 100%; height: 40px; font-weight: bold; cursor: pointer;">
+                    <img src="https://github.githubassets.com/favicons/favicon.svg" width="16"
+                        style="vertical-align: middle;">
+                    SYNC GITHUB PROJECTS
+                </button>
+                <p class="admin-muted" style="margin-top: 5px;">
+                    * This will fetch repositories for <b>mtldev514</b>.
+                    Add GITHUB_TOKEN to .env to include private repos.
+                </p>
+            </div>
+        </div>
+
+        <div class="console" id="console">
+            <span data-i18n="admin_kernel_ready">[OS-KERNEL] Ready...</span>
+        </div>
+
+        <div class="status-bar">
+            <span data-i18n="admin_logged_as">Logged in as</span> <span data-i18n="admin_user">ADMIN</span> | <span data-i18n="admin_system">System: AI-Enhanced</span> | <span id="current-date"></span>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:5001';
+
+        function showTab(tabId, el) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            if (el) el.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+
+            if (tabId === 'translations') loadTranslations();
+            if (tabId === 'manage') loadContent();
+        }
+
+        // ── Bulk Upload ──
+        const AUDIO_EXTS = ['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.aac'];
+        const IMAGE_CATS = ['painting', 'drawing', 'photography', 'sculpting'];
+        let bulkFiles = []; // { file, isAudio, title, category }
+
+        const dropZone = document.getElementById('bulkDropZone');
+        const fileInput = document.getElementById('bulkFileInput');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            addFiles(e.dataTransfer.files);
+        });
+        fileInput.addEventListener('change', (e) => { addFiles(e.target.files); fileInput.value = ''; });
+
+        function addFiles(fileList) {
+            for (const file of fileList) {
+                const ext = '.' + file.name.split('.').pop().toLowerCase();
+                const isAudio = AUDIO_EXTS.includes(ext);
+                const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+                bulkFiles.push({
+                    file,
+                    isAudio,
+                    title: baseName,
+                    category: isAudio ? 'music' : 'painting'
+                });
+            }
+            renderBulkQueue();
+        }
+
+        function bulkUpdateTitle(idx, val) { bulkFiles[idx].title = val; }
+        function bulkUpdateCat(idx, val) { bulkFiles[idx].category = val; }
+        function bulkRemove(idx) { bulkFiles.splice(idx, 1); renderBulkQueue(); }
+
+        function renderBulkQueue() {
+            const queue = document.getElementById('bulkQueue');
+            const items = document.getElementById('bulkItems');
+            const count = document.getElementById('bulkCount');
+
+            if (bulkFiles.length === 0) {
+                queue.style.display = 'none';
+                return;
+            }
+            queue.style.display = 'block';
+            count.textContent = `${bulkFiles.length} file${bulkFiles.length > 1 ? 's' : ''} queued`;
+
+            let html = '';
+            bulkFiles.forEach((entry, i) => {
+                const thumbContent = entry.isAudio
+                    ? '<span style="font-size:24px;">&#9835;</span>'
+                    : `<img src="${URL.createObjectURL(entry.file)}">`;
+
+                let catOptions = '';
+                if (entry.isAudio) {
+                    catOptions = '<option value="music">Music</option>';
+                } else {
+                    catOptions = IMAGE_CATS.map(c =>
+                        `<option value="${c}"${c === entry.category ? ' selected' : ''}>${c.charAt(0).toUpperCase() + c.slice(1)}</option>`
+                    ).join('');
+                }
+
+                html += `<div class="bulk-item">
+                    <div class="bulk-thumb">${thumbContent}</div>
+                    <div class="bulk-fields">
+                        <input type="text" value="${entry.title.replace(/"/g, '&quot;')}" placeholder="Title" onchange="bulkUpdateTitle(${i}, this.value)">
+                        <select onchange="bulkUpdateCat(${i}, this.value)"${entry.isAudio ? ' disabled' : ''}>${catOptions}</select>
+                    </div>
+                    <span class="bulk-status" id="bulk-status-${i}"></span>
+                    <button type="button" class="bulk-remove" onclick="bulkRemove(${i})">&times;</button>
+                </div>`;
+            });
+            items.innerHTML = html;
+        }
+
+        function clearBulkQueue() {
+            bulkFiles = [];
+            renderBulkQueue();
+        }
+
+        async function startBulkUpload() {
+            if (bulkFiles.length === 0) return;
+
+            const consoleBox = document.getElementById('console');
+            const uploadBtn = document.getElementById('bulkUploadBtn');
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'UPLOADING...';
+
+            consoleBox.innerHTML += `<br>> Starting bulk upload of ${bulkFiles.length} file(s)...`;
+
+            const formData = new FormData();
+            bulkFiles.forEach((entry, i) => {
+                formData.append(`file_${i}`, entry.file);
+                formData.append(`title_${i}`, entry.title);
+                formData.append(`category_${i}`, entry.category);
+            });
+
+            // Mark all as uploading
+            bulkFiles.forEach((_, i) => {
+                const s = document.getElementById(`bulk-status-${i}`);
+                if (s) s.textContent = '...';
+            });
+
+            try {
+                const res = await fetch(`${API_URL}/api/upload-bulk`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await res.json();
+
+                // Mark individual results
+                (result.results || []).forEach(r => {
+                    const idx = bulkFiles.findIndex(f => f.file.name === r.file);
+                    if (idx >= 0) {
+                        const s = document.getElementById(`bulk-status-${idx}`);
+                        if (s) { s.textContent = 'OK'; s.classList.add('con-success'); }
+                    }
+                });
+                (result.errors || []).forEach(r => {
+                    const idx = bulkFiles.findIndex(f => f.file.name === r.file);
+                    if (idx >= 0) {
+                        const s = document.getElementById(`bulk-status-${idx}`);
+                        if (s) { s.textContent = 'FAIL'; s.classList.add('con-error'); }
+                    }
+                });
+
+                consoleBox.innerHTML += `<br><span class="con-success">> Bulk upload complete: ${result.uploaded} uploaded, ${result.failed} failed.</span>`;
+
+                if (result.uploaded > 0) {
+                    setTimeout(() => {
+                        bulkFiles = bulkFiles.filter((_, i) => {
+                            const s = document.getElementById(`bulk-status-${i}`);
+                            return s && !s.classList.contains('con-success');
+                        });
+                        renderBulkQueue();
+                    }, 2000);
+                }
+            } catch (err) {
+                consoleBox.innerHTML += `<br><span class="con-error">> NETWORK ERROR: ${err.message}</span>`;
+            }
+
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = 'UPLOAD ALL';
+        }
+
+        async function loadTranslations() {
+            const lang = document.getElementById('langSelect').value;
+            const grid = document.getElementById('translationGrid');
+            grid.innerHTML = 'Loading...';
+
+            try {
+                const res = await fetch(`${API_URL}/api/translations`);
+                const all = await res.json();
+                const trans = all[lang];
+
+                let html = '';
+                Object.keys(trans).forEach(key => {
+                    const safeVal = (trans[key] || '').replace(/"/g, '&quot;');
+                    html += `<div class="trans-item">
+                        <label style="font-size: 10px;">${key}</label>
+                        <input type="text" value="${safeVal}" onblur="updateTrans('${lang}', '${key}', this.value)">
+                    </div>`;
+                });
+                grid.innerHTML = html;
+            } catch (err) {
+                grid.innerHTML = 'Error loading translations.';
+            }
+        }
+
+        async function updateTrans(lang, key, value) {
+            await fetch(`${API_URL}/api/translations/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ lang, key, value })
+            });
+            document.getElementById('console').innerHTML += `<br>> Translation "${key}" updated for [${lang}].`;
+        }
+
+        async function askAgentForTranslation() {
+            const consoleBox = document.getElementById('console');
+            consoleBox.innerHTML += `<br>> Scanning for missing translation keys...`;
+
+            try {
+                const res = await fetch(`${API_URL}/api/translations/missing`);
+                const missing = await res.json();
+
+                if (Object.keys(missing).length === 0) {
+                    consoleBox.innerHTML += `<br><span class="con-info">> System status: All languages synchronized.</span>`;
+                    return;
+                }
+
+                let report = "Missing keys found:\\n";
+                for (const lang in missing) {
+                    report += `[${lang.toUpperCase()}]: ${missing[lang].join(', ')}\\n`;
+                }
+
+                consoleBox.innerHTML += `<br><span class="con-warn">> AGENT REQUIRED: ${Object.keys(missing).length} languages have missing keys.</span>`;
+                consoleBox.innerHTML += `<br><span class="con-hi">> TIP: Ask Antigravity in the chat to 'Translate the missing keys for ${Object.keys(missing).join(', ')}' and they will be fixed instantly!</span>`;
+            } catch (err) {
+                consoleBox.innerHTML += `<br><span class="con-error">> Error checking missing keys.</span>`;
+            }
+        }
+
+        const IMAGE_CATEGORIES = ['painting', 'drawing', 'photography', 'sculpting'];
+        let loadedContent = {}; // cached for pile picker
+
+        async function loadContent() {
+            const cat = document.getElementById('manageCategory').value;
+            const list = document.getElementById('contentList');
+            list.innerHTML = '<p align="center">Loading content...</p>';
+
+            try {
+                const res = await fetch(`${API_URL}/api/content`);
+                const all = await res.json();
+                loadedContent = all;
+
+                let html = '';
+                Object.keys(all).forEach(category => {
+                    const items = all[category];
+                    if (cat !== 'all' && cat !== category) return;
+                    if (!items || items.length === 0) return;
+
+                    html += `<h4 class="content-header">${category.toUpperCase()}</h4>`;
+                    items.forEach(item => {
+                        const titleStr = (typeof item.title === 'object' && item.title !== null) ? (item.title.en || '') : (item.title || '');
+                        const id = item.id || titleStr;
+                        const safeId = id.replace(/"/g, '&quot;');
+                        const galleryCount = (item.gallery && item.gallery.length) ? item.gallery.length + 1 : 0;
+                        const pileBadge = galleryCount > 1 ? ` <span class="admin-muted">[${galleryCount} imgs]</span>` : '';
+                        const isImage = IMAGE_CATEGORIES.includes(category);
+                        const isPile = galleryCount > 1;
+                        const pileButtonText = isPile ? 'Merge' : 'Pile';
+                        const pileButtonTitle = isPile ? 'Merge this pile into another pile' : 'Move this item into another pile';
+                        html += `<div class="content-row">
+                            <div style="flex:1"><b>${titleStr}</b>${pileBadge} <span class="admin-muted">(${item.date || 'N/A'})</span></div>
+                            <div>
+                                ${isImage ? `<button type="button" class="pile-btn" style="font-size:10px" data-category="${category}" data-id="${safeId}" title="${pileButtonTitle}">${pileButtonText}</button>` : ''}
+                                <button type="button" class="edit-btn" style="font-size:10px" data-category="${category}" data-id="${safeId}">Edit</button>
+                                <button type="button" class="delete-btn con-error" style="font-size:10px;margin-left:5px" data-category="${category}" data-id="${safeId}">Delete</button>
+                                <span class="delete-status" style="font-size:9px;margin-left:5px"></span>
+                            </div>
+                        </div>`;
+                    });
+                });
+
+                list.innerHTML = html || '<p align="center">No content found for this category.</p>';
+            } catch (err) {
+                list.innerHTML = '<p align="center" class="con-error">Error loading content list.</p>';
+            }
+        }
+
+        // Delegated click handler for content list
+        document.getElementById('contentList').addEventListener('click', (e) => {
+            const editBtn = e.target.closest('.edit-btn');
+            if (editBtn) {
+                e.stopPropagation();
+                window.location.href = `edit.html?category=${encodeURIComponent(editBtn.dataset.category)}&id=${encodeURIComponent(editBtn.dataset.id)}`;
+                return;
+            }
+
+            const pileBtn = e.target.closest('.pile-btn');
+            if (pileBtn) {
+                e.stopPropagation();
+                openPilePicker(pileBtn);
+                return;
+            }
+
+            const deleteBtn = e.target.closest('.delete-btn');
+            if (deleteBtn) {
+                e.stopPropagation();
+                const statusSpan = deleteBtn.parentElement.querySelector('.delete-status');
+                if (deleteBtn.dataset.armed === 'true') {
+                    deleteItem(deleteBtn.dataset.category, deleteBtn.dataset.id, statusSpan);
+                } else {
+                    deleteBtn.dataset.armed = 'true';
+                    deleteBtn.innerText = 'Sure?';
+                    deleteBtn.style.fontWeight = 'bold';
+                    statusSpan.innerHTML = '<span class="con-warn">click again to confirm</span>';
+                    setTimeout(() => {
+                        deleteBtn.dataset.armed = 'false';
+                        deleteBtn.innerText = 'Delete';
+                        deleteBtn.style.fontWeight = 'normal';
+                        statusSpan.innerHTML = '';
+                    }, 3000);
+                }
+            }
+        });
+
+        function openPilePicker(btn) {
+            // Close any existing picker
+            document.querySelectorAll('.pile-picker').forEach(p => p.remove());
+
+            const category = btn.dataset.category;
+            const sourceId = btn.dataset.id;
+
+            // Get source item to check if it's a pile
+            const sourceItem = (loadedContent[category] || []).find(item => {
+                const id = item.id || (typeof item.title === 'string' ? item.title : (item.title && item.title.en) || '');
+                return id === sourceId;
+            });
+            const sourceGalleryCount = (sourceItem && sourceItem.gallery && sourceItem.gallery.length) ? sourceItem.gallery.length + 1 : 1;
+            const isSourcePile = sourceGalleryCount > 1;
+
+            const items = (loadedContent[category] || []).filter(item => {
+                const id = item.id || (typeof item.title === 'string' ? item.title : (item.title && item.title.en) || '');
+                return id !== sourceId;
+            });
+
+            if (items.length === 0) {
+                const consoleBox = document.getElementById('console');
+                consoleBox.innerHTML += `<br><span class="con-warn">> No other items in ${category} to ${isSourcePile ? 'merge' : 'pile'} into.</span>`;
+                return;
+            }
+
+            const picker = document.createElement('div');
+            picker.className = 'pile-picker';
+
+            let html = `<div class="pile-picker-title">${isSourcePile ? 'Merge into:' : 'Move into:'}</div>`;
+            if (isSourcePile) {
+                html += `<div style="padding: 4px 8px; font-size: 9px; background: #fffff0; border-bottom: 1px solid var(--admin-win-border-dark);">This will merge all ${sourceGalleryCount} images into the selected pile</div>`;
+            }
+            items.forEach(item => {
+                const titleStr = (typeof item.title === 'object' && item.title !== null) ? (item.title.en || '') : (item.title || '');
+                const id = item.id || titleStr;
+                const safeId = id.replace(/"/g, '&quot;');
+                const galleryCount = (item.gallery && item.gallery.length) ? item.gallery.length + 1 : 1;
+                html += `<div class="pile-picker-item" data-target-id="${safeId}">
+                    ${titleStr} <span class="admin-muted">(${galleryCount} img${galleryCount > 1 ? 's' : ''})</span>
+                </div>`;
+            });
+            picker.innerHTML = html;
+
+            // Position it near the button
+            btn.parentElement.style.position = 'relative';
+            btn.parentElement.appendChild(picker);
+
+            // Handle pick
+            picker.addEventListener('click', async (ev) => {
+                const pickItem = ev.target.closest('.pile-picker-item');
+                if (!pickItem) return;
+
+                const targetId = pickItem.dataset.targetId;
+                picker.innerHTML = '<div class="pile-picker-title">Moving...</div>';
+
+                try {
+                    const res = await fetch(`${API_URL}/api/content/move-to-pile`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ category, sourceId, targetId })
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                        document.getElementById('console').innerHTML += `<br><span class="con-success">> Moved into pile (${result.targetGalleryCount + 1} images total).</span>`;
+                        picker.remove();
+                        loadContent();
+                    } else {
+                        document.getElementById('console').innerHTML += `<br><span class="con-error">> Pile error: ${result.error}</span>`;
+                        picker.remove();
+                    }
+                } catch (err) {
+                    document.getElementById('console').innerHTML += `<br><span class="con-error">> Network error: ${err.message}</span>`;
+                    picker.remove();
+                }
+            });
+
+            // Close on outside click
+            setTimeout(() => {
+                document.addEventListener('click', function closePicker(ev) {
+                    if (!picker.contains(ev.target) && ev.target !== btn) {
+                        picker.remove();
+                        document.removeEventListener('click', closePicker);
+                    }
+                });
+            }, 0);
+        }
+
+        async function deleteItem(category, id, statusSpan) {
+            statusSpan.innerHTML = '<span class="con-hi">deleting...</span>';
+            try {
+                const res = await fetch(`${API_URL}/api/content/delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category, id })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    document.getElementById('console').innerHTML += `<br><span class="con-warn">> Item "${id}" deleted from ${category}.</span>`;
+                    statusSpan.innerHTML = '<span class="con-success">deleted!</span>';
+                    setTimeout(() => loadContent(), 500);
+                } else {
+                    statusSpan.innerHTML = `<span class="con-error">error: ${result.error}</span>`;
+                }
+            } catch (err) {
+                statusSpan.innerHTML = '<span class="con-error">network error</span>';
+            }
+        }
+
+        async function syncGitHub() {
+            const consoleBox = document.getElementById('console');
+            consoleBox.innerHTML += `<br>> Initiating GitHub synchronization...`;
+
+            try {
+                const res = await fetch(`${API_URL}/api/github/sync`, { method: 'POST' });
+                const result = await res.json();
+
+                if (result.success) {
+                    consoleBox.innerHTML += `<br><span class="con-success">> GitHub Sync Successful: ${result.count} repositories fetched.</span>`;
+                    consoleBox.innerHTML += `<br><span class="con-info">> ${result.count} projects updated in data/projects.json.</span>`;
+                } else {
+                    consoleBox.innerHTML += `<br><span class="con-error">> GitHub Sync Failed: ${result.error}</span>`;
+                }
+            } catch (err) {
+                consoleBox.innerHTML += `<br><span class="con-error">> Network Error during GitHub Sync.</span>`;
+            }
+        }
+
+        // Auto-switch to Manage tab if returning from edit page
+        if (window.location.hash === '#manage') {
+            const manageTab = document.querySelectorAll('.tab')[1];
+            if (manageTab) showTab('manage', manageTab);
+        }
+
+        // ── Bulk Edit ──
+        let bulkEditItems = [];
+        let bulkEditSelected = [];
+
+        async function loadBulkEditContent() {
+            const category = document.getElementById('bulkEditCategory').value;
+            const list = document.getElementById('bulkEditList');
+            const actions = document.getElementById('bulkEditActions');
+
+            if (!category) {
+                list.innerHTML = '<p align="center" class="admin-muted">Select a category to begin bulk editing</p>';
+                actions.style.display = 'none';
+                return;
+            }
+
+            list.innerHTML = '<p align="center">Loading...</p>';
+
+            try {
+                const res = await fetch(`${API_URL}/api/content`);
+                const all = await res.json();
+                bulkEditItems = all[category] || [];
+                bulkEditSelected = [];
+
+                if (bulkEditItems.length === 0) {
+                    list.innerHTML = '<p align="center" class="admin-muted">No items in this category</p>';
+                    actions.style.display = 'none';
+                    return;
+                }
+
+                renderBulkEditList();
+                actions.style.display = 'block';
+            } catch (err) {
+                list.innerHTML = '<p align="center" class="con-error">Error loading content</p>';
+            }
+        }
+
+        function renderBulkEditList() {
+            const list = document.getElementById('bulkEditList');
+            let html = '<div style="background: white; border: 2px inset var(--admin-win-border-dark); padding: 10px; max-height: 300px; overflow-y: auto;">';
+
+            bulkEditItems.forEach((item, index) => {
+                const titleStr = (typeof item.title === 'object' && item.title !== null) ? (item.title.en || '') : (item.title || '');
+                const descStr = (typeof item.description === 'object' && item.description !== null) ? (item.description.en || '') : (item.description || '');
+                const isSelected = bulkEditSelected.includes(index);
+                const checkedAttr = isSelected ? ' checked' : '';
+
+                html += `<div class="bulk-edit-row">
+                    <input type="checkbox" id="bulk-check-${index}" ${checkedAttr} onchange="toggleBulkEditItem(${index})">
+                    <label for="bulk-check-${index}" style="flex: 1; cursor: pointer;">
+                        <b>${titleStr}</b>
+                        ${descStr ? `<span class="admin-muted" style="display: block; font-size: 10px;">${descStr.substring(0, 60)}${descStr.length > 60 ? '...' : ''}</span>` : ''}
+                    </label>
+                </div>`;
+            });
+
+            html += '</div>';
+            list.innerHTML = html;
+            updateBulkEditCount();
+        }
+
+        function toggleBulkEditItem(index) {
+            const idx = bulkEditSelected.indexOf(index);
+            if (idx >= 0) {
+                bulkEditSelected.splice(idx, 1);
+            } else {
+                bulkEditSelected.push(index);
+            }
+            updateBulkEditCount();
+        }
+
+        function updateBulkEditCount() {
+            document.getElementById('bulkEditSelectedCount').textContent = `${bulkEditSelected.length} selected`;
+        }
+
+        function showBulkEditForm() {
+            if (bulkEditSelected.length === 0) {
+                alert('Please select at least one item to edit');
+                return;
+            }
+
+            const category = document.getElementById('bulkEditCategory').value;
+            const selectedItems = bulkEditSelected.map(i => bulkEditItems[i]);
+
+            // Create modal
+            const modal = document.createElement('div');
+            modal.className = 'bulk-edit-modal';
+            modal.innerHTML = `
+                <div class="bulk-edit-modal-content window" style="width: 600px;">
+                    <div class="title-bar">
+                        <span>BULK EDIT: ${bulkEditSelected.length} items</span>
+                        <div class="title-bar-controls">
+                            <button onclick="closeBulkEditModal()">X</button>
+                        </div>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div class="admin-hint">
+                            Leave fields blank to keep existing values. Changes apply to English (EN) version only.
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="bulkUpdateTitle"> Update Title:
+                            </label>
+                            <input type="text" id="bulkTitleValue" placeholder="New title for all selected items">
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="bulkUpdateDesc"> Update Description:
+                            </label>
+                            <textarea id="bulkDescValue" placeholder="New description for all selected items"></textarea>
+                        </div>
+                        <div class="button-bar">
+                            <button type="button" onclick="closeBulkEditModal()">Cancel</button>
+                            <button type="button" class="save-btn" onclick="applyBulkEdit()">Apply Changes</button>
+                        </div>
+                    </div>
+                    <div class="console short" id="bulkEditConsole">[BULK-EDIT] Ready...</div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+        }
+
+        window.closeBulkEditModal = function() {
+            const modal = document.querySelector('.bulk-edit-modal');
+            if (modal) modal.remove();
+        };
+
+        window.applyBulkEdit = async function() {
+            const updateTitle = document.getElementById('bulkUpdateTitle').checked;
+            const updateDesc = document.getElementById('bulkUpdateDesc').checked;
+            const titleValue = document.getElementById('bulkTitleValue').value;
+            const descValue = document.getElementById('bulkDescValue').value;
+            const category = document.getElementById('bulkEditCategory').value;
+            const consoleBox = document.getElementById('bulkEditConsole');
+
+            if (!updateTitle && !updateDesc) {
+                consoleBox.innerHTML += '<br><span class="con-warn">> Please select at least one field to update</span>';
+                return;
+            }
+
+            consoleBox.innerHTML += `<br>> Applying bulk edit to ${bulkEditSelected.length} items...`;
+
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const itemIndex of bulkEditSelected) {
+                const item = bulkEditItems[itemIndex];
+                const itemId = item.id || (typeof item.title === 'string' ? item.title : (item.title && item.title.en) || '');
+
+                const updates = {};
+
+                if (updateTitle && titleValue) {
+                    const original = item.title;
+                    if (typeof original === 'object' && original !== null) {
+                        updates.title = { ...original, en: titleValue };
+                    } else {
+                        updates.title = { en: titleValue, fr: titleValue, mx: titleValue, ht: titleValue };
+                    }
+                }
+
+                if (updateDesc && descValue) {
+                    const original = item.description;
+                    if (typeof original === 'object' && original !== null) {
+                        updates.description = { ...original, en: descValue };
+                    } else {
+                        updates.description = { en: descValue, fr: descValue, mx: descValue, ht: descValue };
+                    }
+                }
+
+                try {
+                    const res = await fetch(`${API_URL}/api/content/update`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ category, id: itemId, updates })
+                    });
+
+                    const result = await res.json();
+                    if (result.success) {
+                        successCount++;
+                    } else {
+                        errorCount++;
+                    }
+                } catch (err) {
+                    errorCount++;
+                }
+            }
+
+            consoleBox.innerHTML += `<br><span class="con-success">> Bulk edit complete: ${successCount} updated, ${errorCount} failed</span>`;
+
+            if (successCount > 0) {
+                document.getElementById('console').innerHTML += `<br><span class="con-success">> Bulk edited ${successCount} items in ${category}</span>`;
+                setTimeout(() => {
+                    closeBulkEditModal();
+                    loadBulkEditContent();
+                }, 1500);
+            }
+        };
+
+    </script>
+</body>
+
+</html>

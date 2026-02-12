@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="header_title">alex a montreal</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="fonts.css">
+
+    <!-- Load configuration first (supports remote/local sources) -->
+    <script src="js/config-loader.js"></script>
+    <script src="js/i18n.js" defer></script>
+    <script src="js/themes.js" defer></script>
+    <script src="js/render.js" defer></script>
+    <script src="js/router.js" defer></script>
+    <script src="js/media.js" defer></script>
+    <script src="js/sparkle.js" defer></script>
+    <script src="js/effects.js" defer></script>
+    <!-- Initialize app after all modules loaded -->
+    <script src="js/init.js" defer></script>
+</head>
+
+<body>
+    <div id="rotate-overlay">
+        <div class="rotate-content">
+            <div class="rotate-icon">📺↩️</div>
+            <h2>ROTATE YOUR DEVICE!</h2>
+            <p>This website was designed for<br><b>DESKTOP COMPUTERS</b></p>
+            <p class="rotate-sub">Please turn your phone sideways<br>for the full retro experience!</p>
+            <div class="rotate-ascii">
+                ┌─────────────────┐<br>
+                │&nbsp;&nbsp;&nbsp;╔══════════╗&nbsp;&nbsp;&nbsp;│<br>
+                │&nbsp;&nbsp;&nbsp;║&nbsp;&nbsp;TURN&nbsp;&nbsp;&nbsp;║&nbsp;&nbsp;&nbsp;│<br>
+                │&nbsp;&nbsp;&nbsp;║&nbsp;&nbsp;&nbsp;ME!&nbsp;&nbsp;&nbsp;║&nbsp;&nbsp;&nbsp;│<br>
+                │&nbsp;&nbsp;&nbsp;╚══════════╝&nbsp;&nbsp;&nbsp;│<br>
+                └─────────────────┘<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⟲
+            </div>
+            <p class="rotate-blink">*** LANDSCAPE MODE REQUIRED ***</p>
+        </div>
+    </div>
+    <div class="container">
+        <header>
+            <div class="settings-switcher">
+                <button class="settings-btn">⚙</button>
+                <div class="settings-dropdown">
+                    <div class="settings-section-label">Effects</div>
+                    <div class="settings-option" onclick="togglePartyMode()">
+                        <span id="party-mode-indicator">✨</span> Party Mode
+                    </div>
+                    <div class="settings-divider"></div>
+                    <div class="settings-section-label">Theme</div>
+                    <div class="settings-option" onclick="themes.changeTheme('jr16')"><span class="theme-icon">🌿</span>
+                        JR-16</div>
+                    <div class="settings-option" onclick="themes.changeTheme('beton')"><span
+                            class="theme-icon">🌫️</span> Béton</div>
+                    <div class="settings-option" onclick="themes.changeTheme('ciment')"><span
+                            class="theme-icon">🪨</span> Ciment</div>
+                    <div class="settings-option" onclick="themes.changeTheme('bubblegum')"><span
+                            class="theme-icon">🍬</span> Bubble Gum</div>
+                    <div class="settings-divider"></div>
+                    <div class="settings-section-label">Language</div>
+                    <div class="settings-option" onclick="i18n.changeLang('en')"><span class="lang-flag">🇬🇧🇨🇦</span>
+                        English</div>
+                    <div class="settings-option" onclick="i18n.changeLang('fr')"><span class="lang-flag">⚜️🇨🇦</span>
+                        French</div>
+                </div>
+            </div>
+            <h1 id="page-title" data-i18n="header_title">alex a montreal</h1>
+        </header>
+
+        <div class="marquee-container">
+            <marquee scrollamount="5" data-i18n="marquee"></marquee>
+        </div>
+
+        <div class="content">
+            <aside class="sidebar">
+                <div class="winamp">
+                    <div class="winamp-titlebar">
+                        <span class="winamp-grip"></span>
+                        <span class="winamp-title">Radyo</span>
+                        <span class="winamp-grip"></span>
+                    </div>
+                    <div class="winamp-display">
+                        <div class="winamp-time-row">
+                            <span class="winamp-time" id="winamp-time">00:00</span>
+                            <span class="winamp-time-sep">/</span>
+                            <span class="winamp-duration" id="winamp-duration">00:00</span>
+                        </div>
+                        <div class="winamp-ticker">
+                            <span class="radio-track-name" data-i18n="sidebar_radio_title">Your Radio</span> - Winamp 2.91
+                        </div>
+                        <div class="winamp-viz" id="winamp-viz"></div>
+                        <div class="winamp-info">
+                            <div class="winamp-bitrate"><span class="winamp-kbps">192</span>kbps</div>
+                            <div class="winamp-freq"><span class="winamp-khz">44</span>kHz</div>
+                        </div>
+                    </div>
+                    <div class="winamp-transport">
+                        <button class="winamp-btn radio-prev" title="Previous"><svg class="icon" viewBox="0 0 24 24">
+                                <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" transform="scale(-1,1) translate(-24,0)" />
+                            </svg></button>
+                        <button class="winamp-btn radio-playpause" title="Play"><svg class="icon" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                            </svg></button>
+                        <button class="winamp-btn radio-next" title="Next"><svg class="icon" viewBox="0 0 24 24">
+                                <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
+                            </svg></button>
+                    </div>
+                    <div class="winamp-volume-row">
+                        <svg class="icon winamp-vol-icon" viewBox="0 0 24 24">
+                            <path d="M3 9v6h4l5 5V4L7 9H3z" />
+                        </svg>
+                        <input type="range" class="winamp-volume radio-volume" value="80" min="0" max="100">
+                        <svg class="icon winamp-vol-icon" viewBox="0 0 24 24">
+                            <path
+                                d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+                        </svg>
+                    </div>
+                    <div class="winamp-seek-row">
+                        <input type="range" class="winamp-seek" id="winamp-seek" value="0" min="0" max="100">
+                    </div>
+                    <div class="winamp-playlist-titlebar">
+                        <span class="winamp-grip-sm"></span>
+                        <span class="winamp-pl-title">PLAYLIST</span>
+                        <span class="winamp-grip-sm"></span>
+                    </div>
+                    <div class="winamp-playlist" id="radio-tracklist">
+                        <div class="winamp-pl-item winamp-pl-empty" data-i18n="sidebar_radio_loading">Loading tracks...
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <main id="app">
+                <div id="filter-nav" class="filter-bar">
+                    <button class="filter-btn active" data-filter="all" data-i18n="filter_all">All</button>
+                    <button class="filter-btn" data-filter="painting" data-i18n="nav_painting">Painting</button>
+                    <button class="filter-btn" data-filter="drawing" data-i18n="nav_drawing">Drawing</button>
+                    <button class="filter-btn" data-filter="photography" data-i18n="nav_photo">Photography</button>
+                    <button class="filter-btn" data-filter="sculpting" data-i18n="nav_sculpting">Sculpting</button>
+                    <button class="filter-btn" data-filter="music" data-i18n="nav_music">Music</button>
+                    <button class="filter-btn" data-filter="projects" data-i18n="nav_projects">Code</button>
+                    <span class="sort-controls">
+                        <button class="sort-btn active" data-sort="desc" title="Newest first">&#9660;</button>
+                        <button class="sort-btn" data-sort="asc" title="Oldest first">&#9650;</button>
+                    </span>
+                </div>
+                <!-- Gallery grid loaded by render.js -->
+            </main>
+        </div>
+
+        <footer class="footer-terminal">
+            <div class="terminal-window">
+                <div class="terminal-titlebar">
+                    <div class="terminal-titlebar-btns">
+                        <span class="terminal-tbtn terminal-tbtn-close"></span>
+                        <span class="terminal-tbtn terminal-tbtn-min"></span>
+                        <span class="terminal-tbtn terminal-tbtn-max"></span>
+                    </div>
+                    <span class="terminal-titlebar-text">user@host:~</span>
+                </div>
+                <div class="terminal-body">
+                    <div class="terminal-line"><span class="terminal-prompt">$</span> <span
+                            data-i18n="footer_copy">&copy; 2026 alex a montreal</span> &mdash; <a
+                            href="https://github.com/mtldev514" target="_blank" title="GitHub"><svg class="icon"
+                                viewBox="0 0 24 24">
+                                <path
+                                    d="M12 .3a12 12 0 00-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.8.1-.7.1-.7 1.2.1 1.9 1.3 1.9 1.3 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 016 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.7.3 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0012 .3z" />
+                            </svg> github</a> · <a href="https://www.linkedin.com/in/alexcatus/?locale=fr_FR"
+                            target="_blank" title="LinkedIn"><svg class="icon" viewBox="0 0 24 24">
+                                <path
+                                    d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z" />
+                            </svg> linkedin</a> &mdash; <span class="terminal-dim"><span
+                                data-i18n="footer_visitors">Visits:</span> <span
+                                class="visitor-counter">......</span></span> <span class="terminal-cursor">█</span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+    <script src="js/counter.js"></script>
+</body>
+
+</html>

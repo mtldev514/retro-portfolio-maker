@@ -1,0 +1,48 @@
+{
+  "name": "@mtldev514/retro-portfolio-maker",
+  "version": "1.3.0",
+  "description": "Retro portfolio maker - Site-as-a-Package. Install the engine, provide your data, build your 90s-aesthetic portfolio.",
+  "main": "index.js",
+  "bin": {
+    "retro-portfolio": "./bin/cli.js"
+  },
+  "scripts": {
+    "prepare": "node scripts/post-install.js"
+  },
+  "keywords": [
+    "portfolio",
+    "retro",
+    "static-site-generator",
+    "site-as-a-package",
+    "90s-aesthetic",
+    "personal-website"
+  ],
+  "author": "Alex",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mtldev514/retro-portfolio-maker"
+  },
+  "files": [
+    "engine/",
+    "scripts/",
+    "bin/",
+    "templates/",
+    "index.js"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^11.0.0",
+    "fs-extra": "^11.1.1"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "peerDependencies": {},
+  "publishConfig": {
+    "access": "restricted"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "app": {
+    "name": "Retro Portfolio",
+    "version": "1.0",
+    "adminTitle": "PORTFOLIO MANAGER"
+  },
+  "api": {
+    "host": "127.0.0.1",
+    "port": 5001,
+    "baseUrl": "http://127.0.0.1:5001"
+  },
+  "paths": {
+    "dataDir": "data",
+    "langDir": "lang",
+    "pagesDir": "pages"
+  },
+  "github": {
+    "username": "yourusername",
+    "repoName": "retro-portfolio",
+    "mediaReleaseTag": "media",
+    "uploadCategories": [
+      "music"
+    ]
+  },
+  "counter": {
+    "apiUrl": "https://api.counterapi.dev/v1/retro-portfolio/visits/up"
+  },
+  "winamp": {
+    "title": "My Playlist",
+    "bitrate": "192",
+    "frequency": "44"
+  },
+  "pagination": {
+    "pageSize": 24
+  }
+}

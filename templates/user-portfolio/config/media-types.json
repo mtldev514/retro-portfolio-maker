@@ -1,0 +1,59 @@
+{
+  "mediaTypes": [
+    {
+      "id": "image",
+      "name": "Image",
+      "icon": "🖼️",
+      "viewer": "ImageViewer",
+      "supportsGallery": true,
+      "supportsMetadata": true,
+      "acceptedFormats": [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"],
+      "uploadDestination": "cloudinary",
+      "description": "Static images (photos, paintings, drawings, etc.)"
+    },
+    {
+      "id": "audio",
+      "name": "Audio",
+      "icon": "🎵",
+      "viewer": "AudioPlayer",
+      "supportsGallery": false,
+      "supportsMetadata": false,
+      "acceptedFormats": [".mp3", ".wav", ".ogg", ".flac", ".m4a", ".aac"],
+      "uploadDestination": "github",
+      "description": "Audio files (music, podcasts, sounds)"
+    },
+    {
+      "id": "video",
+      "name": "Video",
+      "icon": "🎬",
+      "viewer": "VideoPlayer",
+      "supportsGallery": false,
+      "supportsMetadata": false,
+      "acceptedFormats": [".mp4", ".webm", ".mov"],
+      "uploadDestination": "cloudinary",
+      "description": "Video files (films, animations, recordings)"
+    },
+    {
+      "id": "text",
+      "name": "Text",
+      "icon": "📝",
+      "viewer": "TextRenderer",
+      "supportsGallery": false,
+      "supportsMetadata": false,
+      "acceptedFormats": [".md", ".txt", ".html"],
+      "uploadDestination": "none",
+      "description": "Text content (blogs, poetry, articles)"
+    },
+    {
+      "id": "link",
+      "name": "Link",
+      "icon": "🔗",
+      "viewer": "LinkCard",
+      "supportsGallery": false,
+      "supportsMetadata": false,
+      "acceptedFormats": [],
+      "uploadDestination": "none",
+      "description": "External links (projects, websites, portfolios)"
+    }
+  ]
+}
