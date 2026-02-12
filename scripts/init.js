@@ -6,6 +6,26 @@
 const fs = require('fs-extra');
 const path = require('path');
 const chalk = require('chalk');
+const readline = require('readline');
+
+// Helper function to prompt user for input
+function prompt(question, defaultValue = '') {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  return new Promise((resolve) => {
+    const displayQuestion = defaultValue
+      ? `${question} ${chalk.gray(`(${defaultValue})`)}: `
+      : `${question}: `;
+
+    rl.question(displayQuestion, (answer) => {
+      rl.close();
+      resolve(answer.trim() || defaultValue);
+    });
+  });
+}
 
 async function init(targetDir, options = {}) {
   console.log(chalk.blue('🎨 Initializing Retro Portfolio...\n'));
@@ -86,7 +106,20 @@ temp_uploads/
   await fs.writeFile(path.join(targetPath, '.gitignore'), gitignore);
   console.log(chalk.green('  ✓'), '.gitignore');
 
-  // .env.example and .env
+  // Interactive environment configuration
+  console.log(chalk.cyan('\n🔧 Environment Configuration'));
+  console.log(chalk.gray('  The admin interface needs Cloudinary for image uploads.'));
+  console.log(chalk.gray('  Get free credentials at: ') + chalk.blue.underline('https://cloudinary.com/console'));
+  console.log(chalk.gray('  (Press Enter to skip and configure later)\n'));
+
+  const cloudName = await prompt(chalk.yellow('  Cloudinary Cloud Name'));
+  const apiKey = await prompt(chalk.yellow('  Cloudinary API Key'));
+  const apiSecret = await prompt(chalk.yellow('  Cloudinary API Secret'));
+
+  console.log(chalk.gray('\n  GitHub token is optional (for hosting large audio/video files)'));
+  const githubToken = await prompt(chalk.yellow('  GitHub Token'), 'skip');
+
+  // Create .env.example template
   const envExample = `# Cloudinary Configuration (Required for Admin uploads)
 # Get your credentials at: https://cloudinary.com/console
 CLOUDINARY_CLOUD_NAME=your_cloud_name_here
@@ -100,14 +133,30 @@ GITHUB_TOKEN=your_github_token_here
 `;
 
   await fs.writeFile(path.join(targetPath, '.env.example'), envExample);
-  console.log(chalk.green('  ✓'), '.env.example');
+  console.log(chalk.green('\n  ✓'), '.env.example');
 
-  // Create .env from .env.example if it doesn't exist
-  const envPath = path.join(targetPath, '.env');
-  if (!fs.existsSync(envPath)) {
-    await fs.writeFile(envPath, envExample);
-    console.log(chalk.green('  ✓'), '.env (created from example)');
+  // Create .env with user's values or placeholders
+  const hasCloudinaryConfig = cloudName && apiKey && apiSecret;
+  let envContent;
+
+  if (hasCloudinaryConfig) {
+    envContent = `# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=${cloudName}
+CLOUDINARY_API_KEY=${apiKey}
+CLOUDINARY_API_SECRET=${apiSecret}
+
+# GitHub Configuration (Optional)
+${githubToken && githubToken !== 'skip' ? `GITHUB_TOKEN=${githubToken}` : '# GITHUB_TOKEN=your_github_token_here'}
+`;
+    console.log(chalk.green('  ✓'), '.env ' + chalk.gray('(configured with your credentials)'));
+    console.log(chalk.green('  ✨'), 'Admin interface is ready to use!');
+  } else {
+    envContent = envExample;
+    console.log(chalk.yellow('  ⚠'), '.env ' + chalk.gray('(created with placeholders)'));
+    console.log(chalk.yellow('  ⚠'), 'Remember to edit .env before using the admin interface!');
   }
+
+  await fs.writeFile(path.join(targetPath, '.env'), envContent);
 
   // Create GitHub Actions workflow for deployment
   console.log(chalk.cyan('\n⚙️  Creating GitHub Actions workflow...'));
@@ -420,10 +469,17 @@ MIT
 
   // Success message
   console.log(chalk.green('\n✨ Portfolio initialized successfully!\n'));
-  console.log(chalk.yellow('⚠️  IMPORTANT: Configure your environment first!'));
-  console.log(chalk.gray('  1. Edit .env file and add your Cloudinary credentials'));
-  console.log(chalk.gray('  2. Get them at: https://cloudinary.com/console'));
-  console.log(chalk.gray('  3. Replace placeholder values with your actual credentials\n'));
+
+  if (hasCloudinaryConfig) {
+    console.log(chalk.green('🎉 Your environment is configured and ready!'));
+    console.log(chalk.gray('   Admin interface will work immediately after install\n'));
+  } else {
+    console.log(chalk.yellow('⚠️  IMPORTANT: Configure your environment before using admin!'));
+    console.log(chalk.gray('  1. Edit .env file and add your Cloudinary credentials'));
+    console.log(chalk.gray('  2. Get them at: https://cloudinary.com/console'));
+    console.log(chalk.gray('  3. Replace placeholder values with your actual credentials\n'));
+  }
+
   console.log(chalk.cyan('Next steps:\n'));
   console.log(`  cd ${targetDir}`);
   console.log('  npm install');
