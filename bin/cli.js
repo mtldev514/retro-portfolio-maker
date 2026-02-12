@@ -83,6 +83,39 @@ program
     }
   });
 
+// Validate command - Check configuration files
+program
+  .command('validate')
+  .description('Validate all configuration and data files')
+  .option('--path <dir>', 'Portfolio content directory', '.')
+  .action(async (options) => {
+    try {
+      const { spawn } = require('child_process');
+      const enginePath = path.join(__dirname, '..', 'engine', 'admin', 'scripts');
+      const validatorPath = path.join(enginePath, 'validate_config.py');
+
+      console.log(chalk.cyan('🔍 Running configuration validator...\n'));
+
+      const python = spawn('python3', [validatorPath, '--path', options.path], {
+        stdio: 'inherit',
+        env: { ...process.env, PORTFOLIO_CONTENT_ROOT: options.path }
+      });
+
+      python.on('close', (code) => {
+        process.exit(code);
+      });
+
+      python.on('error', (err) => {
+        console.error(chalk.red('Error running validator:'), err.message);
+        console.log(chalk.yellow('\nMake sure Python 3 is installed and in your PATH'));
+        process.exit(1);
+      });
+    } catch (error) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
+
 // Deploy command - Deploy to GitHub Pages
 program
   .command('deploy')

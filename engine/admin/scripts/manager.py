@@ -11,7 +11,14 @@ from datetime import datetime
 import cloudinary
 import cloudinary.uploader
 import requests
+import sys
 from dotenv import load_dotenv
+
+# Ensure the current directory is in the path so we can import local modules
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+
 from config_loader import config
 
 # Load environment variables

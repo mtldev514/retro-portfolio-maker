@@ -3,8 +3,11 @@
 [![npm version](https://badge.fury.io/js/%40retro-portfolio%2Fengine.svg)](https://www.npmjs.com/package/@mtldev514/retro-portfolio-maker)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Hello! 
-**Site-as-a-Package** 🎨 Un moteur de portfolio rétro que vous installez via NPM. Vous fournissez vos données, le package fournit tout le reste.
+This is what I always wanted. As someone with multiple interests, I always wanted to have a portfolio to display my many, many, many projects. I also have a very soft spot for the early 2000s.
+
+I hope this portfolio manager will help you have a personal presence that speaks to your soul. Fully customizable. You can easily support many languages, and play with the theme to make it your own.
+
+---
 
 ## 🎯 Concept
 

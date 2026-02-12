@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CONFIG VALIDATOR - PORTFOLIO</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="fonts.css">
+    <script src="js/config-loader.js"></script>
+    <style>
+        .validator-container {
+            padding: 20px;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .validation-section {
+            background: white;
+            border: 2px inset var(--admin-win-border-dark);
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .validation-section h3 {
+            margin: 0 0 10px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--admin-win-border-dark);
+            font-size: 13px;
+        }
+
+        .validation-result {
+            margin: 8px 0;
+            padding: 8px;
+            font-size: 11px;
+            border-left: 4px solid #ccc;
+            background: #f9f9f9;
+        }
+
+        .validation-result.success {
+            border-left-color: #00aa00;
+            background: #f0fff0;
+        }
+
+        .validation-result.error {
+            border-left-color: #cc0000;
+            background: #fff0f0;
+        }
+
+        .validation-result.warning {
+            border-left-color: #ff8800;
+            background: #fffaf0;
+        }
+
+        .validation-result.info {
+            border-left-color: #0080ff;
+            background: #f0f8ff;
+        }
+
+        .icon {
+            display: inline-block;
+            width: 16px;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .summary {
+            background: var(--admin-win-bg);
+            border: 2px outset var(--admin-win-border-light);
+            padding: 15px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .summary.all-good {
+            background: linear-gradient(to bottom, #90ff90, #60ff60);
+        }
+
+        .summary.has-errors {
+            background: linear-gradient(to bottom, #ff9090, #ff6060);
+        }
+
+        .summary.has-warnings {
+            background: linear-gradient(to bottom, #ffdd90, #ffcc60);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: white;
+            border: 2px inset var(--admin-win-border-dark);
+            margin: 10px 0;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(to right, #0080ff, #00a0ff);
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+
+<body class="admin-page">
+    <div class="window">
+        <div class="title-bar">
+            <span>CONFIGURATION VALIDATOR</span>
+            <div class="title-bar-controls">
+                <button>_</button>
+                <button>[]</button>
+                <button onclick="window.location.href='admin.html#config'">X</button>
+            </div>
+        </div>
+
+        <div class="menu-bar">
+            <button onclick="location.href='admin.html#config'">« Back to Admin</button>
+            <button onclick="runValidation()" id="validateBtn">🔍 Run Validation</button>
+            <button onclick="exportReport()">📄 Export Report</button>
+        </div>
+
+        <div id="summary" class="summary" style="display: none;"></div>
+
+        <div id="progress" style="display: none; padding: 0 20px;">
+            <div class="progress-bar">
+                <div class="progress-bar-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+            <p id="progressText" style="text-align: center; font-size: 11px;"></p>
+        </div>
+
+        <div class="validator-container" id="results">
+            <p align="center" style="color: #666; font-size: 12px;">
+                Click "Run Validation" to check your configuration files
+            </p>
+        </div>
+
+        <div class="status-bar">
+            <span id="statusText">Ready</span>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:5001';
+
+        let validationResults = {
+            errors: [],
+            warnings: [],
+            info: [],
+            success: []
+        };
+
+        async function runValidation() {
+            const btn = document.getElementById('validateBtn');
+            const results = document.getElementById('results');
+            const progress = document.getElementById('progress');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const summary = document.getElementById('summary');
+
+            // Reset
+            validationResults = { errors: [], warnings: [], info: [], success: [] };
+            results.innerHTML = '';
+            summary.style.display = 'none';
+            progress.style.display = 'block';
+            btn.disabled = true;
+
+            const validations = [
+                { name: 'Media Types', fn: validateMediaTypes },
+                { name: 'Content Types', fn: validateContentTypes },
+                { name: 'Languages', fn: validateLanguages },
+                { name: 'App Config', fn: validateAppConfig },
+                { name: 'Data Files', fn: validateDataFiles },
+                { name: 'Cross-References', fn: validateCrossReferences }
+            ];
+
+            for (let i = 0; i < validations.length; i++) {
+                const validation = validations[i];
+                progressText.textContent = `Validating ${validation.name}...`;
+                progressBar.style.width = `${((i + 1) / validations.length) * 100}%`;
+
+                await validation.fn();
+                await new Promise(resolve => setTimeout(resolve, 200)); // Brief pause for UX
+            }
+
+            progress.style.display = 'none';
+            btn.disabled = false;
+
+            displayResults();
+        }
+
+        async function validateMediaTypes() {
+            const section = createSection('🎬 Media Types');
+
+            try {
+                await AppConfig.load();
+                const mediaTypes = AppConfig.getAllMediaTypes();
+
+                if (!mediaTypes || mediaTypes.length === 0) {
+                    addError(section, 'No media types found');
+                    return;
+                }
+
+                const requiredFields = ['id', 'name', 'icon', 'viewer', 'acceptedFormats'];
+
+                mediaTypes.forEach((mt, i) => {
+                    requiredFields.forEach(field => {
+                        if (!mt[field]) {
+                            addError(section, `Media type #${i} missing required field: ${field}`);
+                        }
+                    });
+
+                    if (mt.acceptedFormats && !Array.isArray(mt.acceptedFormats)) {
+                        addError(section, `Media type '${mt.id}': acceptedFormats must be an array`);
+                    }
+                });
+
+                addSuccess(section, `Found ${mediaTypes.length} media types`);
+            } catch (err) {
+                addError(section, `Failed to validate media types: ${err.message}`);
+            }
+        }
+
+        async function validateContentTypes() {
+            const section = createSection('📁 Content Types');
+
+            try {
+                const contentTypes = AppConfig.getAllContentTypes();
+
+                if (!contentTypes || contentTypes.length === 0) {
+                    addError(section, 'No content types found');
+                    return;
+                }
+
+                const requiredFields = ['id', 'name', 'icon', 'mediaType', 'dataFile'];
+
+                contentTypes.forEach((ct, i) => {
+                    requiredFields.forEach(field => {
+                        if (!ct[field]) {
+                            addError(section, `Content type '${ct.id || `#${i}`}' missing required field: ${field}`);
+                        }
+                    });
+
+                    if (ct.fields) {
+                        if (!ct.fields.required) {
+                            addWarning(section, `Content type '${ct.id}': missing 'fields.required' array`);
+                        }
+                        if (!ct.fields.optional) {
+                            addWarning(section, `Content type '${ct.id}': missing 'fields.optional' array`);
+                        }
+                    }
+                });
+
+                addSuccess(section, `Found ${contentTypes.length} content types`);
+            } catch (err) {
+                addError(section, `Failed to validate content types: ${err.message}`);
+            }
+        }
+
+        async function validateLanguages() {
+            const section = createSection('🌐 Languages');
+
+            try {
+                const langCodes = AppConfig.getLanguageCodes();
+
+                if (!langCodes || langCodes.length === 0) {
+                    addError(section, 'No language codes found');
+                    return;
+                }
+
+                addSuccess(section, `Found ${langCodes.length} supported languages: ${langCodes.join(', ')}`);
+
+                const defaultLang = AppConfig.getDefaultLanguage();
+                if (!defaultLang) {
+                    addError(section, 'No default language specified');
+                } else {
+                    addInfo(section, `Default language: ${defaultLang}`);
+                }
+            } catch (err) {
+                addError(section, `Failed to validate languages: ${err.message}`);
+            }
+        }
+
+        async function validateAppConfig() {
+            const section = createSection('⚙️ App Configuration');
+
+            try {
+                const appName = AppConfig.getSetting('name');
+                const author = AppConfig.getSetting('author');
+
+                if (!appName) addWarning(section, 'App name not set in app.json');
+                if (!author) addWarning(section, 'Author not set in app.json');
+
+                addSuccess(section, 'App configuration loaded');
+            } catch (err) {
+                addError(section, `Failed to validate app config: ${err.message}`);
+            }
+        }
+
+        async function validateDataFiles() {
+            const section = createSection('📊 Data Files');
+
+            try {
+                const res = await fetch(`${API_URL}/api/content`);
+                const allContent = await res.json();
+
+                const contentTypes = AppConfig.getAllContentTypes();
+
+                for (const ct of contentTypes) {
+                    const items = allContent[ct.id] || [];
+                    const requiredFields = ct.fields?.required || ['title', 'url'];
+
+                    if (items.length === 0) {
+                        addInfo(section, `${ct.icon} ${ct.name}: No items yet`);
+                        continue;
+                    }
+
+                    // Validate items
+                    items.forEach((item, i) => {
+                        requiredFields.forEach(field => {
+                            if (!item[field]) {
+                                addWarning(section, `${ct.id}.json item #${i}: missing required field '${field}'`);
+                            }
+                        });
+
+                        if (!item.id) {
+                            addInfo(section, `${ct.id}.json item #${i}: missing 'id' field (recommended)`);
+                        }
+                    });
+
+                    addSuccess(section, `${ct.icon} ${ct.name}: ${items.length} items`);
+                }
+            } catch (err) {
+                addError(section, `Failed to validate data files: ${err.message}`);
+            }
+        }
+
+        async function validateCrossReferences() {
+            const section = createSection('🔗 Cross-References');
+
+            try {
+                const contentTypes = AppConfig.getAllContentTypes();
+                const mediaTypes = AppConfig.getAllMediaTypes();
+
+                const mediaTypeIds = new Set(mediaTypes.map(mt => mt.id));
+
+                contentTypes.forEach(ct => {
+                    if (!mediaTypeIds.has(ct.mediaType)) {
+                        addError(section, `Content type '${ct.id}' references unknown media type: ${ct.mediaType}`);
+                    }
+                });
+
+                addSuccess(section, 'All cross-references valid');
+            } catch (err) {
+                addError(section, `Failed to validate cross-references: ${err.message}`);
+            }
+        }
+
+        function createSection(title) {
+            const section = document.createElement('div');
+            section.className = 'validation-section';
+            section.innerHTML = `<h3>${title}</h3>`;
+            document.getElementById('results').appendChild(section);
+            return section;
+        }
+
+        function addResult(section, type, message) {
+            const result = document.createElement('div');
+            result.className = `validation-result ${type}`;
+
+            const icons = {
+                success: '✓',
+                error: '✗',
+                warning: '⚠',
+                info: 'ℹ'
+            };
+
+            result.innerHTML = `<span class="icon">${icons[type]}</span>${message}`;
+            section.appendChild(result);
+
+            validationResults[type === 'success' ? 'success' : type + 's'].push(message);
+        }
+
+        function addSuccess(section, message) { addResult(section, 'success', message); }
+        function addError(section, message) { addResult(section, 'error', message); }
+        function addWarning(section, message) { addResult(section, 'warning', message); }
+        function addInfo(section, message) { addResult(section, 'info', message); }
+
+        function displayResults() {
+            const summary = document.getElementById('summary');
+            const errorCount = validationResults.errors.length;
+            const warningCount = validationResults.warnings.length;
+
+            summary.style.display = 'block';
+
+            if (errorCount === 0 && warningCount === 0) {
+                summary.className = 'summary all-good';
+                summary.innerHTML = '✓ ALL VALIDATIONS PASSED! Your configuration is perfect! 🎉';
+            } else if (errorCount > 0) {
+                summary.className = 'summary has-errors';
+                summary.innerHTML = `✗ ${errorCount} ERROR${errorCount > 1 ? 'S' : ''} FOUND${warningCount > 0 ? ` (${warningCount} warning${warningCount > 1 ? 's' : ''})` : ''}`;
+            } else {
+                summary.className = 'summary has-warnings';
+                summary.innerHTML = `⚠ ${warningCount} WARNING${warningCount > 1 ? 'S' : ''} (no critical errors)`;
+            }
+
+            document.getElementById('statusText').textContent = `Validation complete: ${errorCount} errors, ${warningCount} warnings`;
+        }
+
+        function exportReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                summary: {
+                    errors: validationResults.errors.length,
+                    warnings: validationResults.warnings.length,
+                    info: validationResults.info.length,
+                    success: validationResults.success.length
+                },
+                results: validationResults
+            };
+
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `validation-report-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Auto-run on load if ?auto=true
+        window.addEventListener('DOMContentLoaded', async () => {
+            await AppConfig.load();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('auto') === 'true') {
+                runValidation();
+            }
+        });
+    </script>
+</body>
+</html>
