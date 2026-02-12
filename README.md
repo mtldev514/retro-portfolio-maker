@@ -106,6 +106,34 @@ retro-portfolio init mon-portfolio
 retro-portfolio init --force
 ```
 
+### `retro-portfolio sync` (ou `update`)
+
+Synchronise un portfolio existant avec les derniers templates **sans écraser vos données**.
+
+```bash
+# Dans votre répertoire de portfolio
+retro-portfolio sync
+
+# Forcer la mise à jour des workflows GitHub
+retro-portfolio sync --force
+```
+
+**Ce qui est synchronisé** :
+- ✅ Dossiers manquants (config/, data/, lang/, assets/)
+- ✅ Fichiers de configuration manquants
+- ✅ .gitignore et .env.example (mis à jour)
+- ✅ GitHub Actions workflow
+- ✅ **Scripts npm manquants** dans package.json (build, dev, admin, validate, sync, etc.)
+
+**Ce qui est préservé** :
+- ✅ Vos données (data/*.json)
+- ✅ Vos configurations (config/*.json)
+- ✅ Vos traductions (lang/*.json)
+- ✅ Vos credentials (.env)
+- ✅ Vos scripts npm personnalisés (ne sont jamais écrasés)
+
+**Exemple** : Si votre `package.json` n'a que `build` et `dev`, la commande `sync` ajoutera automatiquement les nouveaux scripts comme `validate`, `sync`, `deploy` sans toucher à vos scripts existants.
+
 ### `retro-portfolio build`
 
 Génère le site statique en fusionnant le moteur avec vos données.

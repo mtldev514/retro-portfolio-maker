@@ -17,6 +17,7 @@ const build = require('../scripts/build');
 const serve = require('../scripts/serve');
 const admin = require('../scripts/admin');
 const init = require('../scripts/init');
+const sync = require('../scripts/sync');
 
 program
   .name('retro-portfolio')
@@ -31,6 +32,21 @@ program
   .action(async (directory, options) => {
     try {
       await init(directory || '.', options);
+    } catch (error) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
+
+// Sync command - Update existing portfolio
+program
+  .command('sync')
+  .alias('update')
+  .description('Sync existing portfolio with latest templates (non-destructive)')
+  .option('-f, --force', 'Force update of workflow files')
+  .action(async (options) => {
+    try {
+      await sync(options);
     } catch (error) {
       console.error(chalk.red('Error:'), error.message);
       process.exit(1);
