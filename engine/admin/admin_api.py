@@ -123,6 +123,30 @@ def upload_bulk():
         "errorDetails": errors
     })
 
+@app.route('/api/content', methods=['GET'])
+def get_all_content():
+    """Get all content from all categories"""
+    try:
+        all_content = {}
+        # List all JSON files in data directory
+        if os.path.exists(USER_DATA_DIR):
+            for filename in os.listdir(USER_DATA_DIR):
+                if filename.endswith('.json'):
+                    category = filename[:-5]  # Remove .json extension
+                    data_file = os.path.join(USER_DATA_DIR, filename)
+                    with open(data_file, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        # Support both {"items": [...]} and [...] formats
+                        if isinstance(data, dict) and 'items' in data:
+                            all_content[category] = data['items']
+                        elif isinstance(data, list):
+                            all_content[category] = data
+                        else:
+                            all_content[category] = []
+        return jsonify(all_content)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/content/<category>', methods=['GET'])
 def get_content(category):
     """Get all content for a category"""
