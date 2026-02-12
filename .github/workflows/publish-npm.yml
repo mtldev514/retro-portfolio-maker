@@ -58,7 +58,7 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           echo "### 📦 Publishing to NPM" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Package:** @mtldev514/retro-portfolio-engine" >> $GITHUB_STEP_SUMMARY
+          echo "**Package:** @mtldev514/retro-portfolio-maker" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** $VERSION" >> $GITHUB_STEP_SUMMARY
           echo "**Registry:** npmjs.org" >> $GITHUB_STEP_SUMMARY
 
@@ -72,10 +72,10 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           echo "### 🎉 Published successfully!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Package URL:** https://www.npmjs.com/package/@mtldev514/retro-portfolio-engine" >> $GITHUB_STEP_SUMMARY
+          echo "**Package URL:** https://www.npmjs.com/package/@mtldev514/retro-portfolio-maker" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** $VERSION" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Users can now install with:" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-          echo "npm install @mtldev514/retro-portfolio-engine@$VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "npm install @mtldev514/retro-portfolio-maker@$VERSION" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
