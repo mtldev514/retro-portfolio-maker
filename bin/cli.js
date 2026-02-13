@@ -18,6 +18,9 @@ const serve = require('../scripts/serve');
 const admin = require('../scripts/admin');
 const init = require('../scripts/init');
 const sync = require('../scripts/sync');
+const listPorts = require('../scripts/list-ports');
+const killPort = require('../scripts/kill-port');
+const localhostUI = require('../scripts/localhost-ui');
 
 program
   .name('retro-portfolio')
@@ -141,6 +144,47 @@ program
   .action(async (options) => {
     console.log(chalk.yellow('Deploy command coming soon!'));
     console.log('For now, use GitHub Actions or push dist/ manually.');
+  });
+
+// List ports command - Show active ports
+program
+  .command('ports')
+  .description('List all active ports on the machine')
+  .action(() => {
+    try {
+      listPorts();
+    } catch (error) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
+
+// Kill port command - Kill process on specific port
+program
+  .command('kill <port>')
+  .description('Kill all processes listening on a specific port')
+  .action((port) => {
+    try {
+      killPort(port);
+    } catch (error) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
+
+// Localhost UI command - Visual interface for port management
+program
+  .command('localhost')
+  .description('Open visual UI to view and manage all localhost servers')
+  .option('-p, --port <number>', 'Port number', '9876')
+  .option('-o, --open', 'Open browser automatically')
+  .action(async (options) => {
+    try {
+      await localhostUI(options);
+    } catch (error) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
   });
 
 // Parse arguments

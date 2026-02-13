@@ -134,7 +134,15 @@ async function generateFilterButtons(userDir, outputDir) {
   filterButtonsHtml += '                    <button class="filter-btn active" data-filter="all" data-i18n="filter_all">All</button>\n';
 
   displayCategories.forEach(category => {
-    filterButtonsHtml += `                    <button class="filter-btn" data-filter="${category.id}" data-i18n="nav_${category.id}">${category.name}</button>\n`;
+    // Extract name - support both string and multilingual object formats
+    let displayName = category.name;
+    if (typeof displayName === 'object' && displayName !== null) {
+      // If name is an object, use English as fallback for static HTML
+      // The i18n system will replace this at runtime anyway
+      displayName = displayName.en || displayName.fr || Object.values(displayName)[0] || category.id;
+    }
+
+    filterButtonsHtml += `                    <button class="filter-btn" data-filter="${category.id}" data-i18n="nav_${category.id}">${displayName}</button>\n`;
   });
 
   // Read index.html
