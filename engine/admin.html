@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="fonts.css">
-    <script src="js/config-loader.js"></script>
 </head>
 
 <body class="admin-page">
@@ -163,6 +162,50 @@
 
     <script>
         const API_URL = 'http://127.0.0.1:5001';
+
+        // Enhanced AppConfig that loads from API instead of file paths
+        const AppConfig = {
+            app: null,
+            languages: null,
+            categories: null,
+            mediaTypes: null,
+            loaded: false,
+
+            async load() {
+                try {
+                    const [categoriesData, mediaTypesData] = await Promise.all([
+                        fetch(`${API_URL}/api/config/categories`).then(r => r.json()),
+                        fetch(`${API_URL}/api/config/media-types`).then(r => r.json())
+                    ]);
+
+                    this.categories = categoriesData;
+                    this.mediaTypes = mediaTypesData;
+                    this.loaded = true;
+
+                    console.log('✅ Configuration loaded from API');
+                    return true;
+                } catch (error) {
+                    console.error('❌ Failed to load configuration from API:', error);
+                    return false;
+                }
+            },
+
+            getAllContentTypes() {
+                return this.categories?.contentTypes || this.categories?.categories || [];
+            },
+
+            getContentType(contentTypeId) {
+                return this.getAllContentTypes().find(c => c.id === contentTypeId);
+            },
+
+            getAllMediaTypes() {
+                return this.mediaTypes?.mediaTypes || [];
+            },
+
+            getMediaType(mediaTypeId) {
+                return this.getAllMediaTypes().find(m => m.id === mediaTypeId);
+            }
+        };
 
         // Initialize config and populate category dropdowns
         let categoriesLoaded = false;
