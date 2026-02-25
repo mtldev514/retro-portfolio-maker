@@ -53,6 +53,7 @@ const effects = {
         label.textContent = 'Development';
         const link = document.createElement('a');
         link.href = 'admin.html';
+        link.target = '_self';
         link.className = 'settings-option admin-link';
         link.style.cssText = 'text-decoration: none; color: inherit;';
         link.innerHTML = '<span class="admin-icon">🛠️</span> Admin Panel';
