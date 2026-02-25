@@ -34,16 +34,21 @@
  * Dynamically build language selector from config
  */
 function initLanguageSelector() {
-    const langSection = document.querySelector('.settings-dropdown .settings-section-label');
-    if (!langSection || langSection.textContent !== 'Language') {
-        return; // Not on a page with language selector
+    // Find the "Language" section label (not "Effects" or "Theme")
+    const allLabels = document.querySelectorAll('.settings-dropdown .settings-section-label');
+    let langSection = null;
+    for (const label of allLabels) {
+        if (label.textContent.trim() === 'Language') {
+            langSection = label;
+            break;
+        }
     }
 
-    // Find the language options container
-    const settingsDropdown = langSection.parentElement;
-    const langDividerIndex = Array.from(settingsDropdown.children).indexOf(langSection) - 1;
+    if (!langSection) {
+        return; // No language section found
+    }
 
-    // Remove existing language options
+    // Remove existing language options (everything between "Language" label and the next divider/label/end)
     const existingLangOptions = [];
     let sibling = langSection.nextElementSibling;
     while (sibling && !sibling.classList.contains('settings-divider') && !sibling.classList.contains('settings-section-label')) {
@@ -52,16 +57,17 @@ function initLanguageSelector() {
     }
     existingLangOptions.forEach(el => el.remove());
 
-    // Add new language options from config
+    // Add new language options from config (in correct order)
     if (AppConfig.languages && AppConfig.languages.supportedLanguages) {
+        // Insert before the element that follows the language section (or at the end)
+        const insertBefore = langSection.nextElementSibling;
         AppConfig.languages.supportedLanguages.forEach(lang => {
             const option = document.createElement('div');
             option.className = 'settings-option';
             option.onclick = () => i18n.changeLang(lang.code);
             option.innerHTML = `<span class="lang-flag">${lang.flag}</span> ${lang.name}`;
 
-            // Insert after language label
-            langSection.parentNode.insertBefore(option, langSection.nextSibling);
+            langSection.parentNode.insertBefore(option, insertBefore);
         });
     }
 }
