@@ -44,18 +44,24 @@ const effects = {
         const settingsDropdown = document.querySelector('.settings-dropdown');
         if (!settingsDropdown) return;
 
-        // Create admin button section
-        const adminSection = document.createElement('div');
-        adminSection.innerHTML = `
-            <div class="settings-divider"></div>
-            <div class="settings-section-label">Development</div>
-            <a href="admin.html" class="settings-option admin-link" style="text-decoration: none; color: inherit;">
-                <span class="admin-icon">🛠️</span> Admin Panel
-            </a>
-        `;
+        // Create admin button section (append children directly, not wrapped in a div)
+        const fragment = document.createDocumentFragment();
+        const divider = document.createElement('div');
+        divider.className = 'settings-divider';
+        const label = document.createElement('div');
+        label.className = 'settings-section-label';
+        label.textContent = 'Development';
+        const link = document.createElement('a');
+        link.href = 'admin.html';
+        link.className = 'settings-option admin-link';
+        link.style.cssText = 'text-decoration: none; color: inherit;';
+        link.innerHTML = '<span class="admin-icon">🛠️</span> Admin Panel';
+        fragment.appendChild(divider);
+        fragment.appendChild(label);
+        fragment.appendChild(link);
 
-        // Append to the end of settings dropdown
-        settingsDropdown.appendChild(adminSection);
+        // Append directly to settings dropdown (no wrapper div)
+        settingsDropdown.appendChild(fragment);
     },
 
     enablePartyMode() {

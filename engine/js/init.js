@@ -48,10 +48,10 @@ function initLanguageSelector() {
         return; // No language section found
     }
 
-    // Remove existing language options (everything between "Language" label and the next divider/label/end)
+    // Remove only existing language options (settings-option elements after the "Language" label)
     const existingLangOptions = [];
     let sibling = langSection.nextElementSibling;
-    while (sibling && !sibling.classList.contains('settings-divider') && !sibling.classList.contains('settings-section-label')) {
+    while (sibling && sibling.classList.contains('settings-option')) {
         existingLangOptions.push(sibling);
         sibling = sibling.nextElementSibling;
     }
