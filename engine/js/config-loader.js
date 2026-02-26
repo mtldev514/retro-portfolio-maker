@@ -99,15 +99,23 @@ const ConfigLoader = {
      */
     async loadSupabase() {
         const sb = this.source?.supabase;
-        if (!sb?.url || !sb?.anonKey) {
-            throw new Error('Supabase config requires url and anonKey in config-source.json');
+        // Support both new (publishableKey) and legacy (anonKey) field names
+        const apiKey = sb?.publishableKey || sb?.anonKey;
+        if (!sb?.url || !apiKey) {
+            const missing = !sb?.url ? 'url' : 'publishableKey';
+            throw new Error(
+                `Supabase config requires '${missing}' in config-source.json\n` +
+                `  Expected format: { "supabase": { "url": "https://xxx.supabase.co", "publishableKey": "sb_publishable_..." } }`
+            );
         }
+        // Normalize: store the resolved key back so getSupabaseHeaders() can use it
+        sb._resolvedKey = apiKey;
 
         try {
             const res = await fetch(`${sb.url}/rest/v1/config?select=key,value`, {
                 headers: {
-                    'apikey': sb.anonKey,
-                    'Authorization': `Bearer ${sb.anonKey}`
+                    'apikey': apiKey,
+                    'Authorization': `Bearer ${apiKey}`
                 }
             });
 
@@ -138,9 +146,10 @@ const ConfigLoader = {
     getSupabaseHeaders() {
         const sb = this.source?.supabase;
         if (!sb) return null;
+        const key = sb._resolvedKey || sb.publishableKey || sb.anonKey;
         return {
-            'apikey': sb.anonKey,
-            'Authorization': `Bearer ${sb.anonKey}`
+            'apikey': key,
+            'Authorization': `Bearer ${key}`
         };
     },
 
