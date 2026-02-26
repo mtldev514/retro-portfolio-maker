@@ -11,6 +11,7 @@ import requests as http_requests
 USER_DATA_DIR = os.environ.get('DATA_DIR', '../../data')
 USER_CONFIG_DIR = os.environ.get('CONFIG_DIR', '../../config')
 USER_LANG_DIR = os.environ.get('LANG_DIR', '../../lang')
+USER_STYLES_DIR = os.environ.get('STYLES_DIR', '../../styles')
 PROJECT_DIR = os.environ.get('PROJECT_DIR', os.path.dirname(os.path.abspath(USER_DATA_DIR)))
 PORT = int(os.environ.get('PORT', 5001))
 
@@ -367,6 +368,48 @@ def move_to_pile():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/styles', methods=['GET'])
+def get_styles():
+    """Get styles.json (theme registry)"""
+    try:
+        styles_file = os.path.join(USER_STYLES_DIR, 'styles.json')
+        if not os.path.exists(styles_file):
+            return jsonify({})
+
+        with open(styles_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/styles', methods=['POST'])
+def save_styles():
+    """Save styles.json (theme registry)"""
+    try:
+        data = request.json
+        styles_file = os.path.join(USER_STYLES_DIR, 'styles.json')
+        os.makedirs(USER_STYLES_DIR, exist_ok=True)
+
+        with open(styles_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/styles/themes', methods=['GET'])
+def list_style_files():
+    """List all CSS theme files in the styles directory"""
+    try:
+        if not os.path.exists(USER_STYLES_DIR):
+            return jsonify({"files": []})
+
+        css_files = [f for f in os.listdir(USER_STYLES_DIR) if f.endswith('.css')]
+        css_files.sort()
+        return jsonify({"files": css_files})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/github/sync', methods=['POST'])
 def sync_github():
     """Fetch repositories from GitHub and save to projects.json"""
@@ -442,9 +485,9 @@ def git_commit_push():
         if not os.path.exists(git_dir):
             return jsonify({"success": False, "error": "Project directory is not a git repository"}), 400
 
-        # Stage data, config, and lang directories
+        # Stage data, config, lang, and styles directories
         subprocess.run(
-            ['git', 'add', 'data/', 'config/', 'lang/'],
+            ['git', 'add', 'data/', 'config/', 'lang/', 'styles/'],
             cwd=PROJECT_DIR, check=True, capture_output=True, text=True
         )
 
@@ -640,6 +683,7 @@ if __name__ == '__main__':
     print(f"   Data dir: {os.path.abspath(USER_DATA_DIR)}")
     print(f"   Config dir: {os.path.abspath(USER_CONFIG_DIR)}")
     print(f"   Lang dir: {os.path.abspath(USER_LANG_DIR)}")
+    print(f"   Styles dir: {os.path.abspath(USER_STYLES_DIR)}")
     print(f"   API Port: {PORT}")
     print(f"\n✨ Admin API ready at: http://localhost:{PORT}/api/\n")
 

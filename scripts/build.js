@@ -81,20 +81,12 @@ async function build(options = {}) {
     console.log(chalk.green('  ✓'), `assets/ (${assetCount} files)`);
   }
 
-  // Copy custom.css if exists — user CSS overrides
-  const customCssPath = path.join(cwd, 'custom.css');
-  if (fs.existsSync(customCssPath)) {
-    await fs.copy(customCssPath, path.join(outputDir, 'custom.css'));
-    console.log(chalk.green('  ✓'), 'custom.css (user CSS overrides)');
-
-    // Inject <link> into index.html after fonts.css
-    const indexPath = path.join(outputDir, 'index.html');
-    let indexHtml = await fs.readFile(indexPath, 'utf8');
-    indexHtml = indexHtml.replace(
-      '<link rel="stylesheet" href="fonts.css">',
-      '<link rel="stylesheet" href="fonts.css">\n    <link rel="stylesheet" href="custom.css">'
-    );
-    await fs.writeFile(indexPath, indexHtml, 'utf8');
+  // Copy user styles/ directory (theme CSS files override engine defaults)
+  const userStylesPath = path.join(cwd, 'styles');
+  if (fs.existsSync(userStylesPath)) {
+    await fs.copy(userStylesPath, path.join(outputDir, 'styles'));
+    const styleFiles = (await fs.readdir(userStylesPath)).length;
+    console.log(chalk.green('  ✓'), `styles/ (${styleFiles} files)`);
   }
 
   // Create build info

@@ -252,9 +252,6 @@ jobs:
         name: 'My Retro Portfolio',
         description: 'A nostalgic web presence',
         author: 'Your Name'
-      },
-      theme: {
-        default: 'jr16'
       }
     },
     'config/languages.json': {
@@ -335,11 +332,11 @@ jobs:
     console.log(chalk.green('  ✓'), filePath);
   }
 
-  // Copy custom.css starter template
-  const customCssTemplate = path.join(templatePath, 'custom.css');
-  if (fs.existsSync(customCssTemplate)) {
-    await fs.copy(customCssTemplate, path.join(targetPath, 'custom.css'));
-    console.log(chalk.green('  ✓'), 'custom.css', chalk.gray('(starter template for style overrides)'));
+  // Copy styles/ directory (theme CSS files + registry)
+  const templateStylesDir = path.join(templatePath, 'styles');
+  if (fs.existsSync(templateStylesDir)) {
+    await fs.copy(templateStylesDir, path.join(targetPath, 'styles'));
+    console.log(chalk.green('  ✓'), 'styles/', chalk.gray('(theme CSS files — edit or duplicate to customize)'));
   }
 
   // Create README

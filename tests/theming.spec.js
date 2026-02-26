@@ -7,13 +7,14 @@ test.describe('Theming system', () => {
     await page.goto('/');
     await page.evaluate(() => {
       localStorage.removeItem('selectedTheme');
-      localStorage.removeItem('themeColors');
+      localStorage.removeItem('themeCSS');
+      localStorage.removeItem('themeColors'); // legacy cleanup
     });
     await page.reload();
     await page.waitForSelector('.gallery-item', { timeout: 10000 });
   });
 
-  test('themes.json loads and populates theme switcher', async ({ page }) => {
+  test('styles.json loads and populates theme switcher', async ({ page }) => {
     // Wait for theme definitions to load
     await page.waitForTimeout(1000);
 
@@ -49,10 +50,10 @@ test.describe('Theming system', () => {
       return getComputedStyle(document.documentElement).getPropertyValue('--page-bg').trim();
     });
 
-    // Switch to a different theme
-    await page.evaluate(() => {
+    // Switch to a different theme (changeTheme is async)
+    await page.evaluate(async () => {
       if (window.themes && themes._loaded) {
-        themes.changeTheme('bubblegum');
+        await themes.changeTheme('bubblegum');
       }
     });
     await page.waitForTimeout(300);
@@ -70,9 +71,9 @@ test.describe('Theming system', () => {
     await page.waitForTimeout(1000);
 
     // Switch to bubblegum theme
-    await page.evaluate(() => {
+    await page.evaluate(async () => {
       if (window.themes && themes._loaded) {
-        themes.changeTheme('bubblegum');
+        await themes.changeTheme('bubblegum');
       }
     });
     await page.waitForTimeout(300);
@@ -81,9 +82,9 @@ test.describe('Theming system', () => {
     const storedTheme = await page.evaluate(() => localStorage.getItem('selectedTheme'));
     expect(storedTheme).toBe('bubblegum');
 
-    // Verify colors were cached
-    const cachedColors = await page.evaluate(() => localStorage.getItem('themeColors'));
-    expect(cachedColors).toBeTruthy();
+    // Verify CSS was cached (new system caches full CSS text)
+    const cachedCSS = await page.evaluate(() => localStorage.getItem('themeCSS'));
+    expect(cachedCSS).toBeTruthy();
 
     // Reload and check theme is still applied
     await page.reload();
@@ -93,13 +94,31 @@ test.describe('Theming system', () => {
     expect(themeAfterReload).toBe('bubblegum');
   });
 
-  test('themes.json is accessible at config/themes.json', async ({ page }) => {
-    const response = await page.goto('/config/themes.json');
+  test('styles.json is accessible at styles/styles.json', async ({ page }) => {
+    const response = await page.goto('/styles/styles.json');
     expect(response.status()).toBe(200);
 
     const data = await response.json();
     expect(data).toHaveProperty('themes');
     expect(data).toHaveProperty('defaultTheme');
-    expect(Object.keys(data.themes).length).toBeGreaterThanOrEqual(2);
+    // themes is now an array
+    expect(Array.isArray(data.themes)).toBe(true);
+    expect(data.themes.length).toBeGreaterThanOrEqual(2);
+  });
+
+  test('theme CSS files are accessible', async ({ page }) => {
+    // Fetch styles.json to get theme file list
+    const response = await page.goto('/styles/styles.json');
+    const data = await response.json();
+
+    // Each theme's CSS file should be loadable
+    for (const theme of data.themes) {
+      const cssResponse = await page.goto(`/styles/${theme.file}`);
+      expect(cssResponse.status()).toBe(200);
+      const cssText = await cssResponse.text();
+      // Each theme CSS should contain :root with CSS variables
+      expect(cssText).toContain(':root');
+      expect(cssText).toContain('--page-bg');
+    }
   });
 });

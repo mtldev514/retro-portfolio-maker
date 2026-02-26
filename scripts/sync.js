@@ -226,8 +226,7 @@ jobs:
     'config/app.json',
     'config/languages.json',
     'config/categories.json',
-    'config/media-types.json',
-    'config/themes.json'
+    'config/media-types.json'
   ];
 
   for (const configFile of configChecks) {
@@ -269,21 +268,41 @@ jobs:
     }
   }
 
-  // Check for custom.css starter
-  console.log(chalk.cyan('\n🎨 Checking custom styles...\n'));
+  // Sync styles/ directory (theme CSS files)
+  console.log(chalk.cyan('\n🎨 Checking theme styles...\n'));
 
-  const customCssPath = path.join(targetPath, 'custom.css');
-  const templateCssPath = path.join(templatePath, 'custom.css');
+  const stylesDir = path.join(targetPath, 'styles');
+  const templateStylesDir = path.join(templatePath, 'styles');
 
-  if (!fs.existsSync(customCssPath)) {
-    if (fs.existsSync(templateCssPath)) {
-      await fs.copy(templateCssPath, customCssPath);
-      console.log(chalk.green('  ✓ Created:'), 'custom.css', chalk.cyan('(starter template — edit to customize styles)'));
-      filesAdded++;
+  if (!fs.existsSync(stylesDir)) {
+    // No styles/ directory — copy entire template
+    if (fs.existsSync(templateStylesDir)) {
+      await fs.copy(templateStylesDir, stylesDir);
+      const styleFiles = await fs.readdir(stylesDir);
+      console.log(chalk.green('  ✓ Created:'), `styles/ (${styleFiles.length} files)`);
+      filesAdded += styleFiles.length;
     }
   } else {
-    console.log(chalk.gray('  ⊘ Skipped:'), 'custom.css', chalk.gray('(preserving your styles)'));
-    filesSkipped++;
+    // styles/ exists — ensure styles.json registry is present
+    const stylesJsonPath = path.join(stylesDir, 'styles.json');
+    if (!fs.existsSync(stylesJsonPath)) {
+      const templateStylesJson = path.join(templateStylesDir, 'styles.json');
+      if (fs.existsSync(templateStylesJson)) {
+        await fs.copy(templateStylesJson, stylesJsonPath);
+        console.log(chalk.green('  ✓ Created missing:'), 'styles/styles.json');
+        filesAdded++;
+      }
+    } else {
+      console.log(chalk.gray('  ⊘ Skipped:'), 'styles/', chalk.gray('(preserving your themes)'));
+      filesSkipped++;
+    }
+  }
+
+  // Migration: warn if old config/themes.json still exists
+  const oldThemesJson = path.join(targetPath, 'config', 'themes.json');
+  if (fs.existsSync(oldThemesJson)) {
+    console.log(chalk.yellow('  ⚠ Found old config/themes.json — themes now live in styles/ directory'));
+    console.log(chalk.yellow('    You can safely delete config/themes.json'));
   }
 
   // Sync package.json scripts

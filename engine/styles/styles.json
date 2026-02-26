@@ -1,0 +1,10 @@
+{
+    "defaultTheme": "ciment",
+    "allowUserSwitch": true,
+    "themes": [
+        { "id": "jr16",      "name": "JR-16",      "emoji": "\ud83c\udf3f", "file": "jr16.css" },
+        { "id": "beton",     "name": "B\u00e9ton",  "emoji": "\ud83c\udf2b\ufe0f", "file": "beton.css" },
+        { "id": "ciment",    "name": "Ciment",      "emoji": "\ud83e\udea8", "file": "ciment.css" },
+        { "id": "bubblegum", "name": "Bubble Gum",  "emoji": "\ud83c\udf6c", "file": "bubblegum.css" }
+    ]
+}
