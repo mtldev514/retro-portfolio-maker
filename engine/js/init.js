@@ -1,34 +1,47 @@
 /**
- * Application Initializer
- * Loads configuration and initializes all modules
+ * Application Initializer — sole entry point
+ * Orchestrates all module initialization in the correct order.
  */
 
-(async function() {
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Initializing application...');
 
-    // Load configuration first
+    // 1. Load configuration first (everything else depends on it)
     const configLoaded = await AppConfig.load();
     if (!configLoaded) {
         console.error('Failed to load configuration. Using defaults.');
     }
 
-    // Initialize language selector dynamically
-    initLanguageSelector();
-
-    // Initialize other modules
-    if (typeof i18n !== 'undefined') {
-        i18n.init();
+    // 2. Flash-free theme restore (synchronous — applies cached CSS vars)
+    if (typeof themes !== 'undefined') {
+        themes.init();
     }
 
-    if (typeof themes !== 'undefined') {
-        // Synchronous init restores cached colors (flash-free)
-        themes.init();
-        // Async load fetches themes.json and builds dynamic switcher
+    // 3. Build dynamic language selector from config
+    initLanguageSelector();
+
+    // 4. Load translations (needs AppConfig for lang paths)
+    if (typeof i18n !== 'undefined') {
+        await i18n.init();
+    }
+
+    // 5. Fetch theme definitions + build dynamic switcher (needs DOM)
+    if (typeof themes !== 'undefined' && themes.loadThemeDefinitions) {
         await themes.loadThemeDefinitions();
     }
 
+    // 6. Set up router (event listeners) and load initial page
+    if (typeof router !== 'undefined') {
+        await router.init();
+    }
+
+    // 7. Init media controller (needs DOM populated by router)
+    if (window.media) {
+        await media.init();
+    }
+
     console.log('✅ Application initialized');
-})();
+});
 
 /**
  * Dynamically build language selector from config
@@ -71,4 +84,3 @@ function initLanguageSelector() {
         });
     }
 }
-

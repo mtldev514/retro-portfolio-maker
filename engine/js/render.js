@@ -251,7 +251,8 @@ const renderer = {
 
     setupFilters() {
         const nav = document.getElementById('filter-nav');
-        if (!nav) return;
+        if (!nav || nav._filtersSetUp) return;
+        nav._filtersSetUp = true;
 
         nav.addEventListener('click', (e) => {
             // Filter buttons

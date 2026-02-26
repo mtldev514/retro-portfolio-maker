@@ -6,17 +6,7 @@ const router = {
     currentRoute: null,
 
     async init() {
-        // 1. Apply theme immediately (synchronous, no flash)
-        if (window.themes) {
-            themes.init();
-        }
-
-        // 2. Load translations
-        if (window.i18n) {
-            await i18n.init();
-        }
-
-        // 2. Intercept internal link clicks (only <a> elements, not <button>)
+        // Intercept internal link clicks (only <a> elements, not <button>)
         document.addEventListener('click', (e) => {
             const link = e.target.closest('a');
             if (link && link.href && link.href.startsWith(window.location.origin) && !link.getAttribute('target')) {
@@ -25,25 +15,21 @@ const router = {
             }
         });
 
-        // 3. Handle browser back/forward
+        // Handle browser back/forward
         window.addEventListener('popstate', () => {
             this.loadPage(window.location.pathname + window.location.search);
         });
 
-        // 4. GitHub Pages SPA redirect
+        // GitHub Pages SPA redirect
         const redirectPath = sessionStorage.getItem('spa-redirect');
         if (redirectPath) {
             sessionStorage.removeItem('spa-redirect');
             window.history.replaceState({}, '', redirectPath);
         }
 
-        // 5. Load initial page
+        // Load initial page
         await this.loadPage(window.location.pathname + window.location.search);
 
-        // 6. Init media controller after DOM is populated
-        if (window.media) {
-            await media.init();
-        }
     },
 
     isDetailRoute(url) {
@@ -104,6 +90,13 @@ const router = {
                 if (window.i18n) window.i18n.updateDOM();
             } catch (error) {
                 console.error('Detail load error:', error);
+                const t = (key, fb) => (window.i18n && i18n.translations[key]) || fb;
+                app.innerHTML = '';
+                app.prepend(this._savedFilterNav);
+                const msg = document.createElement('div');
+                msg.innerHTML = `<p class="empty-message">${t('detail_error', 'Could not load item details.')}</p>
+                    <p align="center"><a href="index.html" class="btn">${t('gallery_back', 'Back to Home')}</a></p>`;
+                app.appendChild(msg);
             }
         } else {
             // GRID VIEW: render unified gallery
@@ -129,5 +122,5 @@ const router = {
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => router.init());
+// router.init() is called by init.js — no auto-run needed
 window.router = router;
