@@ -7,6 +7,16 @@ const fs = require('fs-extra');
 const path = require('path');
 const chalk = require('chalk');
 
+// Admin/dev-only files excluded from production builds (--production flag)
+const ADMIN_FILES = [
+  'admin.html',
+  'admin.css',
+  'edit.html',
+  'config-manager.html',
+  'validator.html',
+  'admin'  // entire admin/ directory (Python Flask API, shell scripts)
+];
+
 async function build(options = {}) {
   console.log(chalk.blue('🏗️  Building your portfolio...\n'));
 
@@ -48,11 +58,28 @@ async function build(options = {}) {
     throw new Error('Engine files not found. Package may be corrupted.');
   }
 
-  await fs.copy(enginePath, outputDir);
+  if (options.production) {
+    // Production build: exclude admin/dev-only files
+    await fs.copy(enginePath, outputDir, {
+      filter: (src) => {
+        const relative = path.relative(enginePath, src);
+        if (relative === '') return true; // allow root directory
+        const topLevel = relative.split(path.sep)[0];
+        return !ADMIN_FILES.includes(topLevel);
+      }
+    });
+  } else {
+    await fs.copy(enginePath, outputDir);
+  }
 
   // Count files copied
-  const engineFiles = await fs.readdir(enginePath);
-  console.log(chalk.green(`  ✓ Copied ${engineFiles.length} engine files\n`));
+  const engineFiles = (await fs.readdir(outputDir)).filter(f => f !== 'build-info.json');
+  console.log(chalk.green(`  ✓ Copied ${engineFiles.length} engine files`));
+
+  if (options.production) {
+    console.log(chalk.yellow('  ⚡ Production mode: admin files excluded'));
+  }
+  console.log('');
 
   // Generate dynamic filter buttons from categories
   console.log(chalk.cyan('🔧 Generating filter buttons from categories...'));

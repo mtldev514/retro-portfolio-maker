@@ -167,9 +167,9 @@ GITHUB_TOKEN=your_github_token_here
   const workflowDir = path.join(targetPath, '.github', 'workflows');
   const deployWorkflowPath = path.join(workflowDir, 'deploy.yml');
 
-  if (!fs.existsSync(deployWorkflowPath) || options.force) {
-    await fs.ensureDir(workflowDir);
-    const deployWorkflow = `name: Deploy to GitHub Pages
+  // Always overwrite deploy.yml — this is engine-maintained infrastructure
+  await fs.ensureDir(workflowDir);
+  const deployWorkflow = `name: Deploy to GitHub Pages
 
 on:
   push:
@@ -203,7 +203,7 @@ jobs:
         run: npm ci
 
       - name: 🏗️ Build site
-        run: npm run build
+        run: npm run build -- --production
 
       - name: 📊 Build summary
         run: |
@@ -227,13 +227,9 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**URL:** $` + '{{ steps.deployment.outputs.page_url }}' + `" >> $GITHUB_STEP_SUMMARY
 `;
-    await fs.writeFile(deployWorkflowPath, deployWorkflow);
-    console.log(chalk.green('  ✓ Updated:'), '.github/workflows/deploy.yml');
-    filesAdded++;
-  } else {
-    console.log(chalk.gray('  ⊘ Skipped:'), '.github/workflows/deploy.yml', chalk.gray('(use --force to update)'));
-    filesSkipped++;
-  }
+  await fs.writeFile(deployWorkflowPath, deployWorkflow);
+  console.log(chalk.green('  ✓ Updated:'), '.github/workflows/deploy.yml');
+  filesAdded++;
 
   // Check for missing config files (don't overwrite existing ones)
   console.log(chalk.cyan('\n📄 Checking configuration files...\n'));

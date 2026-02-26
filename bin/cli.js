@@ -62,6 +62,7 @@ program
   .description('Build the static site from your data')
   .option('-o, --output <dir>', 'Output directory', 'dist')
   .option('-w, --watch', 'Watch for changes and rebuild')
+  .option('--production', 'Production build (excludes admin files)')
   .action(async (options) => {
     try {
       await build(options);
