@@ -27,7 +27,22 @@ async function build(options = {}) {
   const cwd = process.cwd();
   const outputDir = path.join(cwd, options.output || 'dist');
 
-  // Validate user has required directories
+  // Detect data source mode from config-source.json
+  const configSourcePath = path.join(cwd, 'config-source.json');
+  let sourceMode = 'local';
+  if (fs.existsSync(configSourcePath)) {
+    try {
+      const cs = fs.readJsonSync(configSourcePath);
+      sourceMode = cs.mode || 'local';
+    } catch (e) { /* ignore parse errors, default to local */ }
+  }
+
+  const isSupabaseMode = sourceMode === 'supabase';
+  if (isSupabaseMode) {
+    console.log(chalk.magenta('🗄️  Supabase mode — config/data/lang will NOT be bundled\n'));
+  }
+
+  // Validate user has required directories (needed locally for build-time processing)
   const requiredDirs = ['config', 'data', 'lang'];
   for (const dir of requiredDirs) {
     if (!fs.existsSync(path.join(cwd, dir))) {
@@ -37,7 +52,7 @@ async function build(options = {}) {
 
   console.log(chalk.cyan('📋 Validating data files...'));
 
-  // Validate config files exist
+  // Validate config files exist (needed for filter button generation even in supabase mode)
   const requiredConfigs = ['app.json', 'languages.json', 'categories.json'];
   for (const config of requiredConfigs) {
     const configPath = path.join(cwd, 'config', config);
@@ -90,18 +105,31 @@ async function build(options = {}) {
   await generateFilterButtons(cwd, outputDir);
   console.log(chalk.green('  ✓ Filter buttons generated\n'));
 
-  // Copy user data
-  console.log(chalk.cyan('📄 Copying your data...'));
+  // Copy config-source.json to dist (frontend needs it to determine data source)
+  if (fs.existsSync(configSourcePath)) {
+    await fs.copy(configSourcePath, path.join(outputDir, 'config-source.json'));
+    console.log(chalk.green('  ✓'), `config-source.json (mode: ${sourceMode})`);
+  }
 
-  const dataDirs = ['config', 'data', 'lang'];
-  for (const dir of dataDirs) {
-    const srcPath = path.join(cwd, dir);
-    const destPath = path.join(outputDir, dir);
+  // Copy user data directories (skipped in Supabase mode — frontend fetches from DB)
+  if (isSupabaseMode) {
+    console.log(chalk.cyan('📄 Skipping local data (Supabase mode)...'));
+    console.log(chalk.gray('  ⊘ config/ — fetched from Supabase'));
+    console.log(chalk.gray('  ⊘ data/ — fetched from Supabase'));
+    console.log(chalk.gray('  ⊘ lang/ — fetched from Supabase'));
+  } else {
+    console.log(chalk.cyan('📄 Copying your data...'));
 
-    await fs.copy(srcPath, destPath);
+    const dataDirs = ['config', 'data', 'lang'];
+    for (const dir of dataDirs) {
+      const srcPath = path.join(cwd, dir);
+      const destPath = path.join(outputDir, dir);
 
-    const fileCount = (await fs.readdir(srcPath)).length;
-    console.log(chalk.green('  ✓'), `${dir}/ (${fileCount} files)`);
+      await fs.copy(srcPath, destPath);
+
+      const fileCount = (await fs.readdir(srcPath)).length;
+      console.log(chalk.green('  ✓'), `${dir}/ (${fileCount} files)`);
+    }
   }
 
   // Copy assets if exists
