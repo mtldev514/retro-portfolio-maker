@@ -92,6 +92,7 @@ body.admin-page {
     font-size: 9px;
     padding: 0;
     margin-left: 2px;
+    color: var(--admin-win-text);
     background: var(--admin-win-bg);
     border: 1px solid;
     border-color: var(--admin-win-border-light) var(--admin-win-border-dark) var(--admin-win-border-dark) var(--admin-win-border-light);
@@ -268,6 +269,7 @@ body.admin-page {
 
 .admin-page .button-bar button {
     padding: 6px 20px;
+    color: var(--admin-win-text);
     background: var(--admin-win-bg);
     border: 2px solid;
     border-color: var(--admin-win-border-light) var(--admin-win-border-dark) var(--admin-win-border-dark) var(--admin-win-border-light);
@@ -600,6 +602,7 @@ body.admin-page {
 
 .gallery-action-btn {
     padding: 4px 12px;
+    color: var(--admin-win-text);
     background: var(--admin-win-bg);
     border: 2px solid;
     border-color: var(--admin-win-border-light) var(--admin-win-border-dark) var(--admin-win-border-dark) var(--admin-win-border-light);
@@ -690,6 +693,7 @@ body.admin-page {
     width: 100%;
     padding: 12px;
     margin-bottom: 10px;
+    color: var(--admin-win-text);
     background: var(--admin-win-bg);
     border: 2px solid;
     border-color: var(--admin-win-border-light) var(--admin-win-border-dark) var(--admin-win-border-dark) var(--admin-win-border-light);

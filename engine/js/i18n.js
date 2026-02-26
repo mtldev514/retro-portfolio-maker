@@ -14,10 +14,15 @@ const i18n = {
 
     async loadTranslations(lang) {
         try {
-            const langDir = window.AppConfig?.getSetting('paths.langDir') || 'lang';
-            const response = await fetch(`${langDir}/${lang}.json`);
-            if (!response.ok) throw new Error(`Could not load ${lang} translation`);
-            this.translations = await response.ok ? await response.json() : {};
+            // Use AppConfig helper (supports local files + Supabase)
+            if (window.AppConfig?.fetchTranslation) {
+                this.translations = await window.AppConfig.fetchTranslation(lang);
+            } else {
+                // Fallback: direct file fetch
+                const langDir = window.AppConfig?.getSetting('paths.langDir') || 'lang';
+                const response = await fetch(`${langDir}/${lang}.json`);
+                this.translations = response.ok ? await response.json() : {};
+            }
             this.currentLang = lang;
             localStorage.setItem('selectedLang', lang);
         } catch (error) {

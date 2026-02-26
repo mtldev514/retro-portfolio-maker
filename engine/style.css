@@ -76,8 +76,8 @@
     /* Frost Paper */
     --btn-text: #1f2230;
     /* Ink */
-    --btn-text-active: #c89850;
-    /* Gold */
+    --btn-text-active: #7a5a18;
+    /* Deep Gold (WCAG AA on light buttons) */
 
     /* ── Filter bar ── */
     --filter-bg: #e6e9f2;

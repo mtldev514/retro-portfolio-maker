@@ -38,7 +38,10 @@ const ConfigLoader = {
 
             console.log(`📦 Config mode: ${this.source.mode}`);
 
-            if (this.source.mode === 'remote' && this.source.remote.enabled) {
+            if (this.source.mode === 'supabase') {
+                console.log('🗄️ Loading from Supabase');
+                return this.loadSupabase();
+            } else if (this.source.mode === 'remote' && this.source.remote.enabled) {
                 console.log(`🌐 Loading from remote: ${this.source.remote.repo}`);
                 return this.loadRemote();
             } else if (this.source.mode === 'hybrid') {
@@ -88,6 +91,57 @@ const ConfigLoader = {
             console.error('❌ Failed to load local config:', error);
             throw error;
         }
+    },
+
+    /**
+     * Load configuration from Supabase database.
+     * Fetches all config rows from the `config` table via PostgREST.
+     */
+    async loadSupabase() {
+        const sb = this.source?.supabase;
+        if (!sb?.url || !sb?.anonKey) {
+            throw new Error('Supabase config requires url and anonKey in config-source.json');
+        }
+
+        try {
+            const res = await fetch(`${sb.url}/rest/v1/config?select=key,value`, {
+                headers: {
+                    'apikey': sb.anonKey,
+                    'Authorization': `Bearer ${sb.anonKey}`
+                }
+            });
+
+            if (!res.ok) throw new Error(`Supabase config fetch failed: ${res.status}`);
+
+            const rows = await res.json();
+            const configMap = {};
+            rows.forEach(row => { configMap[row.key] = row.value; });
+
+            return {
+                app: configMap.app || {},
+                languages: configMap.languages || {},
+                categories: configMap.categories || {},
+                mediaTypes: configMap['media-types'] || {},
+                source: 'supabase',
+                supabase: sb,
+                paths: { configDir: 'config', dataDir: 'data', langDir: 'lang' }
+            };
+        } catch (error) {
+            console.error('❌ Supabase config load failed:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get Supabase REST headers (for use by AppConfig fetch helpers)
+     */
+    getSupabaseHeaders() {
+        const sb = this.source?.supabase;
+        if (!sb) return null;
+        return {
+            'apikey': sb.anonKey,
+            'Authorization': `Bearer ${sb.anonKey}`
+        };
     },
 
     /**
@@ -218,6 +272,7 @@ const AppConfig = {
             this.mediaTypes = config.mediaTypes;
             this.source = config.source;
             this.paths = config.paths;
+            this.supabaseConfig = config.supabase || null;
             this.loaded = true;
 
             console.log(`✅ Configuration loaded from ${config.source}`);
@@ -389,6 +444,77 @@ const AppConfig = {
             if (value === undefined) return null;
         }
         return value;
+    },
+
+    // ─── Supabase-aware data fetchers ────────────────────────
+    // These helpers let render.js and i18n.js load data without
+    // caring whether the source is local files or Supabase.
+
+    /**
+     * Fetch all items for a media type.
+     * Local: fetch data/{mediaType}.json
+     * Supabase: GET /rest/v1/items?media_type=eq.{mediaType}
+     * @returns {Array} items
+     */
+    async fetchMediaTypeItems(mediaTypeId) {
+        if (this.source === 'supabase' && this.supabaseConfig) {
+            const sb = this.supabaseConfig;
+            const res = await fetch(
+                `${sb.url}/rest/v1/items?media_type=eq.${encodeURIComponent(mediaTypeId)}&select=*`,
+                { headers: ConfigLoader.getSupabaseHeaders() }
+            );
+            return res.ok ? res.json() : [];
+        }
+        // Default: local file
+        const filePath = this.getMediaTypeDataFile(mediaTypeId);
+        const res = await fetch(filePath);
+        return res.ok ? res.json() : [];
+    },
+
+    /**
+     * Fetch category reference array (ordered UUIDs).
+     * Local: fetch data/{category}.json → plain array
+     * Supabase: GET /rest/v1/category_refs?category_id=eq.{cat} → [{refs:[...]}]
+     * @returns {Array<string>} UUID array
+     */
+    async fetchCategoryRefs(categoryId) {
+        if (this.source === 'supabase' && this.supabaseConfig) {
+            const sb = this.supabaseConfig;
+            const res = await fetch(
+                `${sb.url}/rest/v1/category_refs?category_id=eq.${encodeURIComponent(categoryId)}&select=refs`,
+                { headers: ConfigLoader.getSupabaseHeaders() }
+            );
+            if (!res.ok) return [];
+            const rows = await res.json();
+            return rows.length > 0 ? rows[0].refs : [];
+        }
+        // Default: local file
+        const refPath = this.getCategoryRefFile(categoryId);
+        const res = await fetch(refPath);
+        return res.ok ? res.json() : [];
+    },
+
+    /**
+     * Fetch translations for a language.
+     * Local: fetch lang/{code}.json → plain object
+     * Supabase: GET /rest/v1/translations?lang_code=eq.{code} → [{data:{...}}]
+     * @returns {object} translation key-value pairs
+     */
+    async fetchTranslation(langCode) {
+        if (this.source === 'supabase' && this.supabaseConfig) {
+            const sb = this.supabaseConfig;
+            const res = await fetch(
+                `${sb.url}/rest/v1/translations?lang_code=eq.${encodeURIComponent(langCode)}&select=data`,
+                { headers: ConfigLoader.getSupabaseHeaders() }
+            );
+            if (!res.ok) return {};
+            const rows = await res.json();
+            return rows.length > 0 ? rows[0].data : {};
+        }
+        // Default: local file
+        const langPath = ConfigLoader.getLangPath(langCode);
+        const res = await fetch(langPath);
+        return res.ok ? res.json() : {};
     }
 };
 

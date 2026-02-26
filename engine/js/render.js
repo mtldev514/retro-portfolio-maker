@@ -52,29 +52,25 @@ const renderer = {
         // Skip re-fetch if data is already loaded (returning from detail view)
         if (this.allItems.length === 0) {
             // ─── Normalized data loading ─────────────────────
-            // 1. Fetch media-type data files (source of truth)
+            // Uses AppConfig fetch helpers — works with both local files and Supabase.
+            // 1. Fetch media-type data (source of truth for item objects)
             const mediaTypes = window.AppConfig?.getAllMediaTypes() || [];
             const mediaData = {}; // { image: [...items], audio: [...items] }
 
             await Promise.all(mediaTypes.map(async (mt) => {
                 try {
-                    const filePath = window.AppConfig.getMediaTypeDataFile(mt.id);
-                    const res = await fetch(filePath);
-                    if (!res.ok) { mediaData[mt.id] = []; return; }
-                    mediaData[mt.id] = await res.json();
+                    mediaData[mt.id] = await window.AppConfig.fetchMediaTypeItems(mt.id);
                 } catch {
                     mediaData[mt.id] = [];
                 }
             }));
 
-            // 2. Fetch category ref files → resolve UUIDs → items
+            // 2. Fetch category refs → resolve UUIDs → tagged items
             const allCategories = window.AppConfig?.getAllCategories() || [];
 
             await Promise.all(allCategories.map(async (cat) => {
                 try {
-                    const refPath = window.AppConfig.getCategoryRefFile(cat.id);
-                    const res = await fetch(refPath);
-                    const refs = await res.json();
+                    const refs = await window.AppConfig.fetchCategoryRefs(cat.id);
 
                     // Build UUID → item lookup for this media type
                     const items = mediaData[cat.mediaType] || [];
@@ -88,7 +84,7 @@ const renderer = {
 
                     this.allItems.push(...resolved);
                 } catch {
-                    // Empty or missing category file — skip
+                    // Empty or missing category — skip
                 }
             }));
 

@@ -191,6 +191,7 @@
                 const catRes = await fetch(`${API_URL}/api/config/categories`);
                 const catConfig = await catRes.json();
                 const allCats = catConfig.contentTypes || catConfig.categories || [];
+                allCategories = allCats; // Cache for mediaType lookups
 
                 const current = allCats.find(c => c.id === currentCategory);
                 if (!current) return;
@@ -260,6 +261,13 @@
         let galleryOrder = []; // Track current gallery order
         let coverUrl = ''; // Track current cover URL
         let draggedIndex = null;
+        let allCategories = []; // Cached category config for mediaType lookups
+
+        /** Get mediaType for a category id from config */
+        function getMediaTypeForCategory(catId) {
+            const ct = allCategories.find(c => c.id === catId);
+            return ct ? ct.mediaType : null;
+        }
 
         function populateForm(item, cat) {
             currentItem = item;
@@ -278,42 +286,39 @@
             document.getElementById('windowTitle').innerText = `EDITING: ${titleStr}`;
             document.getElementById('statusText').innerText = `Editing ${cat}/${idStr}`;
 
-            // Show medium field for painting/drawing/sculpting
-            if (cat === 'painting' || cat === 'drawing' || cat === 'sculpting') {
+            // Dynamic field visibility based on mediaType (not hardcoded category names)
+            const mediaType = getMediaTypeForCategory(cat);
+
+            // Image media type → show medium, image preview, gallery
+            if (mediaType === 'image') {
                 document.getElementById('mediumGroup').style.display = 'block';
                 document.getElementById('editMedium').value = resolveField(item.medium);
+                if (item.url) {
+                    document.getElementById('previewGroup').style.display = 'block';
+                    document.getElementById('previewImg').src = item.url;
+                }
+                if (item.gallery && item.gallery.length > 0) {
+                    document.getElementById('galleryManagerGroup').style.display = 'block';
+                    coverUrl = item.url;
+                    galleryOrder = [...item.gallery];
+                    renderGalleryManager();
+                }
             }
 
-            // Show genre + lyrics fields for music
-            if (cat === 'music') {
+            // Audio media type → show genre, lyrics, audio preview
+            if (mediaType === 'audio') {
                 document.getElementById('genreGroup').style.display = 'block';
                 document.getElementById('editGenre').value = resolveField(item.genre);
                 document.getElementById('lyricsGroup').style.display = 'block';
                 document.getElementById('editLyrics').value = resolveField(item.lyrics);
+                if (item.url) {
+                    document.getElementById('audioPreviewGroup').style.display = 'block';
+                    document.getElementById('audioPreview').src = item.url;
+                }
             }
 
             // Always populate description
             document.getElementById('editDescription').value = resolveField(item.description);
-
-            // Show image preview for visual categories
-            if (item.url && (cat === 'painting' || cat === 'drawing' || cat === 'photography' || cat === 'sculpting')) {
-                document.getElementById('previewGroup').style.display = 'block';
-                document.getElementById('previewImg').src = item.url;
-            }
-
-            // Show audio preview for music
-            if (item.url && cat === 'music') {
-                document.getElementById('audioPreviewGroup').style.display = 'block';
-                document.getElementById('audioPreview').src = item.url;
-            }
-
-            // Show gallery manager for image piles
-            if (item.gallery && item.gallery.length > 0 && (cat === 'painting' || cat === 'drawing' || cat === 'photography' || cat === 'sculpting')) {
-                document.getElementById('galleryManagerGroup').style.display = 'block';
-                coverUrl = item.url;
-                galleryOrder = [...item.gallery];
-                renderGalleryManager();
-            }
 
             log(`Item loaded successfully: "${titleStr}"`, 'cyan');
 

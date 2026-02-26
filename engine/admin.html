@@ -100,8 +100,6 @@
                 <select id="langSelect" onchange="loadTranslations()" style="width: 100px;">
                     <!-- Populated dynamically from config -->
                 </select>
-                <button class="action" onclick="askAgentForTranslation()"
-                    style="margin: 0 0 0 10px; font-size: 11px;">Ask Agent for Missing</button>
             </div>
             <div id="translationGrid" class="translation-grid">
                 <!-- Populated by JS -->
@@ -135,19 +133,6 @@
                 </p>
             </div>
 
-            <hr style="margin: 20px 0;">
-
-            <div class="field-row" style="margin-top: 20px;">
-                <button onclick="syncGitHub()" style="width: 100%; height: 40px; font-weight: bold; cursor: pointer;">
-                    <img src="https://github.githubassets.com/favicons/favicon.svg" width="16"
-                        style="vertical-align: middle;">
-                    SYNC GITHUB PROJECTS
-                </button>
-                <p class="admin-muted" style="margin-top: 5px;">
-                    * This will fetch repositories for <b id="github-username">mtldev514</b>.
-                    Add GITHUB_TOKEN to .env to include private repos.
-                </p>
-            </div>
         </div>
 
         <div class="console" id="console">
@@ -545,49 +530,6 @@
             }
         }
 
-        async function askAgentForTranslation() {
-            const consoleBox = document.getElementById('console');
-            consoleBox.innerHTML += `<br>> Scanning for missing translation keys...`;
-
-            try {
-                // Load language config to know all supported languages
-                const langConfig = await fetch('config/languages.json').then(r => r.json());
-                const codes = langConfig.supportedLanguages.map(l => l.code);
-                const defaultLang = langConfig.defaultLanguage || 'en';
-
-                // Fetch all translation files
-                const allTrans = {};
-                for (const code of codes) {
-                    const res = await fetch(`${API_URL}/api/translations/${code}`);
-                    allTrans[code] = await res.json();
-                }
-
-                // Compare each language against the default language's keys
-                const refKeys = Object.keys(allTrans[defaultLang] || {});
-                const missing = {};
-                for (const code of codes) {
-                    if (code === defaultLang) continue;
-                    const missingKeys = refKeys.filter(k => !allTrans[code]?.[k]);
-                    if (missingKeys.length > 0) missing[code] = missingKeys;
-                }
-
-                if (Object.keys(missing).length === 0) {
-                    consoleBox.innerHTML += `<br><span class="con-info">> System status: All languages synchronized.</span>`;
-                    return;
-                }
-
-                consoleBox.innerHTML += `<br><span class="con-warn">> AGENT REQUIRED: ${Object.keys(missing).length} languages have missing keys.</span>`;
-                for (const lang in missing) {
-                    consoleBox.innerHTML += `<br><span class="con-warn">  [${lang.toUpperCase()}]: ${missing[lang].join(', ')}</span>`;
-                }
-                consoleBox.innerHTML += `<br><span class="con-hi">> TIP: Ask Antigravity in the chat to 'Translate the missing keys for ${Object.keys(missing).join(', ')}' and they will be fixed instantly!</span>`;
-            } catch (err) {
-                consoleBox.innerHTML += isServerDown(err)
-                    ? `<br><span class="con-error">> ${serverDownMsg()}</span>`
-                    : `<br><span class="con-error">> Error checking missing keys.</span>`;
-            }
-        }
-
         let loadedContent = {}; // cached for pile picker
 
         // Helper to check if category supports images/galleries
@@ -798,28 +740,6 @@
                 statusSpan.innerHTML = isServerDown(err)
                     ? `<span class="con-error">${serverDownMsg()}</span>`
                     : '<span class="con-error">network error</span>';
-            }
-        }
-
-        async function syncGitHub() {
-            const consoleBox = document.getElementById('console');
-            consoleBox.innerHTML += `<br>> Initiating GitHub synchronization...`;
-
-            try {
-                const res = await fetch(`${API_URL}/api/github/sync`, { method: 'POST' });
-                const result = await res.json();
-
-                if (result.success) {
-                    consoleBox.innerHTML += `<br><span class="con-success">> GitHub Sync Successful: ${result.count} repositories fetched.</span>`;
-                    consoleBox.innerHTML += `<br><span class="con-info">> ${result.count} projects updated in data/projects.json.</span>`;
-                    autoCommitAndPush(`sync ${result.count} GitHub repos`);
-                } else {
-                    consoleBox.innerHTML += `<br><span class="con-error">> GitHub Sync Failed: ${result.error}</span>`;
-                }
-            } catch (err) {
-                consoleBox.innerHTML += isServerDown(err)
-                    ? `<br><span class="con-error">> ${serverDownMsg()}</span>`
-                    : `<br><span class="con-error">> Network Error during GitHub Sync.</span>`;
             }
         }
 

@@ -1,11 +1,15 @@
 /**
  * Build Script
- * Merges engine files with user data to generate static site
+ * Merges engine files with user data to generate static site.
+ * Supports --watch flag for continuous rebuilds on file changes.
  */
 
 const fs = require('fs-extra');
 const path = require('path');
 const chalk = require('chalk');
+
+/** Directories to watch for changes (same as serve.js) */
+const WATCH_DIRS = ['config', 'data', 'lang', 'styles'];
 
 // Admin/dev-only files excluded from production builds (--production flag)
 const ADMIN_FILES = [
@@ -142,7 +146,62 @@ async function build(options = {}) {
   console.log(chalk.gray('  • Test locally: npm run dev'));
   console.log(chalk.gray('  • Deploy: npm run deploy\n'));
 
+  // If --watch flag, start file watchers for continuous rebuilds
+  if (options.watch) {
+    startBuildWatcher(cwd, options);
+  }
+
   return outputDir;
+}
+
+/**
+ * Watch user content directories and re-run build on changes.
+ * Uses Node.js native fs.watch with { recursive: true } (Node 18+ macOS/Windows).
+ */
+function startBuildWatcher(cwd, buildOptions, debounceMs = 500) {
+  let rebuildTimer = null;
+  let isBuilding = false;
+
+  const rebuild = (changedFile) => {
+    clearTimeout(rebuildTimer);
+    rebuildTimer = setTimeout(async () => {
+      if (isBuilding) return;
+      isBuilding = true;
+      try {
+        console.log(chalk.yellow(`\n🔄 Change detected: ${changedFile}`));
+        await build({ ...buildOptions, watch: false }); // avoid re-entering watch
+      } catch (err) {
+        console.error(chalk.red(`✗ Rebuild failed: ${err.message}\n`));
+      } finally {
+        isBuilding = false;
+      }
+    }, debounceMs);
+  };
+
+  for (const dir of WATCH_DIRS) {
+    const dirPath = path.join(cwd, dir);
+    if (!fs.existsSync(dirPath)) continue;
+
+    try {
+      fs.watch(dirPath, { recursive: true }, (eventType, filename) => {
+        if (filename && (filename.startsWith('.') || filename.endsWith('~'))) return;
+        rebuild(filename ? `${dir}/${filename}` : dir);
+      });
+    } catch (err) {
+      console.warn(chalk.yellow(`⚠ Could not watch ${dir}/: ${err.message}`));
+    }
+  }
+
+  const watchedDirs = WATCH_DIRS.filter(d => fs.existsSync(path.join(cwd, d)));
+  console.log(chalk.magenta(`👀 Watching: ${watchedDirs.map(d => d + '/').join(', ')}`));
+  console.log(chalk.gray('   Changes will trigger automatic rebuilds'));
+  console.log(chalk.gray('   Press CTRL+C to stop\n'));
+
+  // Keep process alive
+  process.on('SIGINT', () => {
+    console.log(chalk.yellow('\n👋 Stopping watch mode...'));
+    process.exit(0);
+  });
 }
 
 /**

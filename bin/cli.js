@@ -124,6 +124,20 @@ program
     }
   });
 
+// Sync to Supabase command
+program
+  .command('sync-supabase')
+  .description('Sync local data files to Supabase database')
+  .action(async () => {
+    try {
+      const syncSupabase = require('../scripts/sync-supabase');
+      await syncSupabase();
+    } catch (error) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
+
 // Deploy command - Deploy to GitHub Pages
 program
   .command('deploy')
