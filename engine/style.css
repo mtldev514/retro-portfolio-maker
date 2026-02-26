@@ -850,7 +850,8 @@ nav {
     box-shadow: none;
     overflow: hidden;
     transition: box-shadow 0.5s ease;
-    flex: 1;
+    height: 310px;
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
 }
