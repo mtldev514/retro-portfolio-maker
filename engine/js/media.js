@@ -41,15 +41,9 @@ const media = {
 
     async loadPlaylist() {
         try {
-            const dataDir = window.AppConfig?.getSetting('paths.dataDir') || 'data';
-
-            // Fetch audio media-type data file (source of truth)
-            const audioRes = await fetch(`${dataDir}/audio.json`);
-            const allAudio = await audioRes.json();
-
-            // Fetch music category refs (ordered UUIDs)
-            const refsRes = await fetch(`${dataDir}/music.json`);
-            const refs = await refsRes.json();
+            // Use AppConfig helpers (works with both local files and Supabase)
+            const allAudio = await window.AppConfig.fetchMediaTypeItems('audio');
+            const refs = await window.AppConfig.fetchCategoryRefs('music');
 
             // Resolve refs → audio items in playlist order
             const itemMap = new Map(allAudio.map(i => [i.id, i]));
@@ -62,7 +56,7 @@ const media = {
                 this.buildPlaylist();
             }
         } catch (e) {
-            console.log('Could not load audio playlist');
+            console.warn('Could not load audio playlist:', e.message || e);
         }
     },
 
