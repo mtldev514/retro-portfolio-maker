@@ -1,6 +1,6 @@
 {
   "name": "@mtldev514/retro-portfolio-maker",
-  "version": "1.0.27",
+  "version": "1.0.28",
   "description": "A portfolio manager for multi-passionate creators with a soft spot for early 2000s aesthetics. Display your many projects with soul.",
   "main": "index.js",
   "bin": {
