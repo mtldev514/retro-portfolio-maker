@@ -466,6 +466,7 @@ nav {
     display: flex;
     flex-wrap: nowrap;
     gap: 4px;
+    justify-content: center;
     margin-bottom: 15px;
     padding: 8px;
     background: var(--filter-bg);
@@ -476,20 +477,20 @@ nav {
 }
 
 .filter-btn {
-    flex: 1;
     text-align: center;
     white-space: nowrap;
     text-decoration: none;
     color: var(--btn-text);
     font-weight: bold;
-    padding: 5px 4px;
+    padding: 5px 8px;
     border: 2px outset var(--container-bg);
     border-radius: 6px;
     background: linear-gradient(180deg, var(--btn-bg-start) 0%, var(--btn-bg-mid) 50%, var(--btn-bg-end) 100%);
     box-shadow: 1px 1px 0 rgba(31, 34, 48, 0.2);
     cursor: pointer;
     font-family: inherit;
-    font-size: inherit;
+    font-size: 18px;
+    line-height: 1;
 }
 
 .filter-btn:hover {
@@ -515,35 +516,6 @@ nav {
     width: 100%;
     text-align: center;
     font-weight: bold;
-}
-
-.sort-controls {
-    margin-left: auto;
-    display: flex;
-    gap: 2px;
-    flex-shrink: 0;
-}
-
-.sort-btn {
-    padding: 5px 8px;
-    border: 2px outset var(--container-bg);
-    border-radius: 6px;
-    background: linear-gradient(180deg, var(--btn-bg-start) 0%, var(--btn-bg-mid) 50%, var(--btn-bg-end) 100%);
-    cursor: pointer;
-    font-family: inherit;
-    color: var(--btn-text);
-}
-
-.sort-btn:hover {
-    color: var(--btn-text-active);
-    background: linear-gradient(180deg, var(--btn-hover-start) 0%, var(--btn-hover-mid) 50%, var(--btn-hover-end) 100%);
-}
-
-.sort-btn.active {
-    border-style: inset;
-    background: linear-gradient(180deg, var(--btn-bg-end) 0%, var(--btn-bg-mid) 50%, var(--btn-hover-mid) 100%);
-    color: var(--btn-text-active);
-    box-shadow: inset 1px 1px 2px rgba(31, 34, 48, 0.3);
 }
 
 .category-icon {
@@ -2115,7 +2087,6 @@ nav {
 
 /* Shared button press: snappy 60ms stepped transition */
 .filter-btn,
-.sort-btn,
 .settings-btn,
 .load-more-btn,
 .card-action-btn,
@@ -2124,7 +2095,6 @@ nav {
     transition: transform 60ms steps(2);
 }
 
-.sort-btn:active,
 .settings-btn:active,
 .load-more-btn:active,
 .card-action-btn:active,
@@ -2179,7 +2149,6 @@ nav {
 /* Accessibility: respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
     .filter-btn,
-    .sort-btn,
     .settings-btn,
     .load-more-btn,
     .card-action-btn,

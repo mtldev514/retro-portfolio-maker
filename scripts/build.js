@@ -253,43 +253,44 @@ async function generateFilterButtons(userDir, outputDir) {
   const displayCategories = contentTypes.slice(0, 7);
 
   let filterButtonsHtml = '<!-- Auto-generated filter buttons from categories.json -->\n';
-  filterButtonsHtml += '                    <button class="filter-btn active" data-filter="all" data-i18n="filter_all">All</button>\n';
+  filterButtonsHtml += '                    <button class="filter-btn active" data-filter="all" title="All" data-i18n="filter_all">✱</button>\n';
 
   displayCategories.forEach(category => {
-    // Extract name - support both string and multilingual object formats
+    // Extract name for tooltip/accessibility
     let displayName = category.name;
     if (typeof displayName === 'object' && displayName !== null) {
-      // If name is an object, use English as fallback for static HTML
-      // The i18n system will replace this at runtime anyway
       displayName = displayName.en || displayName.fr || Object.values(displayName)[0] || category.id;
     }
 
-    filterButtonsHtml += `                    <button class="filter-btn" data-filter="${category.id}" data-i18n="nav_${category.id}">${displayName}</button>\n`;
+    // Use icon (emoji) if available, otherwise fall back to text name
+    const buttonText = category.icon || displayName;
+
+    filterButtonsHtml += `                    <button class="filter-btn" data-filter="${category.id}" title="${displayName}" data-i18n="nav_${category.id}">${buttonText}</button>\n`;
   });
+
+  filterButtonsHtml += '                    <!-- End filter buttons -->\n';
 
   // Read index.html
   const indexPath = path.join(outputDir, 'index.html');
   let indexHtml = await fs.readFile(indexPath, 'utf8');
 
-  // Replace the hardcoded filter buttons with generated ones
-  // Find the section between <div id="filter-nav" and the sort controls
+  // Replace filter-nav contents (buttons + sort controls) with generated emoji buttons
   const filterNavStart = indexHtml.indexOf('<div id="filter-nav"');
-  const sortControlsStart = indexHtml.indexOf('<span class="sort-controls">', filterNavStart);
+  const filterNavClose = indexHtml.indexOf('</div>', filterNavStart);
 
-  if (filterNavStart === -1 || sortControlsStart === -1) {
+  if (filterNavStart === -1 || filterNavClose === -1) {
     console.warn(chalk.yellow('  ⚠ Could not find filter nav section in index.html'));
     return;
   }
 
-  // Find where the buttons section starts (after the opening div and class)
+  // Find where the inner content starts (after the opening tag)
   const buttonsStart = indexHtml.indexOf('>', filterNavStart) + 1;
 
-  // Extract the part before buttons, the buttons we'll replace, and the part after
+  // Replace everything inside #filter-nav
   const before = indexHtml.substring(0, buttonsStart);
-  const after = indexHtml.substring(sortControlsStart);
+  const after = indexHtml.substring(filterNavClose);
 
-  // Reconstruct HTML with generated buttons
-  indexHtml = before + '\n' + filterButtonsHtml + '                    ' + after;
+  indexHtml = before + '\n' + filterButtonsHtml + '                ' + after;
 
   // Write back to index.html
   await fs.writeFile(indexPath, indexHtml, 'utf8');

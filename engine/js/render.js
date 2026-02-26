@@ -314,27 +314,6 @@ const renderer = {
                 }
                 return;
             }
-
-            // Sort buttons
-            const sortBtn = e.target.closest('.sort-btn');
-            if (sortBtn) {
-                nav.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-                sortBtn.classList.add('active');
-                this.sortOrder = sortBtn.dataset.sort;
-                this.sortItems();
-
-                const grid = document.getElementById('gallery-container');
-                if (grid && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                    grid.querySelectorAll('.gallery-item').forEach(item => item.classList.add('exiting'));
-                    setTimeout(() => {
-                        this.renderGrid();
-                        if (window.i18n) window.i18n.updateDOM();
-                    }, 80);
-                } else {
-                    this.renderGrid();
-                    if (window.i18n) window.i18n.updateDOM();
-                }
-            }
         });
     }
 };

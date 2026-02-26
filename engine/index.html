@@ -131,19 +131,15 @@
 
             <main id="app">
                 <div id="filter-nav" class="filter-bar">
-                    <!-- Filter buttons auto-generated from config/categories.json at build time -->
-                    <button class="filter-btn active" data-filter="all" data-i18n="filter_all">All</button>
-                    <button class="filter-btn" data-filter="painting" data-i18n="nav_painting">Painting</button>
-                    <button class="filter-btn" data-filter="drawing" data-i18n="nav_drawing">Drawing</button>
-                    <button class="filter-btn" data-filter="photography" data-i18n="nav_photo">Photography</button>
-                    <button class="filter-btn" data-filter="sculpting" data-i18n="nav_sculpting">Sculpting</button>
-                    <button class="filter-btn" data-filter="music" data-i18n="nav_music">Music</button>
-                    <button class="filter-btn" data-filter="projects" data-i18n="nav_projects">Code</button>
+                    <!-- Auto-generated filter buttons from categories.json -->
+                    <button class="filter-btn active" data-filter="all" title="All" data-i18n="filter_all">✱</button>
+                    <button class="filter-btn" data-filter="painting" title="Painting" data-i18n="nav_painting">🎨</button>
+                    <button class="filter-btn" data-filter="drawing" title="Drawing" data-i18n="nav_drawing">✏️</button>
+                    <button class="filter-btn" data-filter="photography" title="Photography" data-i18n="nav_photo">📷</button>
+                    <button class="filter-btn" data-filter="sculpting" title="Sculpting" data-i18n="nav_sculpting">🗿</button>
+                    <button class="filter-btn" data-filter="music" title="Music" data-i18n="nav_music">🎵</button>
+                    <button class="filter-btn" data-filter="projects" title="Projects" data-i18n="nav_projects">💻</button>
                     <!-- End filter buttons -->
-                    <span class="sort-controls">
-                        <button class="sort-btn active" data-sort="desc" title="Newest first">&#9660;</button>
-                        <button class="sort-btn" data-sort="asc" title="Oldest first">&#9650;</button>
-                    </span>
                 </div>
                 <!-- Gallery grid loaded by render.js -->
             </main>
