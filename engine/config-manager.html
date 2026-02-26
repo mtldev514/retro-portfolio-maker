@@ -367,7 +367,7 @@
     </div>
 
     <script>
-        const API_URL = 'http://127.0.0.1:5001';
+        let API_URL = 'http://127.0.0.1:5001'; // fallback, overridden after AppConfig loads
         let currentMediaTypes = [];
         let currentContentTypes = [];
         let editingMediaTypeIndex = null;
@@ -377,6 +377,7 @@
         // Load configuration on page load
         async function init() {
             await AppConfig.load();
+            API_URL = AppConfig.getApiUrl();
             await loadConfigurations();
             renderMediaTypes();
             renderContentTypes();

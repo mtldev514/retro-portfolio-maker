@@ -273,7 +273,7 @@ def save_from_url(url, title, category, medium=None, genre=None, description=Non
     def make_multilingual(value):
         if not value:
             return None
-        return {"en": value, "fr": value, "mx": value, "ht": value}
+        return config.create_multilingual_object(value)
 
     new_entry = {
         "id": f"{category}_{int(datetime.now().timestamp())}",

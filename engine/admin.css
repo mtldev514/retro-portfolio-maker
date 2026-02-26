@@ -29,6 +29,8 @@
     --admin-status-warn: orange;
     --admin-status-info: cyan;
     --admin-status-highlight: yellow;
+    --chrome-soft: #ccc;
+    --admin-win-title-bg: #000080;
 }
 
 body.admin-page {

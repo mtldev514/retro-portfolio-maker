@@ -3,6 +3,7 @@ from flask_cors import CORS
 import os
 import sys
 import json
+import requests as http_requests
 
 # Get user data directories from environment variables
 # These will be set by the npm admin script
@@ -345,8 +346,9 @@ def move_to_pile():
         if 'gallery' not in target_item:
             target_item['gallery'] = []
 
-        # Add source's main URL
-        target_item['gallery'].append(source_item['url'])
+        # Add source's main URL (if it has one)
+        if 'url' in source_item:
+            target_item['gallery'].append(source_item['url'])
 
         # Add source's gallery images
         if 'gallery' in source_item:
@@ -362,6 +364,69 @@ def move_to_pile():
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/github/sync', methods=['POST'])
+def sync_github():
+    """Fetch repositories from GitHub and save to projects.json"""
+    try:
+        github_config = config.get_github_config()
+        username = github_config.get('username')
+
+        if not username:
+            return jsonify({"success": False, "error": "No GitHub username configured in app.json"}), 400
+
+        github_token = os.environ.get('GITHUB_TOKEN')
+        headers = {"Accept": "application/vnd.github.v3+json"}
+        if github_token:
+            headers["Authorization"] = f"token {github_token}"
+
+        # Fetch repos — authenticated endpoint includes private repos
+        if github_token:
+            api_url = "https://api.github.com/user/repos?per_page=100&type=owner"
+        else:
+            api_url = f"https://api.github.com/users/{username}/repos?per_page=100"
+
+        resp = http_requests.get(api_url, headers=headers)
+        resp.raise_for_status()
+        repos = resp.json()
+
+        # Filter out forks and archived repos
+        repos = [r for r in repos if not r.get('fork') and not r.get('archived')]
+
+        # Map to portfolio items
+        lang_codes = config.get_language_codes()
+        items = []
+        for repo in repos:
+            name = repo.get('name', '')
+            desc = repo.get('description') or name
+
+            title = {code: name for code in lang_codes}
+            description = {code: desc for code in lang_codes}
+
+            item = {
+                "id": f"github_{name}",
+                "title": title,
+                "url": repo.get('html_url', ''),
+                "description": description,
+                "date": (repo.get('pushed_at') or repo.get('created_at', ''))[:10],
+                "created": (repo.get('created_at') or '')[:10],
+                "topics": repo.get('topics', []),
+                "language": repo.get('language'),
+                "stars": repo.get('stargazers_count', 0),
+                "isPrivate": repo.get('private', False)
+            }
+            items.append(item)
+
+        # Save to projects.json
+        projects_file = os.path.join(USER_DATA_DIR, 'projects.json')
+        with open(projects_file, 'w', encoding='utf-8') as f:
+            json.dump(items, f, indent=2, ensure_ascii=False)
+
+        return jsonify({"success": True, "count": len(items)})
+    except http_requests.exceptions.RequestException as e:
+        return jsonify({"success": False, "error": f"GitHub API error: {str(e)}"}), 502
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == '__main__':
     print(f"🔧 Admin API starting...")

@@ -95,11 +95,7 @@
             <div class="admin-flex-between">
                 <label>Language:</label>
                 <select id="langSelect" onchange="loadTranslations()" style="width: 100px;">
-                    <option value="en">English</option>
-                    <option value="fr">Français</option>
-                    <option value="ht">Haitian</option>
-                    <option value="mx">Spanish (MX)</option>
-                    <option value="qc">Québécois</option>
+                    <!-- Populated dynamically from config -->
                 </select>
                 <button class="action" onclick="askAgentForTranslation()"
                     style="margin: 0 0 0 10px; font-size: 11px;">Ask Agent for Missing</button>
@@ -112,7 +108,7 @@
         <!-- CONFIG TAB -->
         <div id="config" class="tab-content">
             <p>Cloudinary status: <span class="admin-connected">CONNECTED</span></p>
-            <p>Current Server Port: 5001</p>
+            <p>Current Server Port: <span id="server-port">5001</span></p>
             <hr>
             <p style="font-size: 12px;">Need high-res uploads? Make sure your .env is active.</p>
 
@@ -145,7 +141,7 @@
                     SYNC GITHUB PROJECTS
                 </button>
                 <p class="admin-muted" style="margin-top: 5px;">
-                    * This will fetch repositories for <b>mtldev514</b>.
+                    * This will fetch repositories for <b id="github-username">mtldev514</b>.
                     Add GITHUB_TOKEN to .env to include private repos.
                 </p>
             </div>
@@ -161,7 +157,41 @@
     </div>
 
     <script>
-        const API_URL = 'http://127.0.0.1:5001';
+        let API_URL = 'http://127.0.0.1:5001'; // fallback, overridden by bootstrapConfig()
+
+        async function bootstrapConfig() {
+            try {
+                const appConfig = await fetch('config/app.json').then(r => r.json());
+                API_URL = appConfig.api?.baseUrl
+                    || `http://${appConfig.api?.host || '127.0.0.1'}:${appConfig.api?.port || 5001}`;
+
+                // Update port display
+                const portText = document.getElementById('server-port');
+                if (portText) portText.textContent = appConfig.api?.port || 5001;
+
+                // Update GitHub username
+                const ghUser = document.getElementById('github-username');
+                if (ghUser) ghUser.textContent = appConfig.github?.username || 'unknown';
+            } catch (e) {
+                console.warn('Could not load app config, using default API URL');
+            }
+        }
+
+        async function initializeLanguages() {
+            try {
+                const langConfig = await fetch('config/languages.json').then(r => r.json());
+                const select = document.getElementById('langSelect');
+                select.innerHTML = '';
+                langConfig.supportedLanguages.forEach(lang => {
+                    const option = document.createElement('option');
+                    option.value = lang.code;
+                    option.textContent = lang.name;
+                    select.appendChild(option);
+                });
+            } catch (e) {
+                console.warn('Could not load languages config');
+            }
+        }
 
         // Enhanced AppConfig that loads from API instead of file paths
         const AppConfig = {
@@ -429,13 +459,13 @@
 
         async function loadTranslations() {
             const lang = document.getElementById('langSelect').value;
+            if (!lang) return;
             const grid = document.getElementById('translationGrid');
             grid.innerHTML = 'Loading...';
 
             try {
-                const res = await fetch(`${API_URL}/api/translations`);
-                const all = await res.json();
-                const trans = all[lang];
+                const res = await fetch(`${API_URL}/api/translations/${lang}`);
+                const trans = await res.json();
 
                 let html = '';
                 Object.keys(trans).forEach(key => {
@@ -452,12 +482,19 @@
         }
 
         async function updateTrans(lang, key, value) {
-            await fetch(`${API_URL}/api/translations/update`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ lang, key, value })
-            });
-            document.getElementById('console').innerHTML += `<br>> Translation "${key}" updated for [${lang}].`;
+            try {
+                const res = await fetch(`${API_URL}/api/translations/${lang}`);
+                const trans = await res.json();
+                trans[key] = value;
+                await fetch(`${API_URL}/api/translations/${lang}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(trans)
+                });
+                document.getElementById('console').innerHTML += `<br>> Translation "${key}" updated for [${lang}].`;
+            } catch (err) {
+                document.getElementById('console').innerHTML += `<br><span class="con-error">> Error updating translation.</span>`;
+            }
         }
 
         async function askAgentForTranslation() {
@@ -465,20 +502,36 @@
             consoleBox.innerHTML += `<br>> Scanning for missing translation keys...`;
 
             try {
-                const res = await fetch(`${API_URL}/api/translations/missing`);
-                const missing = await res.json();
+                // Load language config to know all supported languages
+                const langConfig = await fetch('config/languages.json').then(r => r.json());
+                const codes = langConfig.supportedLanguages.map(l => l.code);
+                const defaultLang = langConfig.defaultLanguage || 'en';
+
+                // Fetch all translation files
+                const allTrans = {};
+                for (const code of codes) {
+                    const res = await fetch(`${API_URL}/api/translations/${code}`);
+                    allTrans[code] = await res.json();
+                }
+
+                // Compare each language against the default language's keys
+                const refKeys = Object.keys(allTrans[defaultLang] || {});
+                const missing = {};
+                for (const code of codes) {
+                    if (code === defaultLang) continue;
+                    const missingKeys = refKeys.filter(k => !allTrans[code]?.[k]);
+                    if (missingKeys.length > 0) missing[code] = missingKeys;
+                }
 
                 if (Object.keys(missing).length === 0) {
                     consoleBox.innerHTML += `<br><span class="con-info">> System status: All languages synchronized.</span>`;
                     return;
                 }
 
-                let report = "Missing keys found:\\n";
-                for (const lang in missing) {
-                    report += `[${lang.toUpperCase()}]: ${missing[lang].join(', ')}\\n`;
-                }
-
                 consoleBox.innerHTML += `<br><span class="con-warn">> AGENT REQUIRED: ${Object.keys(missing).length} languages have missing keys.</span>`;
+                for (const lang in missing) {
+                    consoleBox.innerHTML += `<br><span class="con-warn">  [${lang.toUpperCase()}]: ${missing[lang].join(', ')}</span>`;
+                }
                 consoleBox.innerHTML += `<br><span class="con-hi">> TIP: Ask Antigravity in the chat to 'Translate the missing keys for ${Object.keys(missing).join(', ')}' and they will be fixed instantly!</span>`;
             } catch (err) {
                 consoleBox.innerHTML += `<br><span class="con-error">> Error checking missing keys.</span>`;
@@ -930,8 +983,10 @@
             }
         };
 
-        // Initialize categories on page load
-        window.addEventListener('DOMContentLoaded', () => {
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            await bootstrapConfig();
+            await initializeLanguages();
             initializeCategories();
         });
 

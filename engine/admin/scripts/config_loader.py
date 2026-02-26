@@ -54,18 +54,6 @@ class ConfigLoader:
             print(f'❌ Failed to load configuration from {self.content_root}: {e}')
             return False
 
-    # ... (getters) ...
-
-    def get_category_data_file(self, category_id):
-        """Get absolute data file path for a category"""
-        cat = self.get_content_type(category_id)
-        filename = f'{category_id}.json'
-        if cat and 'dataFile' in cat:
-            # If dataFile is specified, use it (removing data/ prefix if present to avoid doubling)
-            filename = cat['dataFile'].replace('data/', '')
-        
-        return str(self.data_dir / filename)
-
     def get_port(self):
         """Get API port"""
         return self.app_config.get('api', {}).get('port', 5001)
