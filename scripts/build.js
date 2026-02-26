@@ -14,7 +14,7 @@ const ADMIN_FILES = [
   'edit.html',
   'config-manager.html',
   'validator.html',
-  'admin'  // entire admin/ directory (Python Flask API, shell scripts)
+  'admin'  // entire admin/ directory (admin API, shell scripts)
 ];
 
 async function build(options = {}) {

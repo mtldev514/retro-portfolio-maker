@@ -1,12 +1,11 @@
 /**
  * Admin Script
  * Launches admin interface for content management
+ * Uses the Node.js Express API (replaces Python Flask)
  */
 
-const { spawn } = require('child_process');
 const chalk = require('chalk');
 const path = require('path');
-const fs = require('fs-extra');
 
 async function admin(options = {}) {
   const port = options.port || 5001;
@@ -14,52 +13,28 @@ async function admin(options = {}) {
 
   console.log(chalk.blue('🔧 Starting admin interface...\n'));
 
-  // Check if admin_api.py exists in engine
-  const adminApiPath = path.join(__dirname, '../engine/admin/admin_api.py');
-  const userDataPath = cwd;
-
-  if (!fs.existsSync(adminApiPath)) {
-    console.log(chalk.red('❌ Admin API not found at:'), adminApiPath);
-    console.log(chalk.yellow('\nTroubleshooting:'));
-    console.log(chalk.gray('  1. Make sure you have the latest version:'));
-    console.log(chalk.gray('     npm install @mtldev514/retro-portfolio-engine@latest'));
-    console.log(chalk.gray('  2. Install Flask:'));
-    console.log(chalk.gray('     pip install flask flask-cors\n'));
-    return;
-  }
-
-  // Set environment variable to point to user data
-  const env = {
-    ...process.env,
-    DATA_DIR: path.join(userDataPath, 'data'),
-    CONFIG_DIR: path.join(userDataPath, 'config'),
-    LANG_DIR: path.join(userDataPath, 'lang'),
-    STYLES_DIR: path.join(userDataPath, 'styles'),
-    PROJECT_DIR: userDataPath,
-    PORT: port
+  // Resolve directory paths for the user's project
+  const dirs = {
+    data: path.join(cwd, 'data'),
+    config: path.join(cwd, 'config'),
+    lang: path.join(cwd, 'lang'),
+    styles: path.join(cwd, 'styles'),
+    project: cwd,
   };
 
-  console.log(chalk.cyan('Starting admin API...'));
+  // Start the Express admin API
+  const { startServer } = require('../engine/admin/api');
 
-  // Start Flask API
-  const apiProcess = spawn('python3', [adminApiPath], {
-    env,
-    stdio: 'inherit'
-  });
-
-  console.log(chalk.green('\n✨ Admin API running!\n'));
-  console.log(chalk.cyan('API:'), `http://localhost:${port}/api/`);
-  console.log(chalk.gray('Access admin interface at: http://localhost:8000/admin.html'));
-  console.log(chalk.gray('\nPress CTRL+C to stop\n'));
+  const server = startServer({ port, dirs });
 
   // Handle process termination
   process.on('SIGINT', () => {
     console.log(chalk.yellow('\n\n👋 Shutting down admin...'));
-    apiProcess.kill();
+    server.close();
     process.exit(0);
   });
 
-  return apiProcess;
+  return server;
 }
 
 module.exports = admin;

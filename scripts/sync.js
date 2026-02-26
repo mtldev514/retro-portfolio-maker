@@ -24,7 +24,6 @@ async function syncPackageJsonScripts(targetPath) {
     deploy: 'retro-portfolio deploy',
     validate: 'retro-portfolio validate',
     sync: 'retro-portfolio sync',
-    postinstall: 'pip3 install flask flask-cors 2>/dev/null || pip install flask flask-cors 2>/dev/null || echo "⚠️  Please install Flask manually: pip install flask flask-cors"'
   };
 
   // Ensure scripts section exists
@@ -33,6 +32,14 @@ async function syncPackageJsonScripts(targetPath) {
   }
 
   let scriptsAdded = 0;
+  let scriptsRemoved = 0;
+
+  // Migration: remove legacy pip/Flask postinstall if present
+  if (packageJson.scripts.postinstall && packageJson.scripts.postinstall.includes('flask')) {
+    delete packageJson.scripts.postinstall;
+    console.log(chalk.yellow('    ✓ Removed legacy script:'), chalk.cyan('postinstall'), chalk.gray('(Flask no longer needed)'));
+    scriptsRemoved++;
+  }
 
   // Add missing scripts
   for (const [scriptName, scriptCommand] of Object.entries(recommendedScripts)) {
@@ -46,11 +53,11 @@ async function syncPackageJsonScripts(targetPath) {
   }
 
   // Save updated package.json if changes were made
-  if (scriptsAdded > 0) {
+  if (scriptsAdded > 0 || scriptsRemoved > 0) {
     await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
   }
 
-  return scriptsAdded;
+  return scriptsAdded + scriptsRemoved;
 }
 
 async function sync(options = {}) {

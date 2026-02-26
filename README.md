@@ -30,7 +30,7 @@ Instead of cloning a repo, you **install an npm package** that contains the enti
 npx @mtldev514/retro-portfolio-maker init my-portfolio
 cd my-portfolio
 
-# 2. Install dependencies (auto-installs Python Flask for admin)
+# 2. Install dependencies
 npm install
 
 # 3. Launch dev server + admin together
@@ -457,13 +457,7 @@ The `init` command creates `.github/workflows/deploy.yml` automatically. Just:
 
 ## Prerequisites
 
-- **Node.js** >= 14
-- **Python 3** + Flask (for admin panel — auto-installed via `postinstall`)
-
-If Flask doesn't auto-install:
-```bash
-pip install flask flask-cors
-```
+- **Node.js** >= 18
 
 ---
 
@@ -483,11 +477,11 @@ rm -rf node_modules && npm install
 
 ### Admin won't start
 ```bash
-# Install Flask manually
-pip install flask flask-cors
+# Make sure Node.js >= 18 is installed
+node --version
 
-# Or with pip3
-pip3 install flask flask-cors
+# Reinstall dependencies
+npm install
 ```
 
 ### Images don't display

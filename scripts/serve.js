@@ -1,6 +1,6 @@
 /**
  * Serve Script
- * Local development server with live reload
+ * Local development server using http-server (replaces python3 -m http.server)
  */
 
 const { spawn } = require('child_process');
@@ -23,11 +23,11 @@ async function serve(options = {}) {
     console.log('');
   }
 
-  // Start HTTP server
+  // Start HTTP server using http-server (npm package, no Python needed)
   console.log(chalk.cyan('Starting server...'));
 
-  const serverProcess = spawn('python3', ['-m', 'http.server', port], {
-    cwd: distPath,
+  const httpServerBin = require.resolve('http-server/bin/http-server');
+  const serverProcess = spawn(process.execPath, [httpServerBin, distPath, '-p', port, '-c-1'], {
     stdio: 'inherit'
   });
 

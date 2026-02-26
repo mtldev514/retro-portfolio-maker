@@ -10,7 +10,7 @@ test.describe('Edit page', () => {
   test('edit page shows loading state then form or error', async ({ page }) => {
     await page.goto('/edit.html?category=painting&id=art_1770744060');
 
-    // Page should have the edit form or an error (since no Flask server in test)
+    // Page should have the edit form or an error (since no admin server in test)
     const editForm = page.locator('#editForm');
     const errorBox = page.locator('#errorBox');
 
@@ -20,7 +20,7 @@ test.describe('Edit page', () => {
     const formVisible = await editForm.isVisible();
     const errorVisible = await errorBox.isVisible();
 
-    // One of them should be visible (form if Flask is up, error if not)
+    // One of them should be visible (form if admin API is up, error if not)
     expect(formVisible || errorVisible).toBeTruthy();
   });
 

@@ -110,26 +110,14 @@ program
   .option('--path <dir>', 'Portfolio content directory', '.')
   .action(async (options) => {
     try {
-      const { spawn } = require('child_process');
-      const enginePath = path.join(__dirname, '..', 'engine', 'admin', 'scripts');
-      const validatorPath = path.join(enginePath, 'validate_config.py');
+      const { runValidation } = require('../engine/admin/api/lib/validator');
 
       console.log(chalk.cyan('🔍 Running configuration validator...\n'));
 
-      const python = spawn('python3', [validatorPath, '--path', options.path], {
-        stdio: 'inherit',
-        env: { ...process.env, PORTFOLIO_CONTENT_ROOT: options.path }
-      });
+      const contentPath = path.resolve(options.path);
+      const result = runValidation(contentPath);
 
-      python.on('close', (code) => {
-        process.exit(code);
-      });
-
-      python.on('error', (err) => {
-        console.error(chalk.red('Error running validator:'), err.message);
-        console.log(chalk.yellow('\nMake sure Python 3 is installed and in your PATH'));
-        process.exit(1);
-      });
+      process.exit(result.success ? 0 : 1);
     } catch (error) {
       console.error(chalk.red('Error:'), error.message);
       process.exit(1);

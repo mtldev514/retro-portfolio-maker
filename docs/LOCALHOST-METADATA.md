@@ -17,8 +17,8 @@ The Localhost Manager collects rich metadata about every running server on your 
 
 | Field | Description | Example | How It's Detected |
 |-------|-------------|---------|-------------------|
-| **Type** | Framework/server type | `🐍 Flask/Rails` | Port number + process name |
-| **Icon** | Visual indicator | `⚛️`, `🐍`, `🍃` | Mapped from type |
+| **Type** | Framework/server type | `📦 Express/Rails` | Port number + process name |
+| **Icon** | Visual indicator | `⚛️`, `📦`, `🍃` | Mapped from type |
 | **Status** | Health check status | `✅ Healthy`, `⚠️ Running` | HTTP request to localhost |
 | **Uptime** | How long process is running | `2:15:30`, `1-03:45:20` | From `ps` command |
 | **Memory** | RAM usage | `45.2 MB`, `1.2 GB` | From `ps` RSS field |
@@ -34,9 +34,9 @@ We automatically detect common frameworks by port number:
 3000  → ⚛️  React/Next.js
 3001  → ⚛️  React (alt)
 4200  → 🅰️  Angular
-5000  → 🐍  Flask/Rails
-5001  → 🐍  Flask Admin
-8000  → 🐍  Django/HTTP
+5000  → 📦  Express/Rails
+5001  → 🔧  Admin API
+8000  → 🌐  Dev Server/HTTP
 8080  → ☕  Tomcat/HTTP
 3306  → 🗄️  MySQL
 5432  → 🐘  PostgreSQL
@@ -75,7 +75,7 @@ We perform a quick HTTP request to determine status:
 The toolbar shows useful aggregations:
 
 - **Total**: All active ports
-- **Web**: React, Flask, Django, Node.js, Nginx, etc.
+- **Web**: React, Express, Node.js, Nginx, etc.
 - **DB**: MySQL, PostgreSQL, Redis, MongoDB
 
 ## Example Output
@@ -84,8 +84,8 @@ When you open http://localhost:9876, you might see:
 
 | Port | Type | Process | Status | Uptime | Memory | CPU | Actions |
 |------|------|---------|--------|--------|--------|-----|---------|
-| :5001 | 🐍 Flask Admin | Python | ✅ Healthy | 1:23:45 | 89.3 MB | 0.5% | 🌐 Open 💀 Kill |
-| :8000 | 🐍 Django/HTTP | Python | ✅ Healthy | 1:23:50 | 124.7 MB | 1.2% | 🌐 Open 💀 Kill |
+| :5001 | 🔧 Admin API | node | ✅ Healthy | 1:23:45 | 89.3 MB | 0.5% | 🌐 Open 💀 Kill |
+| :8000 | 🌐 Dev Server/HTTP | node | ✅ Healthy | 1:23:50 | 124.7 MB | 1.2% | 🌐 Open 💀 Kill |
 | :9876 | 🖥️ Localhost Manager | node | ✅ Healthy | 0:02:15 | 45.1 MB | 0.3% | 🌐 Open 💀 Kill |
 | :18789 | 🔌 WebSocket | Python | ⚠️ Running | 3:12:08 | 67.4 MB | 0.1% | 🌐 Open 💀 Kill |
 

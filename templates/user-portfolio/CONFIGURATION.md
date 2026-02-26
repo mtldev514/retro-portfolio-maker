@@ -581,8 +581,8 @@ The `sync` command is non-destructive — it never overwrites your data, config,
 - Check that every category in `categories.json` has a matching data file
 
 ### Admin won't start
-- Install Flask: `pip install flask flask-cors` (or `pip3`)
-- Make sure Python 3 is in your PATH
+- Make sure you have Node.js >= 18 installed (`node --version`)
+- Run `npm install` to ensure all dependencies are installed
 
 ### Images don't upload or display
 - Check `.env` has valid Cloudinary credentials (not placeholder values)

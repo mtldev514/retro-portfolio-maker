@@ -447,9 +447,9 @@ function detectPortType(port, command) {
     3000: { type: 'React/Next.js', icon: '⚛️' },
     3001: { type: 'React (alt)', icon: '⚛️' },
     4200: { type: 'Angular', icon: '🅰️' },
-    5000: { type: 'Flask/Rails', icon: '🐍' },
-    5001: { type: 'Flask Admin', icon: '🐍' },
-    8000: { type: 'Django/HTTP', icon: '🐍' },
+    5000: { type: 'Express/Rails', icon: '📦' },
+    5001: { type: 'Admin API', icon: '🔧' },
+    8000: { type: 'Dev Server/HTTP', icon: '🌐' },
     8080: { type: 'Tomcat/HTTP', icon: '☕' },
     9000: { type: 'General', icon: '🌐' },
     3306: { type: 'MySQL', icon: '🗄️' },
@@ -531,7 +531,7 @@ function formatMemory(kb) {
  * Count web servers
  */
 function countWebServers(ports) {
-  const webTypes = ['React/Next.js', 'Angular', 'Flask/Rails', 'Django/HTTP', 'Node.js', 'Nginx', 'Apache', 'Tomcat/HTTP', 'Python', 'Ruby'];
+  const webTypes = ['React/Next.js', 'Angular', 'Express/Rails', 'Dev Server/HTTP', 'Node.js', 'Nginx', 'Apache', 'Tomcat/HTTP', 'Ruby'];
   return ports.filter(p => webTypes.includes(p.type.type)).length;
 }
 

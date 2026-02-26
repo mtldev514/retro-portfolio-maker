@@ -77,9 +77,9 @@ function listPorts() {
     const devPorts = {
       '3000': 'React / Next.js',
       '4200': 'Angular',
-      '5000': 'Flask / Rails',
-      '5001': 'Flask API',
-      '8000': 'Django / Python HTTP',
+      '5000': 'Express / Rails',
+      '5001': 'Admin API',
+      '8000': 'Dev Server / HTTP',
       '8080': 'Tomcat / Alternative HTTP',
       '3001': 'React (alt)',
       '9000': 'Various',

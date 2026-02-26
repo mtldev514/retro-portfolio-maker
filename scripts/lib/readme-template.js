@@ -11,7 +11,7 @@ A retro-styled portfolio powered by [@mtldev514/retro-portfolio-maker](https://w
 ## Quick Start
 
 \`\`\`bash
-# 1. Install dependencies (auto-installs Python Flask for admin)
+# 1. Install dependencies
 npm install
 
 # 2. Configure credentials (required for admin image uploads)
@@ -107,7 +107,7 @@ Build command: \`npm run build\` | Publish directory: \`dist\`
 
 ## Troubleshooting
 
-- **Admin won't start**: \`pip install flask flask-cors\`
+- **Admin won't start**: Make sure you have Node.js >= 18 installed
 - **Images won't upload**: Check \`.env\` has valid Cloudinary credentials
 - **Build fails**: Run \`npm run validate\` to check config files
 - **Port in use**: \`npx retro-portfolio kill 8000\`

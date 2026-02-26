@@ -67,7 +67,6 @@ async function init(targetDir, options = {}) {
       admin: 'retro-portfolio admin',
       start: 'npm run dev & npm run admin',
       deploy: 'retro-portfolio deploy',
-      postinstall: 'pip3 install flask flask-cors 2>/dev/null || pip install flask flask-cors 2>/dev/null || echo "⚠️  Please install Flask manually: pip install flask flask-cors"'
     },
     dependencies: {
       '@mtldev514/retro-portfolio-maker': '^1.0.0'

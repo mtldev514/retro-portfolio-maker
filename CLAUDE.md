@@ -65,7 +65,9 @@ npm run build               # Rebuild with new engine
 - `styles/` directory is user-customizable — users can edit theme CSS or add new themes
 
 ### Admin API
-- Flask-based (`engine/admin/admin_api.py`)
+- Express-based (`engine/admin/api/index.js`)
+- Route modules in `engine/admin/api/routes/` (upload, content, config, translations, styles, integrations)
+- Shared libs in `engine/admin/api/lib/` (config-loader, manager, validator)
 - Env vars: DATA_DIR, CONFIG_DIR, LANG_DIR, STYLES_DIR, PROJECT_DIR, PORT
 - `/api/styles` endpoints for reading/writing styles.json from admin panel
 
@@ -73,7 +75,8 @@ npm run build               # Rebuild with new engine
 - `init` — scaffolds new project from templates/user-portfolio/
 - `sync` — updates existing project with missing template files (non-destructive)
 - `build` — copies engine + user files to dist/
-- `admin` — launches Flask admin API
+- `admin` — launches Express admin API
+- `validate` — checks config/data files for errors (Node.js-based)
 
 ## Common Gotchas
 - Branch may fall behind origin after CI version bump — always `git pull --rebase` before pushing
