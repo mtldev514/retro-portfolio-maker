@@ -109,22 +109,37 @@ async function syncSupabase(options = {}) {
     require('dotenv').config({ path: envPath });
   }
 
-  const supabaseUrl = process.env.SUPABASE_URL;
+  // Resolve Supabase URL: .env takes priority, fall back to config-source.json
+  let supabaseUrl = process.env.SUPABASE_URL;
+  if (!supabaseUrl) {
+    const csPath = path.join(cwd, 'config-source.json');
+    if (fs.existsSync(csPath)) {
+      try {
+        const cs = fs.readJsonSync(csPath);
+        supabaseUrl = cs?.supabase?.url;
+      } catch (e) { /* ignore parse errors */ }
+    }
+  }
+
   // Support both new (SECRET_KEY) and legacy (SERVICE_KEY) env var names
   const secretKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_KEY;
 
   if (!supabaseUrl || !secretKey) {
     const missing = [];
-    if (!supabaseUrl) missing.push('SUPABASE_URL');
-    if (!secretKey) missing.push('SUPABASE_SECRET_KEY');
+    if (!supabaseUrl) missing.push('SUPABASE_URL (set in .env or config-source.json → supabase.url)');
+    if (!secretKey) missing.push('SUPABASE_SECRET_KEY (set in .env)');
 
-    console.error(chalk.red(`\n✗ Missing environment variable(s): ${missing.join(', ')}\n`));
-    console.log(chalk.gray('Set these in your .env file or CI secrets:\n'));
-    console.log(chalk.gray('  SUPABASE_URL=https://yourproject.supabase.co'));
-    console.log(chalk.gray('  SUPABASE_SECRET_KEY=sb_secret_...'));
-    console.log(chalk.gray('\nGet your Secret key from:'));
-    console.log(chalk.gray('  Supabase Dashboard → Project Settings → API → Secret key\n'));
-    throw new Error(`Missing: ${missing.join(', ')}`);
+    console.error(chalk.red(`\n✗ Missing Supabase credentials:\n`));
+    missing.forEach(m => console.log(chalk.red(`   • ${m}`)));
+    console.log(chalk.gray('\nSetup options:'));
+    console.log(chalk.gray('  Option A — URL in config-source.json (recommended, avoids duplication):'));
+    console.log(chalk.gray('    { "supabase": { "url": "https://xxx.supabase.co", "publishableKey": "sb_publishable_..." } }'));
+    console.log(chalk.gray('  Option B — URL in .env:'));
+    console.log(chalk.gray('    SUPABASE_URL=https://yourproject.supabase.co'));
+    console.log(chalk.gray('\n  Secret key always in .env:'));
+    console.log(chalk.gray('    SUPABASE_SECRET_KEY=sb_secret_...'));
+    console.log(chalk.gray('\n  Get keys from: Supabase Dashboard → Project Settings → API\n'));
+    throw new Error(`Missing: ${missing.map(m => m.split(' (')[0]).join(', ')}`);
   }
 
   const restUrl = `${supabaseUrl}/rest/v1`;
