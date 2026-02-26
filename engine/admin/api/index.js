@@ -15,11 +15,12 @@ const fs = require('fs-extra');
 require('dotenv').config();
 
 const { config } = require('./lib/config-loader');
+const { JsonFileStore } = require('./lib/data-store');
 const manager = require('./lib/manager');
 
 // Route modules
 const createUploadRouter = require('./routes/upload');
-const contentRoutes = require('./routes/content');
+const createContentRouter = require('./routes/content');
 const configRoutes = require('./routes/config');
 const translationsRoutes = require('./routes/translations');
 const stylesRoutes = require('./routes/styles');
@@ -41,11 +42,14 @@ function createApp(options = {}) {
 
   const upload = multer({ dest: uploadDir });
 
+  // Create DataStore (from options or config singleton)
+  const store = options.store || new JsonFileStore(config);
+
   // Mount upload routes (factory receives multer instance)
   app.use('/api', createUploadRouter(upload));
 
-  // Mount other API routes
-  app.use('/api/content', contentRoutes);
+  // Mount content routes (factory receives DataStore)
+  app.use('/api/content', createContentRouter(store));
   app.use('/api/config', configRoutes);
   app.use('/api/translations', translationsRoutes);
   app.use('/api/styles', stylesRoutes);
@@ -85,11 +89,12 @@ function startServer(options = {}) {
   });
   config.loadAll();
 
-  // Initialize manager (Cloudinary config, GitHub config, category map)
-  manager.init();
+  // Create DataStore and initialize manager
+  const store = new JsonFileStore(config);
+  manager.init(store);
 
   // Create and start server
-  const app = createApp({ uploadDir: path.join(projectDir, 'temp_uploads') });
+  const app = createApp({ store, uploadDir: path.join(projectDir, 'temp_uploads') });
 
   const server = app.listen(port, '0.0.0.0', () => {
     console.log(`\uD83D\uDD27 Admin API starting...`);

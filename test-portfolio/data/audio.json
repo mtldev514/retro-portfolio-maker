@@ -1,0 +1,68 @@
+[
+  {
+    "id": "c9f2193d-3186-4b0c-8f02-62ee9bc7830a",
+    "legacyId": "music-1",
+    "title": {
+      "en": "Summer Breeze",
+      "fr": "Brise d'été",
+      "mx": "Brisa de verano",
+      "ht": "Briz ete"
+    },
+    "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    "date": "2025-05-20",
+    "genre": {
+      "en": "Jazz",
+      "fr": "Jazz",
+      "mx": "Jazz",
+      "ht": "Jazz"
+    },
+    "description": {
+      "en": "Smooth jazz composition",
+      "fr": "Composition de jazz doux",
+      "mx": "Composición de jazz suave",
+      "ht": "Konpozisyon jazz dous"
+    }
+  },
+  {
+    "id": "31cfd465-152c-4e55-875c-7d51b3ba2c16",
+    "legacyId": "music-2",
+    "title": {
+      "en": "Night Drive",
+      "fr": "Conduite de nuit",
+      "mx": "Paseo nocturno",
+      "ht": "Kondwi lannwit"
+    },
+    "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    "date": "2024-12-01",
+    "genre": {
+      "en": "Electronic",
+      "fr": "Électronique",
+      "mx": "Electrónica",
+      "ht": "Elektwonik"
+    }
+  },
+  {
+    "id": "dd3e25cf-f69f-4cda-96e8-f97cba5ba550",
+    "legacyId": "music-3",
+    "title": {
+      "en": "Acoustic Morning",
+      "fr": "Matin acoustique",
+      "mx": "Mañana acústica",
+      "ht": "Maten akoustik"
+    },
+    "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    "date": "2025-08-30",
+    "genre": {
+      "en": "Folk",
+      "fr": "Folk",
+      "mx": "Folk",
+      "ht": "Folk"
+    },
+    "description": {
+      "en": "Gentle acoustic piece",
+      "fr": "Pièce acoustique douce",
+      "mx": "Pieza acústica suave",
+      "ht": "Moso akoustik dous"
+    }
+  }
+]

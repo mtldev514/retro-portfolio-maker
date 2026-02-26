@@ -21,16 +21,13 @@ const renderer = {
         }
 
         const allCategories = window.AppConfig?.getAllCategories() || [];
-        const dataDir = window.AppConfig?.getSetting('paths.dataDir') || 'data';
 
         this.categories = {};
         this.categoryIcons = {};
 
         allCategories.forEach(cat => {
-            const fileName = cat.dataFile.split('/').pop();
             this.categories[cat.id] = {
-                file: fileName,
-                from: cat.id
+                mediaType: cat.mediaType
             };
             this.categoryIcons[cat.id] = cat.icon;
         });
@@ -54,23 +51,47 @@ const renderer = {
 
         // Skip re-fetch if data is already loaded (returning from detail view)
         if (this.allItems.length === 0) {
-            const dataDir = window.AppConfig?.getSetting('paths.dataDir') || 'data';
-            const entries = Object.entries(this.categories);
-            const fetches = entries.map(async ([category, info]) => {
+            // ─── Normalized data loading ─────────────────────
+            // 1. Fetch media-type data files (source of truth)
+            const mediaTypes = window.AppConfig?.getAllMediaTypes() || [];
+            const mediaData = {}; // { image: [...items], audio: [...items] }
+
+            await Promise.all(mediaTypes.map(async (mt) => {
                 try {
-                    const res = await fetch(`${dataDir}/${info.file}`);
-                    const items = await res.json();
-                    return items.map(item => ({
-                        ...item,
-                        _category: category,
-                        _from: info.from
-                    }));
-                } catch (e) {
-                    return [];
+                    const filePath = window.AppConfig.getMediaTypeDataFile(mt.id);
+                    const res = await fetch(filePath);
+                    if (!res.ok) { mediaData[mt.id] = []; return; }
+                    mediaData[mt.id] = await res.json();
+                } catch {
+                    mediaData[mt.id] = [];
                 }
-            });
-            const results = await Promise.all(fetches);
-            this.allItems = results.flat();
+            }));
+
+            // 2. Fetch category ref files → resolve UUIDs → items
+            const allCategories = window.AppConfig?.getAllCategories() || [];
+
+            await Promise.all(allCategories.map(async (cat) => {
+                try {
+                    const refPath = window.AppConfig.getCategoryRefFile(cat.id);
+                    const res = await fetch(refPath);
+                    const refs = await res.json();
+
+                    // Build UUID → item lookup for this media type
+                    const items = mediaData[cat.mediaType] || [];
+                    const itemMap = new Map(items.map(i => [i.id, i]));
+
+                    // Resolve in ref order, tag with category
+                    const resolved = refs
+                        .map(uuid => itemMap.get(uuid))
+                        .filter(Boolean)
+                        .map(item => ({ ...item, _category: cat.id, _from: cat.id }));
+
+                    this.allItems.push(...resolved);
+                } catch {
+                    // Empty or missing category file — skip
+                }
+            }));
+
             this.sortItems();
         }
 

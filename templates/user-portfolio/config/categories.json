@@ -6,7 +6,6 @@
       "name": "Painting",
       "icon": "🎨",
       "mediaType": "image",
-      "dataFile": "data/painting.json",
       "description": "Traditional paintings using various media",
       "fields": {
         "required": ["title", "url"],
@@ -47,7 +46,6 @@
       "name": "Drawing",
       "icon": "✏️",
       "mediaType": "image",
-      "dataFile": "data/drawing.json",
       "description": "Hand-drawn artwork and sketches",
       "fields": {
         "required": ["title", "url"],
@@ -81,7 +79,6 @@
       "name": "Photography",
       "icon": "📷",
       "mediaType": "image",
-      "dataFile": "data/photography.json",
       "description": "Photographic works",
       "fields": {
         "required": ["title", "url"],
@@ -122,7 +119,6 @@
       "name": "Sculpting",
       "icon": "🗿",
       "mediaType": "image",
-      "dataFile": "data/sculpting.json",
       "description": "Three-dimensional sculptural works",
       "fields": {
         "required": ["title"],
@@ -162,7 +158,6 @@
       "name": "Music",
       "icon": "🎵",
       "mediaType": "audio",
-      "dataFile": "data/music.json",
       "description": "Musical compositions and recordings",
       "fields": {
         "required": ["title", "url"],
@@ -197,7 +192,6 @@
       "name": "Projects",
       "icon": "💻",
       "mediaType": "link",
-      "dataFile": "data/projects.json",
       "description": "Web projects, code repositories, and digital work",
       "fields": {
         "required": ["title"],

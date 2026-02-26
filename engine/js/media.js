@@ -41,14 +41,28 @@ const media = {
 
     async loadPlaylist() {
         try {
-            const res = await fetch('data/music.json');
-            const tracks = await res.json();
-            if (tracks && tracks.length > 0) {
+            const dataDir = window.AppConfig?.getSetting('paths.dataDir') || 'data';
+
+            // Fetch audio media-type data file (source of truth)
+            const audioRes = await fetch(`${dataDir}/audio.json`);
+            const allAudio = await audioRes.json();
+
+            // Fetch music category refs (ordered UUIDs)
+            const refsRes = await fetch(`${dataDir}/music.json`);
+            const refs = await refsRes.json();
+
+            // Resolve refs → audio items in playlist order
+            const itemMap = new Map(allAudio.map(i => [i.id, i]));
+            const tracks = refs
+                .map(uuid => itemMap.get(uuid))
+                .filter(Boolean);
+
+            if (tracks.length > 0) {
                 this.rawTracks = tracks;
                 this.buildPlaylist();
             }
         } catch (e) {
-            console.log('Could not load music.json');
+            console.log('Could not load audio playlist');
         }
     },
 

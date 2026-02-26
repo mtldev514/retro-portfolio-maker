@@ -1,48 +1,8 @@
 [
-  {
-    "id": "painting-1",
-    "title": { "en": "Sunset Over Mountains", "fr": "Coucher de soleil sur les montagnes", "mx": "Atardecer sobre montañas", "ht": "Solèy kouche sou mòn yo" },
-    "url": "https://picsum.photos/seed/painting1/400/300",
-    "date": "2025-03-15",
-    "medium": { "en": "Oil on canvas", "fr": "Huile sur toile", "mx": "Óleo sobre lienzo", "ht": "Lwil sou twal" },
-    "description": { "en": "A vibrant sunset scene", "fr": "Un coucher de soleil vibrant", "mx": "Una vibrante escena de atardecer", "ht": "Yon sèn solèy kouche vibran" }
-  },
-  {
-    "id": "painting-2",
-    "title": { "en": "Blue Harbor", "fr": "Port bleu", "mx": "Puerto azul", "ht": "Pò ble" },
-    "url": "https://picsum.photos/seed/painting2/400/300",
-    "date": "2025-01-20",
-    "medium": { "en": "Acrylic", "fr": "Acrylique", "mx": "Acrílico", "ht": "Akrilik" },
-    "description": { "en": "Harbor at dawn", "fr": "Le port à l'aube", "mx": "Puerto al amanecer", "ht": "Pò a nan granmaten" }
-  },
-  {
-    "id": "painting-3",
-    "title": { "en": "Abstract Garden", "fr": "Jardin abstrait", "mx": "Jardín abstracto", "ht": "Jaden abstrè" },
-    "url": "https://picsum.photos/seed/painting3/400/300",
-    "date": "2024-11-05",
-    "medium": { "en": "Watercolor", "fr": "Aquarelle", "mx": "Acuarela", "ht": "Akwarèl" },
-    "description": { "en": "Abstract floral composition", "fr": "Composition florale abstraite", "mx": "Composición floral abstracta", "ht": "Konpozisyon floral abstrè" }
-  },
-  {
-    "id": "painting-4",
-    "title": { "en": "City Lights", "fr": "Lumières de la ville", "mx": "Luces de la ciudad", "ht": "Limyè vil la" },
-    "url": "https://picsum.photos/seed/painting4/400/300",
-    "date": "2025-06-10",
-    "medium": { "en": "Oil on canvas", "fr": "Huile sur toile", "mx": "Óleo sobre lienzo", "ht": "Lwil sou twal" }
-  },
-  {
-    "id": "painting-5",
-    "title": { "en": "Morning Fog", "fr": "Brouillard du matin", "mx": "Niebla matutina", "ht": "Bouya maten" },
-    "url": "https://picsum.photos/seed/painting5/400/300",
-    "date": "2024-08-22",
-    "medium": { "en": "Acrylic", "fr": "Acrylique", "mx": "Acrílico", "ht": "Akrilik" },
-    "description": { "en": "Misty landscape", "fr": "Paysage brumeux", "mx": "Paisaje brumoso", "ht": "Peyzaj nan bouya" }
-  },
-  {
-    "id": "painting-6",
-    "title": { "en": "Red Fields", "fr": "Champs rouges", "mx": "Campos rojos", "ht": "Chan wouj yo" },
-    "url": "https://picsum.photos/seed/painting6/400/300",
-    "date": "2026-01-03",
-    "medium": { "en": "Mixed media", "fr": "Techniques mixtes", "mx": "Técnica mixta", "ht": "Teknik miks" }
-  }
+  "d77d65ea-f187-4d5d-aa74-f66a78085472",
+  "f05aee36-c87f-4726-b08c-7698e80bf993",
+  "daac0376-1385-458a-a741-c215a3b43760",
+  "1bc79301-7f40-43cf-9d7d-aa285ddf81cc",
+  "eecd040f-9876-43ab-a7f9-2ee93ab76f6b",
+  "caff1e89-1a77-4ab9-87b6-63c9f2df31e3"
 ]

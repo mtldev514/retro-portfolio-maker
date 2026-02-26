@@ -42,6 +42,7 @@
                     <div class="form-group">
                         <label>Category:</label>
                         <input type="text" id="editCategory" class="readonly" readonly>
+                        <select id="editCategorySelect" style="display: none;"></select>
                     </div>
                     <div class="form-group">
                         <label>ID:</label>
@@ -184,6 +185,35 @@
             }
         }
 
+        // Load sibling categories for the dropdown (same media type)
+        async function loadCategoryOptions(currentCategory) {
+            try {
+                const catRes = await fetch(`${API_URL}/api/config/categories`);
+                const catConfig = await catRes.json();
+                const allCats = catConfig.contentTypes || catConfig.categories || [];
+
+                const current = allCats.find(c => c.id === currentCategory);
+                if (!current) return;
+
+                const siblings = allCats.filter(c => c.mediaType === current.mediaType);
+
+                if (siblings.length > 1) {
+                    const selectEl = document.getElementById('editCategorySelect');
+                    const inputEl = document.getElementById('editCategory');
+
+                    selectEl.innerHTML = siblings.map(s =>
+                        `<option value="${s.id}" ${s.id === currentCategory ? 'selected' : ''}>${s.icon || ''} ${s.name || s.id.toUpperCase()}</option>`
+                    ).join('');
+
+                    inputEl.style.display = 'none';
+                    selectEl.style.display = 'block';
+                    log(`Category dropdown loaded: ${siblings.length} options`, 'cyan');
+                }
+            } catch (e) {
+                // If can't fetch categories, keep readonly display
+            }
+        }
+
         async function loadItem() {
             if (!category || !itemId) {
                 showError('Missing category or id in URL parameters.');
@@ -286,6 +316,9 @@
             }
 
             log(`Item loaded successfully: "${titleStr}"`, 'cyan');
+
+            // Load category dropdown (async, non-blocking)
+            loadCategoryOptions(cat);
         }
 
         function renderGalleryManager() {
@@ -717,11 +750,34 @@
             log('Saving changes...', 'yellow');
 
             try {
+                // Check for category change
+                const selectEl = document.getElementById('editCategorySelect');
+                const newCategory = selectEl.style.display !== 'none' ? selectEl.value : category;
+
+                if (newCategory !== category) {
+                    log(`Moving item: ${category} → ${newCategory}...`, 'yellow');
+                    const changeRes = await fetch(`${API_URL}/api/content/change-category`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: itemId,
+                            fromCategory: category,
+                            toCategory: newCategory
+                        })
+                    });
+                    const changeResult = await changeRes.json();
+                    if (!changeResult.success) {
+                        log('Error changing category: ' + (changeResult.error || 'Unknown'), 'red');
+                        return;
+                    }
+                    log(`Category changed: ${category} → ${newCategory}`, 'lime');
+                }
+
                 const res = await fetch(`${API_URL}/api/content/update`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        category,
+                        category: newCategory || category,
                         id: itemId,
                         updates
                     })
@@ -731,7 +787,7 @@
                 if (result.success) {
                     log('Changes saved successfully!', 'lime');
                     document.getElementById('statusText').innerText = 'Saved! Redirecting...';
-                    autoCommitAndPush(`edit item in ${category}`);
+                    autoCommitAndPush(`edit item in ${newCategory || category}`);
                     setTimeout(() => {
                         window.location.href = 'admin.html#manage';
                     }, 1500);

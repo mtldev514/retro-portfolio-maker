@@ -1,7 +1,9 @@
 /**
  * Content Manager for Admin API
- * Port of Python manager.py — handles Cloudinary uploads,
- * GitHub Releases uploads, content deletion, and JSON management.
+ * Handles Cloudinary uploads, GitHub Releases uploads,
+ * content creation/deletion, and cloud asset management.
+ *
+ * Uses DataStore for all JSON data operations.
  */
 
 const fs = require('fs-extra');
@@ -25,13 +27,16 @@ let GITHUB_TOKEN = null;
 let GITHUB_REPO = null;
 let RELEASE_TAG = 'media';
 let GITHUB_UPLOAD_CATEGORIES = new Set(['music']);
-let JSON_MAP = {};
+let store = null;
 
 /**
- * Initialize manager with current config and env vars.
- * Called after config is loaded.
+ * Initialize manager with DataStore and env vars.
+ * Called after config is loaded and store is created.
+ * @param {import('./data-store').JsonFileStore} dataStore
  */
-function init() {
+function init(dataStore) {
+  store = dataStore;
+
   // Configure Cloudinary from env vars
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -46,9 +51,6 @@ function init() {
   const ghConfig = config.getGithubConfig();
   RELEASE_TAG = ghConfig.mediaReleaseTag || 'media';
   GITHUB_UPLOAD_CATEGORIES = new Set(ghConfig.uploadCategories || ['music']);
-
-  // Build category → data file map
-  JSON_MAP = config.getCategoryMap();
 }
 
 // ─── GitHub Releases ──────────────────────────────────────
@@ -137,7 +139,7 @@ async function uploadSingle(filePath, category) {
   return url;
 }
 
-// ─── Upload & Save ────────────────────────────────────────
+// ─── Upload & Save (DataStore) ────────────────────────────
 
 async function uploadAndSave(filePath, title, category, opts = {}) {
   const { medium, genre, description, created } = opts;
@@ -145,26 +147,15 @@ async function uploadAndSave(filePath, title, category, opts = {}) {
 
   const mediaUrl = await uploadSingle(filePath, category);
 
-  // Determine JSON file
-  const jsonPath = JSON_MAP[category];
-  if (!jsonPath) throw new Error(`Category '${category}' is invalid.`);
-
-  // Load existing data
-  let data = [];
-  if (await fs.pathExists(jsonPath)) {
-    try {
-      const content = (await fs.readFile(jsonPath, 'utf-8')).trim();
-      data = content ? JSON.parse(content) : [];
-    } catch {
-      data = [];
-    }
-  }
+  // Determine media type for this category
+  const ct = config.getContentType(category);
+  if (!ct) throw new Error(`Category '${category}' is invalid.`);
+  const mediaType = ct.mediaType;
 
   const makeMultilingual = (val) => val ? config.createMultilingualObject(val) : undefined;
   const now = new Date();
 
   const newEntry = {
-    id: `${category}_${Math.floor(now.getTime() / 1000)}`,
     title: makeMultilingual(title),
     url: mediaUrl,
     date: now.toISOString().slice(0, 10),
@@ -175,13 +166,14 @@ async function uploadAndSave(filePath, title, category, opts = {}) {
   if (genre) newEntry.genre = makeMultilingual(genre);
   if (description) newEntry.description = makeMultilingual(description);
 
-  data.push(newEntry);
+  // Create item in media-type data file (generates UUID)
+  const item = await store.createItem(mediaType, newEntry);
 
-  await fs.writeFile(jsonPath, JSON.stringify(data, null, 4), 'utf-8');
-  console.log(`Updated ${jsonPath}`);
+  // Add to category reference file
+  await store.addToCategory(item.id, category);
 
   updateSiteTimestamp();
-  return newEntry;
+  return item;
 }
 
 // ─── Cloud Deletion ───────────────────────────────────────
@@ -266,62 +258,30 @@ async function deleteFromGithubRelease(url) {
   }
 }
 
-// ─── Item Deletion ────────────────────────────────────────
+// ─── Cloud Asset Cleanup ──────────────────────────────────
 
-async function deleteItem(category, itemId) {
-  console.log(`--- Deleting: ${itemId} from ${category} ---`);
-
-  const jsonPath = JSON_MAP[category];
-  if (!jsonPath) return { success: false, error: `Category '${category}' is invalid` };
-  if (!(await fs.pathExists(jsonPath))) {
-    return { success: false, error: `Data file not found for category '${category}'` };
-  }
-
-  let data;
-  try {
-    const content = (await fs.readFile(jsonPath, 'utf-8')).trim();
-    data = content ? JSON.parse(content) : [];
-  } catch {
-    return { success: false, error: 'Invalid JSON in data file' };
-  }
-
-  // Find the item to delete
-  let itemToDelete = null;
-  const newData = [];
-  for (const item of data) {
-    let itemTitle = item.title;
-    if (typeof itemTitle === 'object' && itemTitle !== null) {
-      itemTitle = itemTitle.en || '';
-    }
-    if (item.id === itemId || itemTitle === itemId) {
-      itemToDelete = item;
-    } else {
-      newData.push(item);
-    }
-  }
-
-  if (!itemToDelete) {
-    return { success: false, error: `Item '${itemId}' not found in ${category}` };
-  }
-
-  // Delete from cloud storage
+/**
+ * Delete all cloud assets (URLs) associated with an item.
+ * @param {object} item — item with url and optional gallery array
+ * @returns {{ deletedUrls: string[], failedUrls: string[] }}
+ */
+async function deleteCloudAssets(item) {
   const deletedUrls = [];
   const failedUrls = [];
 
   // Delete main URL
-  if (itemToDelete.url) {
-    if (await deleteFromCloudinary(itemToDelete.url)) {
-      deletedUrls.push(itemToDelete.url);
-    } else if (await deleteFromGithubRelease(itemToDelete.url)) {
-      deletedUrls.push(itemToDelete.url);
+  if (item.url) {
+    if (await deleteFromCloudinary(item.url)) {
+      deletedUrls.push(item.url);
+    } else if (await deleteFromGithubRelease(item.url)) {
+      deletedUrls.push(item.url);
     } else {
-      failedUrls.push(itemToDelete.url);
+      failedUrls.push(item.url);
     }
   }
 
   // Delete gallery images
-  const gallery = itemToDelete.gallery || [];
-  for (const galleryUrl of gallery) {
+  for (const galleryUrl of (item.gallery || [])) {
     if (await deleteFromCloudinary(galleryUrl)) {
       deletedUrls.push(galleryUrl);
     } else {
@@ -329,19 +289,37 @@ async function deleteItem(category, itemId) {
     }
   }
 
-  // Save updated data
-  try {
-    await fs.writeFile(jsonPath, JSON.stringify(newData, null, 4), 'utf-8');
-    console.log(`Removed item from ${jsonPath}`);
-  } catch (e) {
-    return { success: false, error: `Failed to update JSON: ${e.message}` };
+  return { deletedUrls, failedUrls };
+}
+
+// ─── Item Deletion (DataStore) ────────────────────────────
+
+async function deleteItem(category, itemId) {
+  console.log(`--- Deleting: ${itemId} from ${category} ---`);
+
+  // Find the item (try UUID, then legacy ID for backward compat)
+  let item = await store.getItem(itemId);
+  if (!item) {
+    item = await store.findItemByField('legacyId', itemId);
   }
+  if (!item) {
+    return { success: false, error: `Item '${itemId}' not found` };
+  }
+
+  const id = item.id;
+
+  // Delete from cloud storage
+  const { deletedUrls, failedUrls } = await deleteCloudAssets(item);
+
+  // Remove from DataStore (media-type file + category refs)
+  await store.deleteItem(id);
+  await store.removeFromCategory(id, category);
 
   updateSiteTimestamp();
 
   const result = {
     success: true,
-    message: `Deleted '${itemId}' from ${category}`,
+    message: `Deleted '${id}' from ${category}`,
     deleted_urls: deletedUrls.length,
     failed_urls: failedUrls.length,
   };
@@ -389,6 +367,7 @@ module.exports = {
   uploadSingle,
   uploadAndSave,
   deleteItem,
+  deleteCloudAssets,
   deleteFromCloudinary,
   deleteFromGithubRelease,
   extractCloudinaryPublicId,

@@ -86,24 +86,63 @@ class ConfigLoader {
   }
 
   /**
-   * Get absolute data file path for a category
+   * Get absolute path to a category's reference file.
+   * In the normalized model, category files contain UUID arrays.
+   * e.g. "painting" → "/path/to/data/painting.json"
    */
-  getCategoryDataFile(categoryId) {
-    const ct = this.getContentType(categoryId);
-    let filename = `${categoryId}.json`;
-    if (ct && ct.dataFile) {
-      filename = ct.dataFile.replace('data/', '');
-    }
-    return path.join(this.dataDir, filename);
+  getCategoryRefFile(categoryId) {
+    return path.join(this.dataDir, `${categoryId}.json`);
   }
 
   /**
-   * Get mapping of category ID → absolute data file path
+   * Get absolute data file path for a media type.
+   * e.g. "image" → "/path/to/data/image.json"
+   */
+  getMediaTypeDataFile(mediaTypeId) {
+    const mt = this.getMediaType(mediaTypeId);
+    if (mt && mt.dataFile) {
+      const filename = mt.dataFile.replace(/^data\//, '');
+      return path.join(this.dataDir, filename);
+    }
+    return path.join(this.dataDir, `${mediaTypeId}.json`);
+  }
+
+  /**
+   * Get the media type for a given category.
+   * e.g. "painting" → { id: "image", name: "Image", ... }
+   */
+  getMediaTypeForCategory(categoryId) {
+    const ct = this.getContentType(categoryId);
+    if (!ct) return null;
+    return this.getMediaType(ct.mediaType);
+  }
+
+  /**
+   * Get all categories that share the same media type.
+   * e.g. "image" → [{id: "painting"}, {id: "drawing"}, ...]
+   */
+  getCategoriesForMediaType(mediaTypeId) {
+    return this.getContentTypes().filter(ct => ct.mediaType === mediaTypeId);
+  }
+
+  /**
+   * Get mapping of category ID → absolute reference file path.
    */
   getCategoryMap() {
     const map = {};
     for (const ct of this.getContentTypes()) {
-      map[ct.id] = this.getCategoryDataFile(ct.id);
+      map[ct.id] = this.getCategoryRefFile(ct.id);
+    }
+    return map;
+  }
+
+  /**
+   * Get mapping of media type ID → absolute data file path.
+   */
+  getMediaTypeMap() {
+    const map = {};
+    for (const mt of this.getMediaTypes()) {
+      map[mt.id] = this.getMediaTypeDataFile(mt.id);
     }
     return map;
   }

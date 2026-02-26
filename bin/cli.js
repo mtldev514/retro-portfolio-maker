@@ -115,9 +115,9 @@ program
       console.log(chalk.cyan('🔍 Running configuration validator...\n'));
 
       const contentPath = path.resolve(options.path);
-      const result = runValidation(contentPath);
+      const passed = runValidation(contentPath);
 
-      process.exit(result.success ? 0 : 1);
+      process.exit(passed ? 0 : 1);
     } catch (error) {
       console.error(chalk.red('Error:'), error.message);
       process.exit(1);

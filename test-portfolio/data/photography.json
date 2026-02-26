@@ -1,70 +1,10 @@
 [
-  {
-    "id": "photo-1",
-    "title": { "en": "Downtown Morning", "fr": "Centre-ville le matin", "mx": "Centro por la mañana", "ht": "Sant vil nan maten" },
-    "url": "https://picsum.photos/seed/photo1/400/300",
-    "date": "2025-05-10",
-    "description": { "en": "Early morning downtown", "fr": "Tôt le matin au centre-ville", "mx": "Temprano en el centro", "ht": "Bonè nan maten nan sant vil" }
-  },
-  {
-    "id": "photo-2",
-    "title": { "en": "Market Day", "fr": "Jour de marché", "mx": "Día de mercado", "ht": "Jou mache" },
-    "url": "https://picsum.photos/seed/photo2/400/300",
-    "gallery": [
-      "https://picsum.photos/seed/photo2a/400/300",
-      "https://picsum.photos/seed/photo2b/400/300",
-      "https://picsum.photos/seed/photo2c/400/300"
-    ],
-    "date": "2025-03-22",
-    "description": { "en": "Local market scenes", "fr": "Scènes du marché local", "mx": "Escenas del mercado local", "ht": "Sèn mache lokal" }
-  },
-  {
-    "id": "photo-3",
-    "title": { "en": "Rainy Street", "fr": "Rue pluvieuse", "mx": "Calle lluviosa", "ht": "Ri lapli" },
-    "url": "https://picsum.photos/seed/photo3/400/300",
-    "date": "2024-10-30"
-  },
-  {
-    "id": "photo-4",
-    "title": { "en": "Rooftop View", "fr": "Vue du toit", "mx": "Vista del tejado", "ht": "Vi sou do kay" },
-    "url": "https://picsum.photos/seed/photo4/400/300",
-    "gallery": [
-      "https://picsum.photos/seed/photo4a/400/300",
-      "https://picsum.photos/seed/photo4b/400/300"
-    ],
-    "date": "2025-08-14",
-    "description": { "en": "City panorama from above", "fr": "Panorama de la ville d'en haut", "mx": "Panorama de la ciudad desde arriba", "ht": "Panorama vil la anwo" }
-  },
-  {
-    "id": "photo-5",
-    "title": { "en": "Night Walk", "fr": "Promenade nocturne", "mx": "Paseo nocturno", "ht": "Pwomnad lannwit" },
-    "url": "https://picsum.photos/seed/photo5/400/300",
-    "date": "2025-01-05"
-  },
-  {
-    "id": "photo-6",
-    "title": { "en": "Bridge at Dusk", "fr": "Pont au crépuscule", "mx": "Puente al atardecer", "ht": "Pon nan aswè" },
-    "url": "https://picsum.photos/seed/photo6/400/300",
-    "date": "2024-07-19",
-    "description": { "en": "Old stone bridge", "fr": "Vieux pont en pierre", "mx": "Viejo puente de piedra", "ht": "Vye pon wòch" }
-  },
-  {
-    "id": "photo-7",
-    "title": { "en": "Garden Path", "fr": "Chemin du jardin", "mx": "Camino del jardín", "ht": "Chemen jaden" },
-    "url": "https://picsum.photos/seed/photo7/400/300",
-    "gallery": [
-      "https://picsum.photos/seed/photo7a/400/300",
-      "https://picsum.photos/seed/photo7b/400/300",
-      "https://picsum.photos/seed/photo7c/400/300",
-      "https://picsum.photos/seed/photo7d/400/300"
-    ],
-    "date": "2025-09-02"
-  },
-  {
-    "id": "photo-8",
-    "title": { "en": "Alley Cat", "fr": "Chat de ruelle", "mx": "Gato callejero", "ht": "Chat nan koulwa" },
-    "url": "https://picsum.photos/seed/photo8/400/300",
-    "date": "2026-02-01",
-    "description": { "en": "Stray cat in an alley", "fr": "Chat errant dans une ruelle", "mx": "Gato callejero en un callejón", "ht": "Chat pèdi nan yon koulwa" }
-  }
+  "81ba979b-39ef-445c-bd75-97284e61f400",
+  "00936bbf-4d1b-4a79-9283-e2d27224f811",
+  "8f18070b-acc2-475b-9193-523a2be2143a",
+  "f62d7030-9ab1-4d9a-a048-06ae1ab7fd30",
+  "16109605-8e72-412b-b6b2-de253ed2bedb",
+  "64c301e5-48d2-432f-96bd-fe1ab3a3ecfb",
+  "dfe0e408-483d-4762-8c0d-5d069731df21",
+  "a057ca75-77c0-4c4e-bad5-0102fd1c747c"
 ]

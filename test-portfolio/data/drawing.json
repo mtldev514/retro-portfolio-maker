@@ -1,38 +1,7 @@
 [
-  {
-    "id": "drawing-1",
-    "title": { "en": "Portrait Study", "fr": "Étude de portrait", "mx": "Estudio de retrato", "ht": "Etid pòtrè" },
-    "url": "https://picsum.photos/seed/drawing1/400/300",
-    "date": "2025-04-12",
-    "medium": { "en": "Charcoal", "fr": "Fusain", "mx": "Carboncillo", "ht": "Chabon" },
-    "description": { "en": "Life drawing session", "fr": "Séance de dessin de modèle vivant", "mx": "Sesión de dibujo del natural", "ht": "Sesyon desen modèl vivan" }
-  },
-  {
-    "id": "drawing-2",
-    "title": { "en": "Urban Sketch", "fr": "Croquis urbain", "mx": "Boceto urbano", "ht": "Desen vil" },
-    "url": "https://picsum.photos/seed/drawing2/400/300",
-    "date": "2025-02-28",
-    "medium": { "en": "Ink", "fr": "Encre", "mx": "Tinta", "ht": "Lank" }
-  },
-  {
-    "id": "drawing-3",
-    "title": { "en": "Hand Studies", "fr": "Études de mains", "mx": "Estudios de manos", "ht": "Etid men" },
-    "url": "https://picsum.photos/seed/drawing3/400/300",
-    "date": "2024-12-15",
-    "medium": { "en": "Pencil", "fr": "Crayon", "mx": "Lápiz", "ht": "Kreyon" },
-    "description": { "en": "Anatomical hand studies", "fr": "Études anatomiques des mains", "mx": "Estudios anatómicos de manos", "ht": "Etid anatomik men" }
-  },
-  {
-    "id": "drawing-4",
-    "title": { "en": "Tree Line", "fr": "Ligne d'arbres", "mx": "Línea de árboles", "ht": "Liy pyebwa" },
-    "url": "https://picsum.photos/seed/drawing4/400/300",
-    "date": "2025-07-01"
-  },
-  {
-    "id": "drawing-5",
-    "title": { "en": "Still Life", "fr": "Nature morte", "mx": "Naturaleza muerta", "ht": "Nati mò" },
-    "url": "https://picsum.photos/seed/drawing5/400/300",
-    "date": "2024-09-18",
-    "medium": { "en": "Graphite", "fr": "Graphite", "mx": "Grafito", "ht": "Grafit" }
-  }
+  "f417b70f-36ac-42ff-b75e-3db07db93c6d",
+  "8aa024d1-eef9-4ac7-882a-3282f3438406",
+  "8141dc81-7fef-4726-9171-20265c6fadd5",
+  "998d6902-0f0a-4960-8208-5bfd38bd2809",
+  "930515c7-d3e3-44a6-9c29-171393dcf5f1"
 ]

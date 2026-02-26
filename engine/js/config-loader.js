@@ -313,15 +313,42 @@ const AppConfig = {
     },
 
     /**
-     * Get data file path for a category
+     * Get the reference file path for a category (UUID array).
+     * e.g. "painting" → "data/painting.json"
      */
-    getCategoryDataFile(categoryId) {
-        const category = this.getCategory(categoryId);
-        if (!category) return `data/${categoryId}.json`;
+    getCategoryRefFile(categoryId) {
+        return ConfigLoader.getDataPath(`${categoryId}.json`);
+    },
 
-        // If remote, return full URL, otherwise relative path
-        const fileName = category.dataFile.split('/').pop();
-        return ConfigLoader.getDataPath(fileName);
+    /**
+     * Get the data file path for a media type (item data).
+     * e.g. "image" → "data/image.json"
+     */
+    getMediaTypeDataFile(mediaTypeId) {
+        const mt = this.getMediaType(mediaTypeId);
+        if (mt && mt.dataFile) {
+            const fileName = mt.dataFile.split('/').pop();
+            return ConfigLoader.getDataPath(fileName);
+        }
+        return ConfigLoader.getDataPath(`${mediaTypeId}.json`);
+    },
+
+    /**
+     * Get the media type for a given category.
+     * e.g. "painting" → { id: "image", ... }
+     */
+    getMediaTypeForCategory(categoryId) {
+        const ct = this.getCategory(categoryId);
+        if (!ct) return null;
+        return this.getMediaType(ct.mediaType);
+    },
+
+    /**
+     * Get all categories that share the same media type.
+     * e.g. "image" → [{id: "painting"}, {id: "drawing"}, ...]
+     */
+    getCategoriesForMediaType(mediaTypeId) {
+        return this.getAllContentTypes().filter(ct => ct.mediaType === mediaTypeId);
     },
 
     /**

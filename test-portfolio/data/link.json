@@ -1,0 +1,95 @@
+[
+  {
+    "id": "f22aa38c-30e1-4d77-886a-8ca898a1d205",
+    "legacyId": "project-1",
+    "title": {
+      "en": "Weather App",
+      "fr": "Appli Météo",
+      "mx": "App del Clima",
+      "ht": "App Meteyo"
+    },
+    "url": "https://github.com/testuser/weather-app",
+    "date": "2025-06-15",
+    "visibility": "public",
+    "description": {
+      "en": "Real-time weather dashboard",
+      "fr": "Tableau de bord météo en temps réel",
+      "mx": "Panel de clima en tiempo real",
+      "ht": "Tablo meteyo an tan reyèl"
+    },
+    "website": "https://weather-app.example.com"
+  },
+  {
+    "id": "f92ae7b5-dbd8-4cda-9ba7-d86df38c7a32",
+    "legacyId": "project-2",
+    "title": {
+      "en": "Task Manager",
+      "fr": "Gestionnaire de tâches",
+      "mx": "Gestor de tareas",
+      "ht": "Jere travay"
+    },
+    "url": "https://github.com/testuser/task-manager",
+    "date": "2025-03-01",
+    "visibility": "public",
+    "description": {
+      "en": "Kanban-style task board",
+      "fr": "Tableau de tâches Kanban",
+      "mx": "Tablero de tareas Kanban",
+      "ht": "Tablo travay Kanban"
+    }
+  },
+  {
+    "id": "50283533-8023-4c8d-9f6a-34563dec5581",
+    "legacyId": "project-3",
+    "title": {
+      "en": "Secret Project",
+      "fr": "Projet secret",
+      "mx": "Proyecto secreto",
+      "ht": "Pwojè sekrè"
+    },
+    "date": "2024-11-20",
+    "visibility": "private",
+    "description": {
+      "en": "Work in progress",
+      "fr": "En cours de développement",
+      "mx": "En desarrollo",
+      "ht": "Nan devlopman"
+    }
+  },
+  {
+    "id": "f6b3d9fb-3cb4-41fa-9b6d-65587072d83b",
+    "legacyId": "project-4",
+    "title": {
+      "en": "Portfolio Engine",
+      "fr": "Moteur de portfolio",
+      "mx": "Motor de portafolio",
+      "ht": "Motè pòtfolyo"
+    },
+    "date": "2025-09-10",
+    "visibility": "private",
+    "description": {
+      "en": "This very engine",
+      "fr": "Ce moteur même",
+      "mx": "Este mismo motor",
+      "ht": "Motè sa a menm"
+    }
+  },
+  {
+    "id": "49ab244e-2911-4572-8f60-9859853a7431",
+    "legacyId": "project-5",
+    "title": {
+      "en": "Data Viz Tool",
+      "fr": "Outil de visualisation",
+      "mx": "Herramienta de visualización",
+      "ht": "Zouti vizyalizasyon"
+    },
+    "date": "2024-07-05",
+    "visibility": "private",
+    "description": {
+      "en": "Interactive data visualization",
+      "fr": "Visualisation de données interactive",
+      "mx": "Visualización de datos interactiva",
+      "ht": "Vizyalizasyon done entèraktif"
+    }
+  }
+]

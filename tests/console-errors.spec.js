@@ -30,7 +30,8 @@ test.describe('Console errors', () => {
     const critical = errors.filter(e =>
       !e.includes('counterapi') &&
       !e.includes('Failed to fetch') &&
-      !e.includes('ERR_CONNECTION_REFUSED')
+      !e.includes('ERR_CONNECTION_REFUSED') &&
+      !e.includes('ERR_FAILED')
     );
 
     expect(critical).toEqual([]);

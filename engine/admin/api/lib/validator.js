@@ -60,7 +60,7 @@ class ConfigValidator {
       return false;
     }
 
-    const requiredFields = ['id', 'name', 'icon', 'viewer', 'acceptedFormats'];
+    const requiredFields = ['id', 'name', 'icon', 'viewer', 'acceptedFormats', 'dataFile'];
     for (let i = 0; i < data.mediaTypes.length; i++) {
       const mt = data.mediaTypes[i];
       for (const field of requiredFields) {
@@ -89,7 +89,7 @@ class ConfigValidator {
       return false;
     }
 
-    const requiredFields = ['id', 'name', 'icon', 'mediaType', 'dataFile'];
+    const requiredFields = ['id', 'name', 'icon', 'mediaType'];
     for (const ct of contentTypes) {
       const ctId = ct.id || '(unknown)';
       for (const field of requiredFields) {
@@ -149,48 +149,99 @@ class ConfigValidator {
   }
 
   validateDataFiles() {
-    console.log(chalk.magenta('\n\uD83D\uDCCA Validating Data Files...'));
+    console.log(chalk.magenta('\n\uD83D\uDCCA Validating Data Files (Normalized Format)...'));
 
     if (!this.configLoader.loadAll()) {
       this.addError('Failed to load configuration');
       return false;
     }
 
+    const mediaTypes = this.configLoader.getMediaTypes();
     const contentTypes = this.configLoader.getContentTypes();
-    for (const ct of contentTypes) {
-      const dataFile = this.configLoader.getCategoryDataFile(ct.id);
+
+    // ─── Validate media-type data files ────────────────
+    const allItemsById = new Map(); // uuid → { item, mediaType }
+
+    for (const mt of mediaTypes) {
+      const dataFile = mt.dataFile
+        ? path.join(this.contentRoot, mt.dataFile)
+        : path.join(this.dataDir, `${mt.id}.json`);
 
       if (!fs.existsSync(dataFile)) {
-        this.addWarning(`Data file not found for '${ct.id}': ${dataFile}`);
+        this.addWarning(`Media-type data file not found: ${mt.dataFile || `data/${mt.id}.json`}`);
         continue;
       }
 
       const { valid, data } = this.validateJsonFile(dataFile);
       if (!valid) continue;
 
-      let items;
-      if (data && typeof data === 'object' && !Array.isArray(data) && data.items) {
-        items = data.items;
-      } else if (Array.isArray(data)) {
-        items = data;
-      } else {
-        this.addError(`Data file '${ct.id}' must be an array or object with 'items' key`);
+      if (!Array.isArray(data)) {
+        this.addError(`${mt.id}.json must be an array`);
         continue;
       }
 
-      const requiredFields = (ct.fields && ct.fields.required) || ['title', 'url'];
-      for (let i = 0; i < items.length; i++) {
-        for (const field of requiredFields) {
-          if (!(field in items[i])) {
-            this.addWarning(`${ct.id}.json item #${i}: missing required field '${field}'`);
-          }
+      for (const item of data) {
+        if (!item.id) {
+          this.addError(`Item in ${mt.id}.json missing 'id' field`);
+          continue;
         }
-        if (!('id' in items[i])) {
-          this.addInfo(`${ct.id}.json item #${i}: missing 'id' field (recommended)`);
+        if (allItemsById.has(item.id)) {
+          this.addError(`Duplicate UUID '${item.id}' in ${mt.id}.json`);
+        } else {
+          allItemsById.set(item.id, { item, mediaType: mt.id });
         }
       }
 
-      console.log(chalk.green(`\u2713 ${ct.icon} ${ct.name}: ${items.length} items`));
+      console.log(chalk.green(`\u2713 ${mt.icon} ${mt.name}: ${data.length} items`));
+    }
+
+    // ─── Validate category reference files ─────────────
+    const referencedIds = new Set();
+
+    for (const ct of contentTypes) {
+      const refFile = path.join(this.dataDir, `${ct.id}.json`);
+
+      if (!fs.existsSync(refFile)) {
+        this.addWarning(`Category ref file not found: data/${ct.id}.json`);
+        continue;
+      }
+
+      const { valid, data } = this.validateJsonFile(refFile);
+      if (!valid) continue;
+
+      if (!Array.isArray(data)) {
+        this.addError(`data/${ct.id}.json must be a UUID array`);
+        continue;
+      }
+
+      // Check entries are strings (UUIDs)
+      const nonStrings = data.filter(r => typeof r !== 'string');
+      if (nonStrings.length > 0) {
+        this.addError(`data/${ct.id}.json contains non-string entries — may need migration`);
+        continue;
+      }
+
+      for (const uuid of data) {
+        referencedIds.add(uuid);
+        if (!allItemsById.has(uuid)) {
+          this.addError(`Category '${ct.id}' references UUID '${uuid}' not found in any media-type file`);
+        } else {
+          const entry = allItemsById.get(uuid);
+          if (entry.mediaType !== ct.mediaType) {
+            this.addError(`Category '${ct.id}' (${ct.mediaType}) references UUID '${uuid}' from ${entry.mediaType}`);
+          }
+        }
+      }
+
+      const catName = typeof ct.name === 'object' ? (ct.name.en || ct.id) : (ct.name || ct.id);
+      console.log(chalk.green(`\u2713 ${ct.icon} ${catName}: ${data.length} refs → ${ct.mediaType}`));
+    }
+
+    // Check for orphaned items
+    for (const [uuid, entry] of allItemsById) {
+      if (!referencedIds.has(uuid)) {
+        this.addWarning(`Orphaned item '${uuid}' in ${entry.mediaType}.json not referenced by any category`);
+      }
     }
 
     return true;

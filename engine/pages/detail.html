@@ -24,25 +24,13 @@
 
         // Build category map dynamically from config
         let categoryMap = {};
-        if (window.renderer && Object.keys(renderer.categories).length > 0) {
-            Object.entries(renderer.categories).forEach(([id, info]) => {
-                categoryMap[id] = { file: info.file, back: 'index.html' };
-            });
-        } else {
-            // Fallback: load from AppConfig if renderer hasn't initialized
-            try {
-                if (window.AppConfig) {
-                    if (!AppConfig.loaded) await AppConfig.load();
-                    const cats = AppConfig.getAllCategories();
-                    cats.forEach(cat => {
-                        const fileName = cat.dataFile.split('/').pop();
-                        categoryMap[cat.id] = { file: fileName, back: 'index.html' };
-                    });
-                }
-            } catch (e) {
-                console.warn('Could not load category config for detail page');
-            }
+        if (window.AppConfig) {
+            if (!AppConfig.loaded) await AppConfig.load();
         }
+        const cats = window.AppConfig?.getAllCategories() || [];
+        cats.forEach(cat => {
+            categoryMap[cat.id] = { mediaType: cat.mediaType, back: 'index.html' };
+        });
 
         const category = categoryMap[from];
         if (!itemId || !category) {
@@ -63,11 +51,14 @@
                 });
             }
 
-            // Fallback: fetch from data file (direct URL access)
-            if (!item) {
-                const res = await fetch(dataDir + '/' + category.file);
+            // Fallback: fetch from media-type data file (normalized format)
+            if (!item && category.mediaType) {
+                const mtFilePath = window.AppConfig
+                    ? AppConfig.getMediaTypeDataFile(category.mediaType)
+                    : `${dataDir}/${category.mediaType}.json`;
+                const res = await fetch(mtFilePath);
                 const items = await res.json();
-                const found = items.find(i => i.id === itemId || i.title === itemId ||
+                const found = items.find(i => i.id === itemId ||
                     (typeof i.title === 'object' && i.title.en === itemId));
                 if (found) {
                     item = { ...found, _category: from, _from: from };
