@@ -152,8 +152,29 @@ const renderer = {
             oldBtn.remove();
         }
 
+        // Staggered entrance animation
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            let index = 0;
+            frag.querySelectorAll('.gallery-item').forEach(item => {
+                item.classList.add('entering');
+                item.style.setProperty('--item-index', index++);
+            });
+        }
+
         container.appendChild(frag);
         this.visibleCount += batch.length;
+
+        // Clean up entrance animation classes
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            const itemCount = batch.length;
+            const maxDelay = itemCount * 35 + 120;
+            setTimeout(() => {
+                container.querySelectorAll('.gallery-item.entering').forEach(item => {
+                    item.classList.remove('entering');
+                    item.style.removeProperty('--item-index');
+                });
+            }, maxDelay);
+        }
 
         // Add "Load More" if more items remain
         if (this.visibleCount < this.filteredItems.length) {
@@ -278,8 +299,19 @@ const renderer = {
                 nav.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 this.activeFilter = btn.dataset.filter;
-                this.renderGrid();
-                if (window.i18n) window.i18n.updateDOM();
+
+                // Animate exit, then re-render with entrance animation
+                const grid = document.getElementById('gallery-container');
+                if (grid && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                    grid.querySelectorAll('.gallery-item').forEach(item => item.classList.add('exiting'));
+                    setTimeout(() => {
+                        this.renderGrid();
+                        if (window.i18n) window.i18n.updateDOM();
+                    }, 80);
+                } else {
+                    this.renderGrid();
+                    if (window.i18n) window.i18n.updateDOM();
+                }
                 return;
             }
 
@@ -290,8 +322,18 @@ const renderer = {
                 sortBtn.classList.add('active');
                 this.sortOrder = sortBtn.dataset.sort;
                 this.sortItems();
-                this.renderGrid();
-                if (window.i18n) window.i18n.updateDOM();
+
+                const grid = document.getElementById('gallery-container');
+                if (grid && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                    grid.querySelectorAll('.gallery-item').forEach(item => item.classList.add('exiting'));
+                    setTimeout(() => {
+                        this.renderGrid();
+                        if (window.i18n) window.i18n.updateDOM();
+                    }, 80);
+                } else {
+                    this.renderGrid();
+                    if (window.i18n) window.i18n.updateDOM();
+                }
             }
         });
     }

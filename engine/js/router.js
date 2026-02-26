@@ -41,6 +41,28 @@ const router = {
         await this.loadPage(url);
     },
 
+    /** CRT channel-switch transition: blink out → swap → blink in */
+    async _transition(fn) {
+        const app = document.getElementById('app');
+        if (!app || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            await fn();
+            return;
+        }
+
+        // Phase 1: blink out (80ms)
+        app.classList.add('page-exit');
+        await new Promise(r => setTimeout(r, 80));
+        app.classList.remove('page-exit');
+
+        // Phase 2: DOM swap
+        await fn();
+
+        // Phase 3: blink in (80ms)
+        app.classList.add('page-enter');
+        await new Promise(r => setTimeout(r, 80));
+        app.classList.remove('page-enter');
+    },
+
     async loadPage(url) {
         const app = document.getElementById('app');
 
@@ -75,19 +97,22 @@ const router = {
                 const response = await fetch('pages/detail.html');
                 if (!response.ok) throw new Error('Could not load detail page');
                 const html = await response.text();
-                app.innerHTML = html;
 
-                // Prepend filter bar (with Back button) above detail content
-                app.prepend(this._savedFilterNav);
+                await this._transition(() => {
+                    app.innerHTML = html;
 
-                // Re-execute inline scripts
-                app.querySelectorAll('script').forEach(oldScript => {
-                    const newScript = document.createElement('script');
-                    newScript.textContent = oldScript.textContent;
-                    oldScript.replaceWith(newScript);
+                    // Prepend filter bar (with Back button) above detail content
+                    app.prepend(this._savedFilterNav);
+
+                    // Re-execute inline scripts
+                    app.querySelectorAll('script').forEach(oldScript => {
+                        const newScript = document.createElement('script');
+                        newScript.textContent = oldScript.textContent;
+                        oldScript.replaceWith(newScript);
+                    });
+
+                    if (window.i18n) window.i18n.updateDOM();
                 });
-
-                if (window.i18n) window.i18n.updateDOM();
             } catch (error) {
                 console.error('Detail load error:', error);
                 const t = (key, fb) => (window.i18n && i18n.translations[key]) || fb;
@@ -102,20 +127,22 @@ const router = {
             // GRID VIEW: render unified gallery
             this.currentRoute = 'grid';
 
-            // Restore filter bar with original children
-            if (this._savedFilterNav) {
-                if (this._savedFilterChildren) {
-                    this._savedFilterNav.innerHTML = '';
-                    this._savedFilterChildren.forEach(child => this._savedFilterNav.appendChild(child));
-                    this._savedFilterChildren = null;
+            await this._transition(async () => {
+                // Restore filter bar with original children
+                if (this._savedFilterNav) {
+                    if (this._savedFilterChildren) {
+                        this._savedFilterNav.innerHTML = '';
+                        this._savedFilterChildren.forEach(child => this._savedFilterNav.appendChild(child));
+                        this._savedFilterChildren = null;
+                    }
+                    app.innerHTML = '';
+                    app.appendChild(this._savedFilterNav);
                 }
-                app.innerHTML = '';
-                app.appendChild(this._savedFilterNav);
-            }
 
-            if (window.renderer) {
-                await renderer.init();
-            }
+                if (window.renderer) {
+                    await renderer.init();
+                }
+            });
         }
 
         window.scrollTo(0, 0);

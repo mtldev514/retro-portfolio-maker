@@ -501,6 +501,7 @@ nav {
     border-style: inset;
     background: linear-gradient(180deg, var(--btn-active-start) 0%, var(--btn-active-mid) 50%, var(--btn-active-end) 100%);
     box-shadow: inset 1px 1px 2px rgba(31, 34, 48, 0.3);
+    transform: translateY(1px);
 }
 
 .filter-btn.active {
@@ -1520,14 +1521,17 @@ nav {
     cursor: pointer;
 }
 
+.gallery-item {
+    transition: transform 70ms steps(2), box-shadow 70ms steps(2);
+}
+
 .gallery-item:hover {
     box-shadow: var(--shadow-md);
-    transform: translateY(-4px);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transform: translateY(-3px);
 }
 
 .gallery-link img {
-    transition: filter 0.15s ease;
+    transition: filter 80ms steps(2);
 }
 
 .gallery-item:hover .gallery-link img {
@@ -2104,6 +2108,95 @@ nav {
     --drift-x: -30px;
     --drift-y: -25px;
     --drift-rotate: 12deg;
+}
+
+/* ── Clicky, Analog Feel ─────────────────────────── */
+
+/* Shared button press: snappy 60ms stepped transition */
+.filter-btn,
+.sort-btn,
+.settings-btn,
+.load-more-btn,
+.card-action-btn,
+.winamp-btn,
+.filter-btn-back {
+    transition: transform 60ms steps(2);
+}
+
+.sort-btn:active,
+.settings-btn:active,
+.load-more-btn:active,
+.card-action-btn:active,
+.winamp-btn:active,
+.filter-btn-back:active {
+    transform: translateY(1px);
+}
+
+/* Page transition: CRT channel switch */
+@keyframes page-blink-out {
+    0%   { opacity: 1; }
+    50%  { opacity: 0.3; }
+    100% { opacity: 0; }
+}
+
+@keyframes page-blink-in {
+    0%   { opacity: 0; }
+    40%  { opacity: 0.85; }
+    100% { opacity: 1; }
+}
+
+#app.page-exit {
+    animation: page-blink-out 80ms steps(3) forwards;
+}
+
+#app.page-enter {
+    animation: page-blink-in 80ms steps(3) forwards;
+}
+
+/* Gallery item entrance: snap-pop */
+@keyframes gallery-item-pop {
+    0%   { opacity: 0; transform: scale(0.92); }
+    60%  { opacity: 1; transform: scale(1.01); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.gallery-item.entering {
+    animation: gallery-item-pop 120ms steps(4) both;
+    animation-delay: calc(var(--item-index, 0) * 35ms);
+}
+
+/* Gallery item exit: snap-out on filter switch */
+@keyframes gallery-item-exit {
+    0%   { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.95); }
+}
+
+.gallery-item.exiting {
+    animation: gallery-item-exit 80ms steps(2) forwards;
+}
+
+/* Accessibility: respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .filter-btn,
+    .sort-btn,
+    .settings-btn,
+    .load-more-btn,
+    .card-action-btn,
+    .winamp-btn,
+    .filter-btn-back,
+    .gallery-item,
+    .gallery-link img {
+        transition: none !important;
+    }
+
+    .gallery-item.entering,
+    .gallery-item.exiting,
+    #app.page-exit,
+    #app.page-enter {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
 }
 
 /* Show overlay ONLY on portrait screens narrower than 768px */
