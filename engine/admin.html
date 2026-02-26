@@ -25,15 +25,16 @@
         </div>
 
         <div class="tab-bar">
-            <div class="tab active" onclick="showTab('upload', this)" data-i18n="admin_tab_add">Add Media</div>
-            <div class="tab" onclick="showTab('manage', this)" data-i18n="admin_tab_manage">Manage Content</div>
-            <div class="tab" onclick="showTab('bulkedit', this)" data-i18n="admin_tab_bulk">Bulk Edit</div>
+            <div class="tab active" onclick="showTab('content', this)" data-i18n="admin_tab_content">Content</div>
             <div class="tab" onclick="showTab('translations', this)" data-i18n="admin_tab_translations">Translations</div>
-            <div class="tab" onclick="showTab('config', this)" data-i18n="admin_tab_config">Configuration</div>
+            <div class="tab" onclick="showTab('settings', this)" data-i18n="admin_tab_settings">Settings</div>
         </div>
 
-        <!-- UPLOAD TAB -->
-        <div id="upload" class="tab-content active">
+        <!-- ═══════════════════════════════════════════════
+             CONTENT TAB (merged: Upload + Manage + Bulk Edit)
+             ═══════════════════════════════════════════════ -->
+        <div id="content" class="tab-content active">
+            <!-- Upload zone -->
             <div id="bulkDropZone" class="bulk-drop-zone">
                 <p style="font-size: 14px; font-weight: bold;" data-i18n="admin_drop_title">DROP FILES HERE</p>
                 <p class="admin-muted" data-i18n="admin_drop_subtitle">or click to browse — images + audio supported</p>
@@ -50,89 +51,99 @@
                 </div>
                 <div id="bulkItems" class="bulk-items"></div>
             </div>
-        </div>
 
-        <!-- BULK EDIT TAB -->
-        <div id="bulkedit" class="tab-content">
-            <div class="admin-flex-between">
-                <label>Select Category:</label>
-                <select id="bulkEditCategory" onchange="loadBulkEditContent()" style="width: 200px;">
-                    <option value="">-- Select Category --</option>
-                    <!-- Populated dynamically from config -->
+            <!-- Content filter bar -->
+            <div class="admin-flex-between" style="margin-top: 15px; align-items: center;">
+                <label style="margin: 0;">Filter:</label>
+                <select id="manageCategory" onchange="loadContent()" style="width: 200px;">
+                    <option value="all">All Categories</option>
                 </select>
+                <button class="action" onclick="loadContent()" style="margin: 0; font-size: 11px;">Refresh</button>
             </div>
-            <div class="admin-hint">
-                Select items below and apply bulk edits to titles and descriptions. Changes apply to the English (EN) version.
-            </div>
-            <div id="bulkEditList" class="bulk-edit-list">
-                <p align="center" class="admin-muted">Select a category to begin bulk editing</p>
-            </div>
-            <div id="bulkEditActions" style="display: none;">
-                <div class="admin-flex-between" style="margin-top: 15px; padding-top: 10px; border-top: 2px solid var(--admin-win-border-dark);">
+
+            <!-- Content list with thumbnails and checkboxes -->
+            <div id="contentList" class="admin-content-list">
+                <!-- Bulk selection toolbar (sticky inside list) -->
+                <div id="bulkSelectToolbar" class="bulk-select-toolbar">
+                    <span><strong id="bulkSelectedCount">0</strong> selected</span>
                     <div>
-                        <span id="bulkEditSelectedCount" style="font-weight: bold;">0 selected</span>
+                        <button type="button" onclick="selectAllInCategory()">Select All</button>
+                        <button type="button" onclick="clearBulkSelection()">Clear</button>
+                        <button type="button" class="src-btn-active" onclick="showBulkEditForm()">Edit Selected</button>
                     </div>
-                    <button class="action src-btn-active" style="margin: 0; font-size: 11px;" onclick="showBulkEditForm()">Edit Selected Items</button>
+                </div>
+                <div id="contentListInner">
+                    <p align="center">Loading content...</p>
                 </div>
             </div>
         </div>
 
-        <!-- MANAGE CONTENT TAB -->
-        <div id="manage" class="tab-content">
-            <div class="admin-flex-between">
-                <label>Filter Category:</label>
-                <select id="manageCategory" onchange="loadContent()" style="width: 200px;">
-                    <option value="all">All Categories</option>
-                    <!-- Populated dynamically from config -->
-                </select>
-                <button class="action" onclick="loadContent()" style="margin: 0; font-size: 11px;">Refresh List</button>
-            </div>
-            <div id="contentList" class="admin-content-list">
-                <!-- Populated by JS -->
-                <p align="center">Loading content...</p>
-            </div>
-        </div>
-
-        <!-- TRANSLATIONS TAB -->
+        <!-- ═══════════════════════════════════════════════
+             TRANSLATIONS TAB (unchanged)
+             ═══════════════════════════════════════════════ -->
         <div id="translations" class="tab-content">
             <div class="admin-flex-between">
                 <label>Language:</label>
                 <select id="langSelect" onchange="loadTranslations()" style="width: 100px;">
-                    <!-- Populated dynamically from config -->
                 </select>
             </div>
             <div id="translationGrid" class="translation-grid">
-                <!-- Populated by JS -->
             </div>
         </div>
 
-        <!-- CONFIG TAB -->
-        <div id="config" class="tab-content">
-            <p>Cloudinary status: <span class="admin-connected">CONNECTED</span></p>
-            <p>Current Server Port: <span id="server-port">5001</span></p>
-            <hr>
-            <p style="font-size: 12px;">Need high-res uploads? Make sure your .env is active.</p>
+        <!-- ═══════════════════════════════════════════════
+             SETTINGS TAB (merged: Config + Config Manager + Validation)
+             ═══════════════════════════════════════════════ -->
+        <div id="settings" class="tab-content">
+            <!-- Status info -->
+            <div class="settings-status">
+                <span>Cloudinary: <span class="admin-connected">CONNECTED</span></span>
+                <span>Server Port: <span id="server-port">5001</span></span>
+            </div>
 
-            <div class="field-row" style="margin-top: 20px;">
-                <button onclick="window.location.href='config-manager.html';" style="width: 100%; height: 50px; font-weight: bold; cursor: pointer; background: linear-gradient(to bottom, #0080ff, #0060c0); color: white; border: 2px outset #fff;">
-                    ⚙️ CONFIGURATION MANAGER
-                </button>
-                <p class="admin-muted" style="margin-top: 5px;">
-                    * Edit JSON configuration files (app, languages, categories, media-types)
+            <!-- Settings toolbar -->
+            <div class="settings-toolbar">
+                <button onclick="saveAllConfigurations()">Save All</button>
+                <button onclick="reloadConfigurations()">Reload</button>
+                <button onclick="exportConfigurations()">Export</button>
+            </div>
+
+            <!-- Media Types Section -->
+            <div class="config-section">
+                <div class="config-section-header">MEDIA TYPES (How content is displayed)</div>
+                <p style="font-size: 11px; margin: 10px 0; color: var(--admin-muted-text);">
+                    Media types define how different kinds of content are rendered (image viewer, audio player, etc.)
                 </p>
+                <div id="mediaTypesGrid" class="config-grid"></div>
+                <div class="add-new-section">
+                    <button onclick="openMediaTypeModal()">+ Add New Media Type</button>
+                </div>
+            </div>
+
+            <!-- Content Types Section -->
+            <div class="config-section">
+                <div class="config-section-header">CONTENT TYPES (What you create)</div>
+                <p style="font-size: 11px; margin: 10px 0; color: var(--admin-muted-text);">
+                    Content types define categories of work and their custom fields
+                </p>
+                <div id="contentTypesGrid" class="config-grid"></div>
+                <div class="add-new-section">
+                    <button onclick="openContentTypeModal()">+ Add New Content Type</button>
+                </div>
             </div>
 
             <hr style="margin: 20px 0;">
 
-            <div class="field-row" style="margin-top: 20px;">
-                <button onclick="window.location.href='validator.html?auto=true';" style="width: 100%; height: 50px; font-weight: bold; cursor: pointer; background: linear-gradient(to bottom, #00aa00, #008800); color: white; border: 2px outset #fff;">
-                    🔍 VALIDATE CONFIGURATION
+            <!-- Validation -->
+            <div class="config-section">
+                <div class="config-section-header">VALIDATION</div>
+                <button class="validate-btn" onclick="window.open('validator.html?auto=true', '_blank')">
+                    Run Validation Check
                 </button>
-                <p class="admin-muted" style="margin-top: 5px;">
-                    * Check all config files, data files, and translations for errors
+                <p class="admin-muted" style="margin-top: 8px;">
+                    Opens the validator in a new tab to check all config, data, and translation files
                 </p>
             </div>
-
         </div>
 
         <div class="console" id="console">
@@ -144,10 +155,124 @@
         </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════
+         MEDIA TYPE MODAL (from config-manager.html)
+         ═══════════════════════════════════════════════ -->
+    <div id="mediaTypeModal" class="config-modal">
+        <div class="config-modal-content">
+            <div class="config-modal-header">
+                <span id="mediaTypeModalTitle">Add Media Type</span>
+                <button onclick="closeMediaTypeModal()">X</button>
+            </div>
+            <div class="config-modal-body">
+                <form id="mediaTypeForm">
+                    <div class="form-row">
+                        <label>ID (unique identifier):</label>
+                        <input type="text" id="mtId" required placeholder="e.g., image, audio, video">
+                    </div>
+                    <div class="form-row">
+                        <label>Name:</label>
+                        <input type="text" id="mtName" required placeholder="e.g., Image, Audio">
+                    </div>
+                    <div class="form-row">
+                        <label>Icon (emoji):</label>
+                        <input type="text" id="mtIcon" required placeholder="e.g., 🖼️, 🎵">
+                    </div>
+                    <div class="form-row">
+                        <label>Viewer Component:</label>
+                        <input type="text" id="mtViewer" required placeholder="e.g., ImageViewer, AudioPlayer">
+                    </div>
+                    <div class="form-row">
+                        <label>
+                            <input type="checkbox" id="mtSupportsGallery" style="width:auto;"> Supports Gallery
+                        </label>
+                    </div>
+                    <div class="form-row">
+                        <label>
+                            <input type="checkbox" id="mtSupportsMetadata" style="width:auto;"> Supports Per-Item Metadata
+                        </label>
+                    </div>
+                    <div class="form-row">
+                        <label>Accepted Formats (comma-separated):</label>
+                        <input type="text" id="mtFormats" placeholder="e.g., .jpg, .png, .webp">
+                    </div>
+                    <div class="form-row">
+                        <label>Upload Destination:</label>
+                        <select id="mtDestination">
+                            <option value="cloudinary">Cloudinary</option>
+                            <option value="github">GitHub Releases</option>
+                            <option value="none">None (URL only)</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label>Description:</label>
+                        <textarea id="mtDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-row" style="text-align: right;">
+                        <button type="button" onclick="closeMediaTypeModal()">Cancel</button>
+                        <button type="submit">Save Media Type</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         CONTENT TYPE MODAL (from config-manager.html)
+         ═══════════════════════════════════════════════ -->
+    <div id="contentTypeModal" class="config-modal">
+        <div class="config-modal-content">
+            <div class="config-modal-header">
+                <span id="contentTypeModalTitle">Add Content Type</span>
+                <button onclick="closeContentTypeModal()">X</button>
+            </div>
+            <div class="config-modal-body">
+                <form id="contentTypeForm">
+                    <div class="form-row">
+                        <label>ID (unique identifier):</label>
+                        <input type="text" id="ctId" required placeholder="e.g., painting, photography">
+                    </div>
+                    <div class="form-row">
+                        <label>Name:</label>
+                        <input type="text" id="ctName" required placeholder="e.g., Painting, Photography">
+                    </div>
+                    <div class="form-row">
+                        <label>Icon (emoji):</label>
+                        <input type="text" id="ctIcon" required placeholder="e.g., 🎨, 📷">
+                    </div>
+                    <div class="form-row">
+                        <label>Media Type:</label>
+                        <select id="ctMediaType" required></select>
+                    </div>
+                    <div class="form-row">
+                        <label>Data File Path:</label>
+                        <input type="text" id="ctDataFile" required placeholder="e.g., data/painting.json">
+                    </div>
+                    <div class="form-row">
+                        <label>Description:</label>
+                        <textarea id="ctDescription" rows="2"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <label>Custom Fields:</label>
+                        <div id="fieldsList" class="field-list"></div>
+                        <button type="button" onclick="addField()" style="margin-top: 5px;">+ Add Field</button>
+                    </div>
+                    <div class="form-row" style="text-align: right;">
+                        <button type="button" onclick="closeContentTypeModal()">Cancel</button>
+                        <button type="submit">Save Content Type</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         let API_URL = 'http://127.0.0.1:5001'; // fallback, overridden by bootstrapConfig()
 
-        // Helper: detect if admin server is not running
+        // ══════════════════════════════════════════════
+        //  UTILITIES
+        // ══════════════════════════════════════════════
+
         function isServerDown(err) {
             return err instanceof TypeError && err.message === 'Failed to fetch';
         }
@@ -155,7 +280,12 @@
             return `Admin server is not running on ${API_URL}. Start it with: npm run admin`;
         }
 
-        // Auto commit & push after data changes
+        function conLog(msg, cls) {
+            const c = document.getElementById('console');
+            c.innerHTML += `<br><span class="${cls || ''}">${msg}</span>`;
+            c.scrollTop = c.scrollHeight;
+        }
+
         async function autoCommitAndPush(action) {
             try {
                 const res = await fetch(`${API_URL}/api/git/commit-push`, {
@@ -164,35 +294,31 @@
                     body: JSON.stringify({ message: `Admin: ${action}` })
                 });
                 const result = await res.json();
-                const consoleBox = document.getElementById('console');
                 if (result.success) {
                     if (result.message === 'No changes to commit') {
-                        consoleBox.innerHTML += `<br><span class="con-info">> Git: no new changes to commit.</span>`;
+                        conLog('> Git: no new changes to commit.', 'con-info');
                     } else {
-                        consoleBox.innerHTML += `<br><span class="con-success">> Git: ${result.message}</span>`;
+                        conLog(`> Git: ${result.message}`, 'con-success');
                     }
                 } else {
-                    consoleBox.innerHTML += `<br><span class="con-warn">> Git: ${result.error}</span>`;
+                    conLog(`> Git: ${result.error}`, 'con-warn');
                 }
             } catch (err) {
-                // Silent fail — git push is best-effort
                 console.warn('Auto commit-push failed:', err);
             }
         }
+
+        // ══════════════════════════════════════════════
+        //  BOOTSTRAP & CONFIG
+        // ══════════════════════════════════════════════
 
         async function bootstrapConfig() {
             try {
                 const appConfig = await fetch('config/app.json').then(r => r.json());
                 API_URL = appConfig.api?.baseUrl
                     || `http://${appConfig.api?.host || '127.0.0.1'}:${appConfig.api?.port || 5001}`;
-
-                // Update port display
                 const portText = document.getElementById('server-port');
                 if (portText) portText.textContent = appConfig.api?.port || 5001;
-
-                // Update GitHub username
-                const ghUser = document.getElementById('github-username');
-                if (ghUser) ghUser.textContent = appConfig.github?.username || 'unknown';
             } catch (e) {
                 console.warn('Could not load app config, using default API URL');
             }
@@ -214,7 +340,6 @@
             }
         }
 
-        // Enhanced AppConfig that loads from API instead of file paths
         const AppConfig = {
             app: null,
             languages: null,
@@ -228,100 +353,75 @@
                         fetch(`${API_URL}/api/config/categories`).then(r => r.json()),
                         fetch(`${API_URL}/api/config/media-types`).then(r => r.json())
                     ]);
-
                     this.categories = categoriesData;
                     this.mediaTypes = mediaTypesData;
                     this.loaded = true;
-
-                    console.log('✅ Configuration loaded from API');
+                    console.log('Configuration loaded from API');
                     return true;
                 } catch (error) {
                     if (isServerDown(error)) {
-                        console.error('❌ ' + serverDownMsg());
+                        console.error(serverDownMsg());
                     } else {
-                        console.error('❌ Failed to load configuration from API:', error);
+                        console.error('Failed to load configuration from API:', error);
                     }
                     return false;
                 }
             },
 
-            getAllContentTypes() {
-                return this.categories?.contentTypes || this.categories?.categories || [];
-            },
-
-            getContentType(contentTypeId) {
-                return this.getAllContentTypes().find(c => c.id === contentTypeId);
-            },
-
-            getAllMediaTypes() {
-                return this.mediaTypes?.mediaTypes || [];
-            },
-
-            getMediaType(mediaTypeId) {
-                return this.getAllMediaTypes().find(m => m.id === mediaTypeId);
-            }
+            getApiUrl() { return API_URL; },
+            getAllContentTypes() { return this.categories?.contentTypes || this.categories?.categories || []; },
+            getContentType(id) { return this.getAllContentTypes().find(c => c.id === id); },
+            getAllMediaTypes() { return this.mediaTypes?.mediaTypes || []; },
+            getMediaType(id) { return this.getAllMediaTypes().find(m => m.id === id); }
         };
 
-        // Initialize config and populate category dropdowns
         let categoriesLoaded = false;
         async function initializeCategories() {
             if (categoriesLoaded) return;
-
             try {
                 await AppConfig.load();
                 const contentTypes = AppConfig.getAllContentTypes();
-
-                // Populate all category dropdowns
-                const dropdowns = [
-                    'bulkEditCategory',
-                    'manageCategory'
-                ];
-
-                dropdowns.forEach(dropdownId => {
-                    const select = document.getElementById(dropdownId);
-                    if (!select) return;
-
-                    // Keep the first option (placeholder)
-                    const firstOption = select.options[0];
-                    select.innerHTML = '';
-                    if (firstOption) select.appendChild(firstOption);
-
-                    // Add categories from config
-                    contentTypes.forEach(ct => {
-                        const option = document.createElement('option');
-                        option.value = ct.id;
-                        option.textContent = `${ct.icon} ${ct.name}`;
-                        select.appendChild(option);
-                    });
+                const select = document.getElementById('manageCategory');
+                if (!select) return;
+                const firstOption = select.options[0];
+                select.innerHTML = '';
+                if (firstOption) select.appendChild(firstOption);
+                contentTypes.forEach(ct => {
+                    const option = document.createElement('option');
+                    option.value = ct.id;
+                    option.textContent = `${ct.icon} ${ct.name}`;
+                    select.appendChild(option);
                 });
-
                 categoriesLoaded = true;
-                console.log('✅ Categories loaded from config');
             } catch (error) {
                 console.error('Failed to load categories:', error);
-                // Fallback to hardcoded if config fails
             }
         }
+
+        // ══════════════════════════════════════════════
+        //  TAB SWITCHING
+        // ══════════════════════════════════════════════
 
         function showTab(tabId, el) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
             if (el) el.classList.add('active');
             document.getElementById(tabId).classList.add('active');
 
             if (tabId === 'translations') loadTranslations();
-            if (tabId === 'manage') loadContent();
+            if (tabId === 'content') loadContent();
+            if (tabId === 'settings') loadSettingsData();
         }
 
-        // ── Bulk Upload ──
-        const AUDIO_EXTS = ['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.aac'];
-        let bulkFiles = []; // { file, isAudio, title, category }
+        // ══════════════════════════════════════════════
+        //  BULK UPLOAD
+        // ══════════════════════════════════════════════
 
-        // Get default category for file type
+        const AUDIO_EXTS = ['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.aac'];
+        let bulkFiles = [];
+
         function getDefaultCategory(isAudio) {
             if (!AppConfig.loaded) return isAudio ? 'music' : 'painting';
-
             const contentTypes = AppConfig.getAllContentTypes();
             if (isAudio) {
                 const audioType = contentTypes.find(ct => ct.mediaType === 'audio');
@@ -350,12 +450,7 @@
                 const ext = '.' + file.name.split('.').pop().toLowerCase();
                 const isAudio = AUDIO_EXTS.includes(ext);
                 const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
-                bulkFiles.push({
-                    file,
-                    isAudio,
-                    title: baseName,
-                    category: getDefaultCategory(isAudio)
-                });
+                bulkFiles.push({ file, isAudio, title: baseName, category: getDefaultCategory(isAudio) });
             }
             renderBulkQueue();
         }
@@ -369,10 +464,7 @@
             const items = document.getElementById('bulkItems');
             const count = document.getElementById('bulkCount');
 
-            if (bulkFiles.length === 0) {
-                queue.style.display = 'none';
-                return;
-            }
+            if (bulkFiles.length === 0) { queue.style.display = 'none'; return; }
             queue.style.display = 'block';
             count.textContent = `${bulkFiles.length} file${bulkFiles.length > 1 ? 's' : ''} queued`;
 
@@ -384,20 +476,12 @@
 
                 let catOptions = '';
                 const contentTypes = AppConfig.loaded ? AppConfig.getAllContentTypes() : [];
-
-                if (entry.isAudio) {
-                    // For audio, only show audio-compatible categories
-                    const audioCategories = contentTypes.filter(ct => ct.mediaType === 'audio');
-                    catOptions = audioCategories.map(ct =>
-                        `<option value="${ct.id}"${ct.id === entry.category ? ' selected' : ''}>${ct.icon} ${ct.name}</option>`
-                    ).join('');
-                } else {
-                    // For images, show image-compatible categories
-                    const imageCategories = contentTypes.filter(ct => ct.mediaType === 'image');
-                    catOptions = imageCategories.map(ct =>
-                        `<option value="${ct.id}"${ct.id === entry.category ? ' selected' : ''}>${ct.icon} ${ct.name}</option>`
-                    ).join('');
-                }
+                const relevantTypes = entry.isAudio
+                    ? contentTypes.filter(ct => ct.mediaType === 'audio')
+                    : contentTypes.filter(ct => ct.mediaType === 'image');
+                catOptions = relevantTypes.map(ct =>
+                    `<option value="${ct.id}"${ct.id === entry.category ? ' selected' : ''}>${ct.icon} ${ct.name}</option>`
+                ).join('');
 
                 html += `<div class="bulk-item">
                     <div class="bulk-thumb">${thumbContent}</div>
@@ -412,20 +496,14 @@
             items.innerHTML = html;
         }
 
-        function clearBulkQueue() {
-            bulkFiles = [];
-            renderBulkQueue();
-        }
+        function clearBulkQueue() { bulkFiles = []; renderBulkQueue(); }
 
         async function startBulkUpload() {
             if (bulkFiles.length === 0) return;
-
-            const consoleBox = document.getElementById('console');
             const uploadBtn = document.getElementById('bulkUploadBtn');
             uploadBtn.disabled = true;
             uploadBtn.textContent = 'UPLOADING...';
-
-            consoleBox.innerHTML += `<br>> Starting bulk upload of ${bulkFiles.length} file(s)...`;
+            conLog(`> Starting bulk upload of ${bulkFiles.length} file(s)...`);
 
             const formData = new FormData();
             bulkFiles.forEach((entry, i) => {
@@ -433,21 +511,15 @@
                 formData.append(`title_${i}`, entry.title);
                 formData.append(`category_${i}`, entry.category);
             });
-
-            // Mark all as uploading
             bulkFiles.forEach((_, i) => {
                 const s = document.getElementById(`bulk-status-${i}`);
                 if (s) s.textContent = '...';
             });
 
             try {
-                const res = await fetch(`${API_URL}/api/upload-bulk`, {
-                    method: 'POST',
-                    body: formData
-                });
+                const res = await fetch(`${API_URL}/api/upload-bulk`, { method: 'POST', body: formData });
                 const result = await res.json();
 
-                // Mark individual results
                 (result.results || []).forEach(r => {
                     const idx = bulkFiles.findIndex(f => f.file.name === r.file);
                     if (idx >= 0) {
@@ -463,7 +535,7 @@
                     }
                 });
 
-                consoleBox.innerHTML += `<br><span class="con-success">> Bulk upload complete: ${result.uploaded} uploaded, ${result.failed} failed.</span>`;
+                conLog(`> Bulk upload complete: ${result.uploaded} uploaded, ${result.failed} failed.`, 'con-success');
 
                 if (result.uploaded > 0) {
                     autoCommitAndPush(`bulk upload ${result.uploaded} file(s)`);
@@ -473,66 +545,23 @@
                             return s && !s.classList.contains('con-success');
                         });
                         renderBulkQueue();
+                        loadContent();
                     }, 2000);
                 }
             } catch (err) {
-                consoleBox.innerHTML += isServerDown(err)
-                    ? `<br><span class="con-error">> ${serverDownMsg()}</span>`
-                    : `<br><span class="con-error">> NETWORK ERROR: ${err.message}</span>`;
+                conLog(isServerDown(err) ? `> ${serverDownMsg()}` : `> NETWORK ERROR: ${err.message}`, 'con-error');
             }
 
             uploadBtn.disabled = false;
             uploadBtn.textContent = 'UPLOAD ALL';
         }
 
-        async function loadTranslations() {
-            const lang = document.getElementById('langSelect').value;
-            if (!lang) return;
-            const grid = document.getElementById('translationGrid');
-            grid.innerHTML = 'Loading...';
+        // ══════════════════════════════════════════════
+        //  CONTENT LIST (enhanced with thumbnails)
+        // ══════════════════════════════════════════════
 
-            try {
-                const res = await fetch(`${API_URL}/api/translations/${lang}`);
-                const trans = await res.json();
+        let loadedContent = {};
 
-                let html = '';
-                Object.keys(trans).forEach(key => {
-                    const safeVal = (trans[key] || '').replace(/"/g, '&quot;');
-                    html += `<div class="trans-item">
-                        <label style="font-size: 10px;">${key}</label>
-                        <input type="text" value="${safeVal}" onblur="updateTrans('${lang}', '${key}', this.value)">
-                    </div>`;
-                });
-                grid.innerHTML = html;
-            } catch (err) {
-                grid.innerHTML = isServerDown(err)
-                    ? `<span class="con-error">${serverDownMsg()}</span>`
-                    : 'Error loading translations.';
-            }
-        }
-
-        async function updateTrans(lang, key, value) {
-            try {
-                const res = await fetch(`${API_URL}/api/translations/${lang}`);
-                const trans = await res.json();
-                trans[key] = value;
-                await fetch(`${API_URL}/api/translations/${lang}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(trans)
-                });
-                document.getElementById('console').innerHTML += `<br>> Translation "${key}" updated for [${lang}].`;
-                autoCommitAndPush(`update translation "${key}" for ${lang}`);
-            } catch (err) {
-                document.getElementById('console').innerHTML += isServerDown(err)
-                    ? `<br><span class="con-error">> ${serverDownMsg()}</span>`
-                    : `<br><span class="con-error">> Error updating translation.</span>`;
-            }
-        }
-
-        let loadedContent = {}; // cached for pile picker
-
-        // Helper to check if category supports images/galleries
         function isImageCategory(categoryId) {
             const ct = AppConfig.getContentType(categoryId);
             return ct && ct.mediaType === 'image';
@@ -540,8 +569,8 @@
 
         async function loadContent() {
             const cat = document.getElementById('manageCategory').value;
-            const list = document.getElementById('contentList');
-            list.innerHTML = '<p align="center">Loading content...</p>';
+            const inner = document.getElementById('contentListInner');
+            inner.innerHTML = '<p align="center">Loading content...</p>';
 
             try {
                 const res = await fetch(`${API_URL}/api/content`);
@@ -554,11 +583,11 @@
                     if (cat !== 'all' && cat !== category) return;
                     if (!items || items.length === 0) return;
 
-                    // Get category info from config for icon
                     const categoryInfo = AppConfig.getContentType(category);
                     const categoryDisplay = categoryInfo
                         ? `${categoryInfo.icon} ${categoryInfo.name.toUpperCase()}`
                         : category.toUpperCase();
+                    const isImage = isImageCategory(category);
 
                     html += `<h4 class="content-header">${categoryDisplay}</h4>`;
                     items.forEach(item => {
@@ -566,33 +595,83 @@
                         const id = item.id || titleStr;
                         const safeId = id.replace(/"/g, '&quot;');
                         const galleryCount = (item.gallery && item.gallery.length) ? item.gallery.length + 1 : 0;
-                        const pileBadge = galleryCount > 1 ? ` <span class="admin-muted">[${galleryCount} imgs]</span>` : '';
-                        const isImage = isImageCategory(category);
+
+                        // Thumbnail
+                        let thumbHtml;
+                        if (isImage && item.url) {
+                            thumbHtml = `<img src="${item.url}" loading="lazy" alt="">`;
+                        } else {
+                            thumbHtml = `<span class="content-thumb-icon">${isImage ? '&#128444;' : '&#9835;'}</span>`;
+                        }
+
                         const isPile = galleryCount > 1;
                         const pileButtonText = isPile ? 'Merge' : 'Pile';
                         const pileButtonTitle = isPile ? 'Merge this pile into another pile' : 'Move this item into another pile';
-                        html += `<div class="content-row">
-                            <div style="flex:1"><b>${titleStr}</b>${pileBadge} <span class="admin-muted">(${item.date || 'N/A'})</span></div>
-                            <div>
+
+                        html += `<div class="content-row" data-id="${safeId}" data-category="${category}">
+                            <input type="checkbox" class="bulk-check" onchange="updateBulkSelection()">
+                            <div class="content-row-info">
+                                <div class="content-thumb">${thumbHtml}</div>
+                                <div style="min-width:0; flex:1;">
+                                    <div class="content-title">${titleStr}</div>
+                                    <div class="content-meta">
+                                        ${cat === 'all' ? `<span class="content-badge">${categoryInfo ? categoryInfo.name : category}</span>` : ''}
+                                        <span>${item.date || 'N/A'}</span>
+                                        ${galleryCount > 1 ? `<span>${galleryCount} imgs</span>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="content-actions">
                                 ${isImage ? `<button type="button" class="pile-btn" style="font-size:10px" data-category="${category}" data-id="${safeId}" title="${pileButtonTitle}">${pileButtonText}</button>` : ''}
                                 <button type="button" class="edit-btn" style="font-size:10px" data-category="${category}" data-id="${safeId}">Edit</button>
-                                <button type="button" class="delete-btn con-error" style="font-size:10px;margin-left:5px" data-category="${category}" data-id="${safeId}">Delete</button>
-                                <span class="delete-status" style="font-size:9px;margin-left:5px"></span>
+                                <button type="button" class="delete-btn con-error" style="font-size:10px" data-category="${category}" data-id="${safeId}">Delete</button>
+                                <span class="delete-status" style="font-size:9px;margin-left:3px"></span>
                             </div>
                         </div>`;
                     });
                 });
 
-                list.innerHTML = html || '<p align="center">No content found for this category.</p>';
+                inner.innerHTML = html || '<p align="center">No content found for this category.</p>';
+                clearBulkSelection();
             } catch (err) {
-                list.innerHTML = isServerDown(err)
+                inner.innerHTML = isServerDown(err)
                     ? `<p align="center" class="con-error">${serverDownMsg()}</p>`
                     : '<p align="center" class="con-error">Error loading content list.</p>';
             }
         }
 
-        // Delegated click handler for content list
-        document.getElementById('contentList').addEventListener('click', (e) => {
+        // ══════════════════════════════════════════════
+        //  BULK SELECTION (integrated into content list)
+        // ══════════════════════════════════════════════
+
+        function updateBulkSelection() {
+            const count = document.querySelectorAll('#contentListInner .bulk-check:checked').length;
+            const toolbar = document.getElementById('bulkSelectToolbar');
+            document.getElementById('bulkSelectedCount').textContent = count;
+            toolbar.classList.toggle('active', count > 0);
+        }
+
+        function clearBulkSelection() {
+            document.querySelectorAll('#contentListInner .bulk-check').forEach(cb => cb.checked = false);
+            updateBulkSelection();
+        }
+
+        function selectAllInCategory() {
+            const cat = document.getElementById('manageCategory').value;
+            document.querySelectorAll('#contentListInner .content-row').forEach(row => {
+                if (cat === 'all' || row.dataset.category === cat) {
+                    const cb = row.querySelector('.bulk-check');
+                    if (cb) cb.checked = true;
+                }
+            });
+            updateBulkSelection();
+        }
+
+        // ══════════════════════════════════════════════
+        //  CONTENT LIST ACTIONS (edit, delete, pile)
+        // ══════════════════════════════════════════════
+
+        document.getElementById('contentListInner').addEventListener('click', (e) => {
             const editBtn = e.target.closest('.edit-btn');
             if (editBtn) {
                 e.stopPropagation();
@@ -629,13 +708,10 @@
         });
 
         function openPilePicker(btn) {
-            // Close any existing picker
             document.querySelectorAll('.pile-picker').forEach(p => p.remove());
-
             const category = btn.dataset.category;
             const sourceId = btn.dataset.id;
 
-            // Get source item to check if it's a pile
             const sourceItem = (loadedContent[category] || []).find(item => {
                 const id = item.id || (typeof item.title === 'string' ? item.title : (item.title && item.title.en) || '');
                 return id === sourceId;
@@ -649,8 +725,7 @@
             });
 
             if (items.length === 0) {
-                const consoleBox = document.getElementById('console');
-                consoleBox.innerHTML += `<br><span class="con-warn">> No other items in ${category} to ${isSourcePile ? 'merge' : 'pile'} into.</span>`;
+                conLog(`> No other items in ${category} to ${isSourcePile ? 'merge' : 'pile'} into.`, 'con-warn');
                 return;
             }
 
@@ -672,18 +747,14 @@
             });
             picker.innerHTML = html;
 
-            // Position it near the button
             btn.parentElement.style.position = 'relative';
             btn.parentElement.appendChild(picker);
 
-            // Handle pick
             picker.addEventListener('click', async (ev) => {
                 const pickItem = ev.target.closest('.pile-picker-item');
                 if (!pickItem) return;
-
                 const targetId = pickItem.dataset.targetId;
                 picker.innerHTML = '<div class="pile-picker-title">Moving...</div>';
-
                 try {
                     const res = await fetch(`${API_URL}/api/content/move-to-pile`, {
                         method: 'POST',
@@ -692,23 +763,20 @@
                     });
                     const result = await res.json();
                     if (result.success) {
-                        document.getElementById('console').innerHTML += `<br><span class="con-success">> Moved into pile (${result.targetGalleryCount + 1} images total).</span>`;
+                        conLog(`> Moved into pile (${result.targetGalleryCount + 1} images total).`, 'con-success');
                         autoCommitAndPush(`move item to pile in ${category}`);
                         picker.remove();
                         loadContent();
                     } else {
-                        document.getElementById('console').innerHTML += `<br><span class="con-error">> Pile error: ${result.error}</span>`;
+                        conLog(`> Pile error: ${result.error}`, 'con-error');
                         picker.remove();
                     }
                 } catch (err) {
-                    document.getElementById('console').innerHTML += isServerDown(err)
-                        ? `<br><span class="con-error">> ${serverDownMsg()}</span>`
-                        : `<br><span class="con-error">> Network error: ${err.message}</span>`;
+                    conLog(isServerDown(err) ? `> ${serverDownMsg()}` : `> Network error: ${err.message}`, 'con-error');
                     picker.remove();
                 }
             });
 
-            // Close on outside click
             setTimeout(() => {
                 document.addEventListener('click', function closePicker(ev) {
                     if (!picker.contains(ev.target) && ev.target !== btn) {
@@ -729,7 +797,7 @@
                 });
                 const result = await res.json();
                 if (result.success) {
-                    document.getElementById('console').innerHTML += `<br><span class="con-warn">> Item "${id}" deleted from ${category}.</span>`;
+                    conLog(`> Item "${id}" deleted from ${category}.`, 'con-warn');
                     statusSpan.innerHTML = '<span class="con-success">deleted!</span>';
                     autoCommitAndPush(`delete "${id}" from ${category}`);
                     setTimeout(() => loadContent(), 500);
@@ -743,121 +811,39 @@
             }
         }
 
-        // Auto-switch to Manage tab if returning from edit page or config manager
-        if (window.location.hash === '#manage') {
-            const manageTab = document.querySelectorAll('.tab')[1];
-            if (manageTab) showTab('manage', manageTab);
+        // ══════════════════════════════════════════════
+        //  BULK EDIT (modal, reads from checkboxes)
+        // ══════════════════════════════════════════════
 
-            // Check if a category was specified in URL parameter
-            const urlParams = new URLSearchParams(window.location.search);
-            const categoryParam = urlParams.get('category');
-            if (categoryParam) {
-                const categorySelect = document.getElementById('manageCategory');
-                if (categorySelect) {
-                    categorySelect.value = categoryParam;
-                    loadContent();
-                }
-            }
-        }
-
-        // Auto-switch to Config tab if hash is #config
-        if (window.location.hash === '#config') {
-            const configTab = document.querySelectorAll('.tab')[4];
-            if (configTab) showTab('config', configTab);
-        }
-
-        // ── Bulk Edit ──
-        let bulkEditItems = [];
-        let bulkEditSelected = [];
-
-        async function loadBulkEditContent() {
-            const category = document.getElementById('bulkEditCategory').value;
-            const list = document.getElementById('bulkEditList');
-            const actions = document.getElementById('bulkEditActions');
-
-            if (!category) {
-                list.innerHTML = '<p align="center" class="admin-muted">Select a category to begin bulk editing</p>';
-                actions.style.display = 'none';
-                return;
-            }
-
-            list.innerHTML = '<p align="center">Loading...</p>';
-
-            try {
-                const res = await fetch(`${API_URL}/api/content`);
-                const all = await res.json();
-                bulkEditItems = all[category] || [];
-                bulkEditSelected = [];
-
-                if (bulkEditItems.length === 0) {
-                    list.innerHTML = '<p align="center" class="admin-muted">No items in this category</p>';
-                    actions.style.display = 'none';
-                    return;
-                }
-
-                renderBulkEditList();
-                actions.style.display = 'block';
-            } catch (err) {
-                list.innerHTML = isServerDown(err)
-                    ? `<p align="center" class="con-error">${serverDownMsg()}</p>`
-                    : '<p align="center" class="con-error">Error loading content</p>';
-            }
-        }
-
-        function renderBulkEditList() {
-            const list = document.getElementById('bulkEditList');
-            let html = '<div style="background: white; border: 2px inset var(--admin-win-border-dark); padding: 10px; max-height: 300px; overflow-y: auto;">';
-
-            bulkEditItems.forEach((item, index) => {
-                const titleStr = (typeof item.title === 'object' && item.title !== null) ? (item.title.en || '') : (item.title || '');
-                const descStr = (typeof item.description === 'object' && item.description !== null) ? (item.description.en || '') : (item.description || '');
-                const isSelected = bulkEditSelected.includes(index);
-                const checkedAttr = isSelected ? ' checked' : '';
-
-                html += `<div class="bulk-edit-row">
-                    <input type="checkbox" id="bulk-check-${index}" ${checkedAttr} onchange="toggleBulkEditItem(${index})">
-                    <label for="bulk-check-${index}" style="flex: 1; cursor: pointer;">
-                        <b>${titleStr}</b>
-                        ${descStr ? `<span class="admin-muted" style="display: block; font-size: 10px;">${descStr.substring(0, 60)}${descStr.length > 60 ? '...' : ''}</span>` : ''}
-                    </label>
-                </div>`;
+        function getSelectedItems() {
+            const items = [];
+            document.querySelectorAll('#contentListInner .bulk-check:checked').forEach(cb => {
+                const row = cb.closest('.content-row');
+                const category = row.dataset.category;
+                const id = row.dataset.id;
+                const catItems = loadedContent[category] || [];
+                const item = catItems.find(it => {
+                    const itId = it.id || (typeof it.title === 'string' ? it.title : (it.title && it.title.en) || '');
+                    return itId === id;
+                });
+                if (item) items.push({ category, id, item });
             });
-
-            html += '</div>';
-            list.innerHTML = html;
-            updateBulkEditCount();
-        }
-
-        function toggleBulkEditItem(index) {
-            const idx = bulkEditSelected.indexOf(index);
-            if (idx >= 0) {
-                bulkEditSelected.splice(idx, 1);
-            } else {
-                bulkEditSelected.push(index);
-            }
-            updateBulkEditCount();
-        }
-
-        function updateBulkEditCount() {
-            document.getElementById('bulkEditSelectedCount').textContent = `${bulkEditSelected.length} selected`;
+            return items;
         }
 
         function showBulkEditForm() {
-            if (bulkEditSelected.length === 0) {
+            const selected = getSelectedItems();
+            if (selected.length === 0) {
                 alert('Please select at least one item to edit');
                 return;
             }
 
-            const category = document.getElementById('bulkEditCategory').value;
-            const selectedItems = bulkEditSelected.map(i => bulkEditItems[i]);
-
-            // Create modal
             const modal = document.createElement('div');
             modal.className = 'bulk-edit-modal';
             modal.innerHTML = `
                 <div class="bulk-edit-modal-content window" style="width: 600px;">
                     <div class="title-bar">
-                        <span>BULK EDIT: ${bulkEditSelected.length} items</span>
+                        <span>BULK EDIT: ${selected.length} items</span>
                         <div class="title-bar-controls">
                             <button onclick="closeBulkEditModal()">X</button>
                         </div>
@@ -868,13 +854,13 @@
                         </div>
                         <div class="form-group">
                             <label>
-                                <input type="checkbox" id="bulkUpdateTitle"> Update Title:
+                                <input type="checkbox" id="bulkUpdateTitle" style="width:auto;"> Update Title:
                             </label>
                             <input type="text" id="bulkTitleValue" placeholder="New title for all selected items">
                         </div>
                         <div class="form-group">
                             <label>
-                                <input type="checkbox" id="bulkUpdateDesc"> Update Description:
+                                <input type="checkbox" id="bulkUpdateDesc" style="width:auto;"> Update Description:
                             </label>
                             <textarea id="bulkDescValue" placeholder="New description for all selected items"></textarea>
                         </div>
@@ -886,7 +872,6 @@
                     <div class="console short" id="bulkEditConsole">[BULK-EDIT] Ready...</div>
                 </div>
             `;
-
             document.body.appendChild(modal);
         }
 
@@ -900,7 +885,6 @@
             const updateDesc = document.getElementById('bulkUpdateDesc').checked;
             const titleValue = document.getElementById('bulkTitleValue').value;
             const descValue = document.getElementById('bulkDescValue').value;
-            const category = document.getElementById('bulkEditCategory').value;
             const consoleBox = document.getElementById('bulkEditConsole');
 
             if (!updateTitle && !updateDesc) {
@@ -908,15 +892,13 @@
                 return;
             }
 
-            consoleBox.innerHTML += `<br>> Applying bulk edit to ${bulkEditSelected.length} items...`;
+            const selected = getSelectedItems();
+            consoleBox.innerHTML += `<br>> Applying bulk edit to ${selected.length} items...`;
 
             let successCount = 0;
             let errorCount = 0;
 
-            for (const itemIndex of bulkEditSelected) {
-                const item = bulkEditItems[itemIndex];
-                const itemId = item.id || (typeof item.title === 'string' ? item.title : (item.title && item.title.en) || '');
-
+            for (const { category, id, item } of selected) {
                 const updates = {};
 
                 if (updateTitle && titleValue) {
@@ -941,37 +923,445 @@
                     const res = await fetch(`${API_URL}/api/content/update`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ category, id: itemId, updates })
+                        body: JSON.stringify({ category, id, updates })
                     });
-
                     const result = await res.json();
-                    if (result.success) {
-                        successCount++;
-                    } else {
-                        errorCount++;
-                    }
-                } catch (err) {
-                    errorCount++;
-                }
+                    if (result.success) { successCount++; } else { errorCount++; }
+                } catch (err) { errorCount++; }
             }
 
             consoleBox.innerHTML += `<br><span class="con-success">> Bulk edit complete: ${successCount} updated, ${errorCount} failed</span>`;
 
             if (successCount > 0) {
-                document.getElementById('console').innerHTML += `<br><span class="con-success">> Bulk edited ${successCount} items in ${category}</span>`;
-                autoCommitAndPush(`bulk edit ${successCount} items in ${category}`);
+                conLog(`> Bulk edited ${successCount} items`, 'con-success');
+                autoCommitAndPush(`bulk edit ${successCount} items`);
                 setTimeout(() => {
                     closeBulkEditModal();
-                    loadBulkEditContent();
+                    loadContent();
                 }, 1500);
             }
         };
+
+        // ══════════════════════════════════════════════
+        //  TRANSLATIONS
+        // ══════════════════════════════════════════════
+
+        async function loadTranslations() {
+            const lang = document.getElementById('langSelect').value;
+            if (!lang) return;
+            const grid = document.getElementById('translationGrid');
+            grid.innerHTML = 'Loading...';
+
+            try {
+                const res = await fetch(`${API_URL}/api/translations/${lang}`);
+                const trans = await res.json();
+                let html = '';
+                Object.keys(trans).forEach(key => {
+                    const safeVal = (trans[key] || '').replace(/"/g, '&quot;');
+                    html += `<div class="trans-item">
+                        <label style="font-size: 10px;">${key}</label>
+                        <input type="text" value="${safeVal}" onblur="updateTrans('${lang}', '${key}', this.value)">
+                    </div>`;
+                });
+                grid.innerHTML = html;
+            } catch (err) {
+                grid.innerHTML = isServerDown(err)
+                    ? `<span class="con-error">${serverDownMsg()}</span>`
+                    : 'Error loading translations.';
+            }
+        }
+
+        async function updateTrans(lang, key, value) {
+            try {
+                const res = await fetch(`${API_URL}/api/translations/${lang}`);
+                const trans = await res.json();
+                trans[key] = value;
+                await fetch(`${API_URL}/api/translations/${lang}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(trans)
+                });
+                conLog(`> Translation "${key}" updated for [${lang}].`);
+                autoCommitAndPush(`update translation "${key}" for ${lang}`);
+            } catch (err) {
+                conLog(isServerDown(err) ? `> ${serverDownMsg()}` : '> Error updating translation.', 'con-error');
+            }
+        }
+
+        // ══════════════════════════════════════════════
+        //  SETTINGS: CONFIG MANAGER (merged from config-manager.html)
+        // ══════════════════════════════════════════════
+
+        let currentMediaTypes = [];
+        let currentContentTypes = [];
+        let editingMediaTypeIndex = null;
+        let editingContentTypeIndex = null;
+        let currentFields = [];
+        let settingsLoaded = false;
+
+        async function loadSettingsData() {
+            if (settingsLoaded) return;
+            try {
+                const [mtRes, ctRes] = await Promise.all([
+                    fetch(`${API_URL}/api/config/media-types`),
+                    fetch(`${API_URL}/api/config/categories`)
+                ]);
+                const mtData = await mtRes.json();
+                const ctData = await ctRes.json();
+                currentMediaTypes = mtData.mediaTypes || [];
+                currentContentTypes = ctData.contentTypes || ctData.categories || [];
+                renderMediaTypes();
+                renderContentTypes();
+                populateMediaTypeSelect();
+                settingsLoaded = true;
+            } catch (error) {
+                conLog(isServerDown(error) ? `> ${serverDownMsg()}` : '> Error loading configuration', 'con-error');
+            }
+        }
+
+        function renderMediaTypes() {
+            const grid = document.getElementById('mediaTypesGrid');
+            grid.innerHTML = currentMediaTypes.map((mt, index) => `
+                <div class="config-card">
+                    <div class="config-card-header" onclick="viewMediaTypeContent('${mt.id}')" title="Click to view content using this media type">
+                        <span class="config-card-icon">${mt.icon}</span>
+                        <span class="config-card-title">${mt.name}</span>
+                    </div>
+                    <div class="config-card-body">
+                        <div class="config-field">
+                            <span class="config-field-label">ID:</span> ${mt.id}
+                        </div>
+                        <div class="config-field">
+                            <span class="config-field-label">Viewer:</span> ${mt.viewer}
+                        </div>
+                        <div class="config-field">
+                            ${mt.supportsGallery ? '<span class="config-badge">Gallery</span>' : ''}
+                            ${mt.supportsMetadata ? '<span class="config-badge">Metadata</span>' : ''}
+                        </div>
+                        <div class="config-field">
+                            <span class="config-field-label">Formats:</span> ${(mt.acceptedFormats || []).join(', ')}
+                        </div>
+                        <div class="config-actions">
+                            <button class="btn-small btn-primary" onclick="viewMediaTypeContent('${mt.id}')">View Content</button>
+                            <button class="btn-small" onclick="editMediaType(${index})">Edit</button>
+                            <button class="btn-small" onclick="deleteMediaType(${index})">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderContentTypes() {
+            const grid = document.getElementById('contentTypesGrid');
+            grid.innerHTML = currentContentTypes.map((ct, index) => {
+                const mediaType = currentMediaTypes.find(m => m.id === ct.mediaType);
+                const fieldCount = (ct.fields?.optional || []).length;
+                return `
+                    <div class="config-card">
+                        <div class="config-card-header" onclick="viewContentTypeItems('${ct.id}')" title="Click to view all ${ct.name.toLowerCase()} items">
+                            <span class="config-card-icon">${ct.icon}</span>
+                            <span class="config-card-title">${ct.name}</span>
+                        </div>
+                        <div class="config-card-body">
+                            <div class="config-field">
+                                <span class="config-field-label">ID:</span> ${ct.id}
+                            </div>
+                            <div class="config-field">
+                                <span class="config-field-label">Media Type:</span>
+                                ${mediaType?.icon || ''} ${ct.mediaType}
+                            </div>
+                            <div class="config-field">
+                                <span class="config-field-label">Data File:</span> ${ct.dataFile}
+                            </div>
+                            <div class="config-field">
+                                <span class="config-field-label">Custom Fields:</span> ${fieldCount} field(s)
+                            </div>
+                            <div class="config-actions">
+                                <button class="btn-small btn-primary" onclick="viewContentTypeItems('${ct.id}')">View Items</button>
+                                <button class="btn-small" onclick="editContentType(${index})">Edit</button>
+                                <button class="btn-small" onclick="deleteContentType(${index})">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function populateMediaTypeSelect() {
+            const select = document.getElementById('ctMediaType');
+            if (!select) return;
+            select.innerHTML = currentMediaTypes.map(mt =>
+                `<option value="${mt.id}">${mt.icon} ${mt.name}</option>`
+            ).join('');
+        }
+
+        // Modal handlers
+        function openMediaTypeModal(index) {
+            editingMediaTypeIndex = index !== undefined ? index : null;
+            const modal = document.getElementById('mediaTypeModal');
+            const form = document.getElementById('mediaTypeForm');
+
+            if (editingMediaTypeIndex !== null) {
+                const mt = currentMediaTypes[editingMediaTypeIndex];
+                document.getElementById('mediaTypeModalTitle').textContent = 'Edit Media Type';
+                document.getElementById('mtId').value = mt.id;
+                document.getElementById('mtName').value = mt.name;
+                document.getElementById('mtIcon').value = mt.icon;
+                document.getElementById('mtViewer').value = mt.viewer;
+                document.getElementById('mtSupportsGallery').checked = mt.supportsGallery;
+                document.getElementById('mtSupportsMetadata').checked = mt.supportsMetadata;
+                document.getElementById('mtFormats').value = (mt.acceptedFormats || []).join(', ');
+                document.getElementById('mtDestination').value = mt.uploadDestination || 'cloudinary';
+                document.getElementById('mtDescription').value = mt.description || '';
+                document.getElementById('mtId').disabled = true;
+            } else {
+                document.getElementById('mediaTypeModalTitle').textContent = 'Add Media Type';
+                form.reset();
+                document.getElementById('mtId').disabled = false;
+            }
+            modal.classList.add('active');
+        }
+
+        function closeMediaTypeModal() {
+            document.getElementById('mediaTypeModal').classList.remove('active');
+            editingMediaTypeIndex = null;
+        }
+
+        function openContentTypeModal(index) {
+            editingContentTypeIndex = index !== undefined ? index : null;
+            const modal = document.getElementById('contentTypeModal');
+            const form = document.getElementById('contentTypeForm');
+
+            if (editingContentTypeIndex !== null) {
+                const ct = currentContentTypes[editingContentTypeIndex];
+                document.getElementById('contentTypeModalTitle').textContent = 'Edit Content Type';
+                document.getElementById('ctId').value = ct.id;
+                document.getElementById('ctName').value = ct.name;
+                document.getElementById('ctIcon').value = ct.icon;
+                document.getElementById('ctMediaType').value = ct.mediaType;
+                document.getElementById('ctDataFile').value = ct.dataFile;
+                document.getElementById('ctDescription').value = ct.description || '';
+                currentFields = (ct.fields?.optional || []).map(f => ({...f}));
+                document.getElementById('ctId').disabled = true;
+            } else {
+                document.getElementById('contentTypeModalTitle').textContent = 'Add Content Type';
+                form.reset();
+                currentFields = [];
+                document.getElementById('ctId').disabled = false;
+            }
+            renderFields();
+            modal.classList.add('active');
+        }
+
+        function closeContentTypeModal() {
+            document.getElementById('contentTypeModal').classList.remove('active');
+            editingContentTypeIndex = null;
+            currentFields = [];
+        }
+
+        // Field management
+        function addField() {
+            currentFields.push({ name: '', type: 'text', label: '', placeholder: '' });
+            renderFields();
+        }
+
+        function removeField(index) {
+            currentFields.splice(index, 1);
+            renderFields();
+        }
+
+        function renderFields() {
+            const list = document.getElementById('fieldsList');
+            list.innerHTML = currentFields.map((field, index) => `
+                <div class="field-item">
+                    <div>
+                        <input type="text" placeholder="Field Name"
+                               value="${field.name}"
+                               onchange="currentFields[${index}].name = this.value"
+                               style="width: 120px; margin-right: 5px;">
+                        <select onchange="currentFields[${index}].type = this.value"
+                                style="width: 100px; margin-right: 5px;">
+                            <option value="text" ${field.type === 'text' ? 'selected' : ''}>Text</option>
+                            <option value="textarea" ${field.type === 'textarea' ? 'selected' : ''}>Textarea</option>
+                        </select>
+                        <input type="text" placeholder="Label"
+                               value="${field.label || ''}"
+                               onchange="currentFields[${index}].label = this.value"
+                               style="width: 120px;">
+                    </div>
+                    <button type="button" onclick="removeField(${index})">x</button>
+                </div>
+            `).join('');
+        }
+
+        // Form submissions
+        document.getElementById('mediaTypeForm').onsubmit = (e) => {
+            e.preventDefault();
+            const mediaType = {
+                id: document.getElementById('mtId').value,
+                name: document.getElementById('mtName').value,
+                icon: document.getElementById('mtIcon').value,
+                viewer: document.getElementById('mtViewer').value,
+                supportsGallery: document.getElementById('mtSupportsGallery').checked,
+                supportsMetadata: document.getElementById('mtSupportsMetadata').checked,
+                acceptedFormats: document.getElementById('mtFormats').value.split(',').map(f => f.trim()),
+                uploadDestination: document.getElementById('mtDestination').value,
+                description: document.getElementById('mtDescription').value
+            };
+            if (editingMediaTypeIndex !== null) {
+                currentMediaTypes[editingMediaTypeIndex] = mediaType;
+            } else {
+                currentMediaTypes.push(mediaType);
+            }
+            renderMediaTypes();
+            populateMediaTypeSelect();
+            closeMediaTypeModal();
+            conLog('> Media type saved (click Save All to persist)', 'con-info');
+        };
+
+        document.getElementById('contentTypeForm').onsubmit = (e) => {
+            e.preventDefault();
+            const contentType = {
+                id: document.getElementById('ctId').value,
+                name: document.getElementById('ctName').value,
+                icon: document.getElementById('ctIcon').value,
+                mediaType: document.getElementById('ctMediaType').value,
+                dataFile: document.getElementById('ctDataFile').value,
+                description: document.getElementById('ctDescription').value,
+                fields: {
+                    required: ['title', 'url'],
+                    optional: currentFields
+                }
+            };
+            if (editingContentTypeIndex !== null) {
+                currentContentTypes[editingContentTypeIndex] = contentType;
+            } else {
+                currentContentTypes.push(contentType);
+            }
+            renderContentTypes();
+            closeContentTypeModal();
+            conLog('> Content type saved (click Save All to persist)', 'con-info');
+        };
+
+        // CRUD
+        function editMediaType(index) { openMediaTypeModal(index); }
+        function deleteMediaType(index) {
+            if (confirm(`Delete media type "${currentMediaTypes[index].name}"?`)) {
+                currentMediaTypes.splice(index, 1);
+                renderMediaTypes();
+                conLog('> Media type deleted (click Save All to persist)', 'con-warn');
+            }
+        }
+
+        function editContentType(index) { openContentTypeModal(index); }
+        function deleteContentType(index) {
+            if (confirm(`Delete content type "${currentContentTypes[index].name}"?`)) {
+                currentContentTypes.splice(index, 1);
+                renderContentTypes();
+                conLog('> Content type deleted (click Save All to persist)', 'con-warn');
+            }
+        }
+
+        // Save / Export / Reload
+        async function saveAllConfigurations() {
+            if (!confirm('Save all configuration changes? This will update your config files.')) return;
+            try {
+                const [mtRes, ctRes] = await Promise.all([
+                    fetch(`${API_URL}/api/config/media-types`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ mediaTypes: currentMediaTypes })
+                    }),
+                    fetch(`${API_URL}/api/config/categories`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contentTypes: currentContentTypes })
+                    })
+                ]);
+
+                if (mtRes.ok && ctRes.ok) {
+                    conLog('> Configuration saved!', 'con-success');
+                    autoCommitAndPush('update configuration');
+                } else {
+                    throw new Error('Failed to save');
+                }
+            } catch (error) {
+                conLog(isServerDown(error) ? `> ${serverDownMsg()}` : `> Error saving: ${error.message}`, 'con-error');
+            }
+        }
+
+        function reloadConfigurations() {
+            if (confirm('Reload configurations from server? Unsaved changes will be lost.')) {
+                settingsLoaded = false;
+                loadSettingsData();
+            }
+        }
+
+        function exportConfigurations() {
+            const config = {
+                mediaTypes: { mediaTypes: currentMediaTypes },
+                contentTypes: { contentTypes: currentContentTypes }
+            };
+            const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `portfolio-config-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Navigation from config cards (stay on same page)
+        function viewMediaTypeContent(mediaTypeId) {
+            const related = currentContentTypes.filter(ct => ct.mediaType === mediaTypeId);
+            if (related.length === 0) {
+                alert(`No content types use the "${mediaTypeId}" media type yet.`);
+                return;
+            }
+            if (related.length === 1) {
+                document.getElementById('manageCategory').value = related[0].id;
+            } else {
+                document.getElementById('manageCategory').value = 'all';
+            }
+            showTab('content', document.querySelectorAll('.tab')[0]);
+        }
+
+        function viewContentTypeItems(contentTypeId) {
+            document.getElementById('manageCategory').value = contentTypeId;
+            showTab('content', document.querySelectorAll('.tab')[0]);
+        }
+
+        // ══════════════════════════════════════════════
+        //  HASH ROUTING & INITIALIZATION
+        // ══════════════════════════════════════════════
+
+        // Auto-switch tab based on URL hash
+        if (window.location.hash === '#manage' || window.location.hash === '#content') {
+            const contentTab = document.querySelectorAll('.tab')[0];
+            if (contentTab) showTab('content', contentTab);
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const categoryParam = urlParams.get('category');
+            if (categoryParam) {
+                const categorySelect = document.getElementById('manageCategory');
+                if (categorySelect) {
+                    categorySelect.value = categoryParam;
+                    loadContent();
+                }
+            }
+        }
+
+        if (window.location.hash === '#config' || window.location.hash === '#settings') {
+            const settingsTab = document.querySelectorAll('.tab')[2];
+            if (settingsTab) showTab('settings', settingsTab);
+        }
 
         // Initialize on page load
         window.addEventListener('DOMContentLoaded', async () => {
             await bootstrapConfig();
             await initializeLanguages();
-            initializeCategories();
+            await initializeCategories();
+            loadContent();
         });
 
     </script>

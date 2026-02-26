@@ -356,11 +356,12 @@ body.admin-page {
 }
 
 .admin-page .admin-content-list {
-    height: 350px;
+    height: 400px;
     overflow-y: auto;
     background: white;
     border: 2px inset var(--admin-win-border-dark);
-    padding: 5px;
+    padding: 0;
+    position: relative;
 }
 
 .admin-page .admin-text-right {
@@ -382,17 +383,84 @@ body.admin-page {
 }
 
 .admin-page .content-row {
-    padding: 5px;
+    padding: 8px 10px;
     border-bottom: 1px dotted var(--chrome-soft);
     display: flex;
-    justify-content: space-between;
     align-items: center;
     font-size: 12px;
+    gap: 8px;
+}
+
+.admin-page .content-row-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+.admin-page .content-thumb {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border: 1px solid var(--admin-win-border-dark);
+    background: var(--admin-readonly-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.admin-page .content-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.admin-page .content-thumb-icon {
+    font-size: 22px;
+    color: var(--admin-muted-text);
+}
+
+.admin-page .content-title {
+    font-weight: bold;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-page .content-meta {
+    font-size: 10px;
+    color: var(--admin-muted-text);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 2px;
+}
+
+.admin-page .content-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    background: var(--admin-win-blue);
+    color: white;
+    font-size: 9px;
+    border-radius: 2px;
+}
+
+.admin-page .content-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
 }
 
 .admin-page .content-header {
-    margin: 10px 0 5px;
-    border-bottom: 1px solid var(--chrome-soft);
+    margin: 15px 0 8px;
+    padding: 4px 8px;
+    border-bottom: 2px solid var(--admin-win-border-dark);
+    background: var(--admin-tab-inactive);
+    font-size: 12px;
 }
 
 /* ── Bulk Upload ── */
@@ -724,4 +792,319 @@ body.admin-page {
 
 .extract-picker-item:hover {
     background: var(--admin-save-bg);
+}
+
+/* ── Bulk Selection Toolbar ── */
+.admin-page .bulk-select-toolbar {
+    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--admin-win-blue);
+    color: white;
+    padding: 6px 10px;
+    font-size: 11px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.admin-page .bulk-select-toolbar.active {
+    display: flex;
+}
+
+.admin-page .bulk-select-toolbar button {
+    padding: 3px 10px;
+    font-size: 10px;
+    color: var(--admin-win-text);
+    background: var(--admin-win-bg);
+    border: 2px solid;
+    border-color: var(--admin-win-border-light) var(--admin-win-border-dark) var(--admin-win-border-dark) var(--admin-win-border-light);
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+.admin-page .bulk-select-toolbar button:active {
+    border-color: var(--admin-win-border-dark) var(--admin-win-border-light) var(--admin-win-border-light) var(--admin-win-border-dark);
+}
+
+.admin-page .content-row input[type="checkbox"] {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    cursor: pointer;
+}
+
+/* ── Settings Tab ── */
+.admin-page .settings-toolbar {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 15px;
+    padding: 8px;
+    background: var(--admin-tab-inactive);
+    border: 2px outset var(--admin-win-border-light);
+}
+
+.admin-page .settings-toolbar button {
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    background: var(--admin-win-bg);
+    border: 2px solid;
+    border-color: var(--admin-win-border-light) var(--admin-win-border-dark) var(--admin-win-border-dark) var(--admin-win-border-light);
+}
+
+.admin-page .settings-toolbar button:active {
+    border-color: var(--admin-win-border-dark) var(--admin-win-border-light) var(--admin-win-border-light) var(--admin-win-border-dark);
+}
+
+.admin-page .settings-status {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+    font-size: 12px;
+}
+
+/* ── Inline Config Manager (Settings Tab) ── */
+.admin-page .config-section {
+    background: var(--admin-win-bg);
+    border: 2px outset var(--admin-win-border-light);
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.admin-page .config-section-header {
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid var(--admin-win-border-dark);
+}
+
+.admin-page .config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.admin-page .config-card {
+    background: white;
+    border: 2px inset var(--admin-win-border-dark);
+    padding: 12px;
+    position: relative;
+}
+
+.admin-page .config-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ccc;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.admin-page .config-card-header:hover {
+    background-color: var(--admin-hint-bg);
+    margin: -12px -12px 10px -12px;
+    padding: 12px 12px 8px 12px;
+}
+
+.admin-page .config-card-icon {
+    font-size: 24px;
+}
+
+.admin-page .config-card-title {
+    font-weight: bold;
+    font-size: 12px;
+    flex: 1;
+}
+
+.admin-page .config-card-body {
+    font-size: 11px;
+}
+
+.admin-page .config-field {
+    margin-bottom: 8px;
+    padding: 4px;
+    background: var(--admin-hint-bg);
+    border-radius: 2px;
+}
+
+.admin-page .config-field-label {
+    font-weight: bold;
+    color: var(--admin-win-blue);
+}
+
+.admin-page .config-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    background: var(--admin-win-blue);
+    color: white;
+    border-radius: 2px;
+    font-size: 10px;
+    margin-right: 4px;
+}
+
+.admin-page .config-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.admin-page .btn-small {
+    padding: 4px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    background: var(--admin-win-bg);
+    border: 2px solid;
+    border-color: var(--admin-win-border-light) var(--admin-win-border-dark) var(--admin-win-border-dark) var(--admin-win-border-light);
+}
+
+.admin-page .btn-small:active {
+    border-color: var(--admin-win-border-dark) var(--admin-win-border-light) var(--admin-win-border-light) var(--admin-win-border-dark);
+}
+
+.admin-page .btn-small.btn-primary {
+    background: var(--admin-win-blue);
+    color: white;
+    font-weight: bold;
+    border: 2px outset #fff;
+}
+
+.admin-page .btn-small.btn-primary:hover {
+    opacity: 0.85;
+}
+
+.admin-page .add-new-section {
+    text-align: center;
+    padding: 20px;
+    background: var(--admin-hint-bg);
+    border: 2px dashed var(--admin-win-border-dark);
+    margin-top: 15px;
+}
+
+.admin-page .add-new-section button {
+    font-size: 12px;
+    padding: 8px 16px;
+    cursor: pointer;
+    background: var(--admin-win-bg);
+    border: 2px solid;
+    border-color: var(--admin-win-border-light) var(--admin-win-border-dark) var(--admin-win-border-dark) var(--admin-win-border-light);
+}
+
+/* Config modals */
+.admin-page .config-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(31, 34, 48, 0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-page .config-modal.active {
+    display: flex;
+}
+
+.admin-page .config-modal-content {
+    background: var(--admin-win-bg);
+    border: 3px outset var(--admin-win-border-light);
+    min-width: 500px;
+    max-width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.admin-page .config-modal-header {
+    background: var(--admin-win-title-bg);
+    color: white;
+    padding: 4px 8px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-page .config-modal-header button {
+    background: var(--admin-win-bg);
+    border: 1px solid;
+    border-color: var(--admin-win-border-light) var(--admin-win-border-dark) var(--admin-win-border-dark) var(--admin-win-border-light);
+    color: var(--admin-win-text);
+    cursor: pointer;
+    width: 18px;
+    height: 16px;
+    font-size: 10px;
+    padding: 0;
+}
+
+.admin-page .config-modal-body {
+    padding: 20px;
+}
+
+.admin-page .form-row {
+    margin-bottom: 15px;
+}
+
+.admin-page .form-row label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 4px;
+    font-size: 11px;
+}
+
+.admin-page .form-row input,
+.admin-page .form-row select,
+.admin-page .form-row textarea {
+    width: 100%;
+    padding: 4px;
+    font-size: 11px;
+    border: 2px inset var(--admin-win-border-dark);
+    box-sizing: border-box;
+}
+
+.admin-page .field-list {
+    border: 2px inset var(--admin-win-border-dark);
+    padding: 10px;
+    background: white;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.admin-page .field-item {
+    background: var(--admin-hint-bg);
+    padding: 8px;
+    margin-bottom: 5px;
+    border: 1px solid #ccc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ── Validate Section ── */
+.admin-page .validate-btn {
+    width: 100%;
+    padding: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    background: var(--admin-win-bg);
+    border: 2px solid;
+    border-color: var(--admin-win-border-light) var(--admin-win-border-dark) var(--admin-win-border-dark) var(--admin-win-border-light);
+    font-size: 12px;
+}
+
+.admin-page .validate-btn:hover {
+    background: var(--admin-save-bg);
+}
+
+.admin-page .validate-btn:active {
+    border-color: var(--admin-win-border-dark) var(--admin-win-border-light) var(--admin-win-border-light) var(--admin-win-border-dark);
 }
