@@ -1,265 +1,377 @@
 # @mtldev514/retro-portfolio-maker
 
-[![npm version](https://badge.fury.io/js/%40retro-portfolio%2Fengine.svg)](https://www.npmjs.com/package/@mtldev514/retro-portfolio-maker)
+[![npm version](https://img.shields.io/npm/v/@mtldev514/retro-portfolio-maker.svg)](https://www.npmjs.com/package/@mtldev514/retro-portfolio-maker)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This is what I always wanted. As someone with multiple interests, I always wanted to have a portfolio to display my many, many, many projects. I also have a very soft spot for the early 2000s.
-
-I hope this portfolio manager will help you have a personal presence that speaks to your soul. Fully customizable. You can easily support many languages, and play with the theme to make it your own.
+A portfolio engine for multi-passionate creators with a soft spot for early 2000s aesthetics. Install it as an npm package, keep only your data in your repo, and update the engine without merge conflicts.
 
 ---
 
-## 🎯 Concept
+## Concept
 
-Au lieu de cloner un repo complet, vous **installez un package NPM** qui contient tout le moteur (HTML, CSS, JS, admin). Vous gardez uniquement **vos données** dans votre repo.
+Instead of cloning a repo, you **install an npm package** that contains the entire engine (HTML, CSS, JS, admin panel). You keep only **your data** in your own repo.
 
-### Avantages
+**Why this approach?**
 
-✅ **Un seul repo** pour l'utilisateur (juste ses données)
-✅ **Mises à jour faciles** via `npm update`
-✅ **Pas de merge conflicts** pour récupérer les nouvelles features
-✅ **Workflow simple** : `npm install` → `npm run build`
-✅ **Admin inclus** pour gérer le contenu visuellement
+- **One repo** for the user — just your data, config, and translations
+- **Easy updates** — `npm update` brings new features, no merge conflicts
+- **Simple workflow** — `npm install` then `npm run build`
+- **Admin included** — visual interface to manage content, upload images, edit translations
+- **Multi-language** — built-in i18n with as many languages as you need
+- **4 retro themes** — JR-16, Beton, Ciment, Bubble Gum (customizable)
+- **GitHub Pages ready** — deployment workflow included
 
 ---
 
-## 🚀 Quick Start
-
-### Pour créer votre portfolio
+## Quick Start
 
 ```bash
-# 1. Créer un nouveau portfolio
-npx @mtldev514/retro-portfolio-maker init mon-portfolio
-cd mon-portfolio
+# 1. Create a new portfolio
+npx @mtldev514/retro-portfolio-maker init my-portfolio
+cd my-portfolio
 
-# 2. Installer les dépendances
+# 2. Install dependencies (auto-installs Python Flask for admin)
 npm install
 
-# 3. Lancer le serveur de dev
-npm run dev
-
-# 4. Ouvrir http://localhost:8000
+# 3. Launch dev server + admin together
+npm start
+# Site:  http://localhost:8000
+# Admin: http://localhost:8000/admin.html
+# API:   http://localhost:5001/api/
 ```
 
-C'est tout ! 🎉
+That's it. Edit your config, add content via the admin panel, and deploy.
 
 ---
 
-## 📦 Installation dans un projet existant
+## Project Structure
 
-```bash
-npm install @mtldev514/retro-portfolio-maker
+After `init`, your project contains **only your data** — no engine code:
+
+```
+my-portfolio/
+├── package.json             # dependency: @mtldev514/retro-portfolio-maker
+├── .env                     # Cloudinary + GitHub credentials
+├── .env.example             # credential template
+├── .gitignore
+├── README.md                # your project README
+├── CONFIGURATION.md         # full config reference (auto-updated on sync)
+├── config/
+│   ├── app.json             # site name, API settings, GitHub, pagination
+│   ├── categories.json      # your content types (up to 7)
+│   ├── languages.json       # supported languages
+│   └── media-types.json     # how media is rendered (image, audio, video...)
+├── data/
+│   ├── painting.json        # content for each category
+│   └── projects.json
+├── lang/
+│   ├── en.json              # English translations (100+ keys)
+│   └── fr.json              # French translations
+├── styles/
+│   ├── styles.json          # theme registry
+│   ├── ciment.css           # default theme
+│   ├── jr16.css
+│   ├── beton.css
+│   └── bubblegum.css
+├── assets/                  # your images and media
+└── .github/workflows/
+    └── deploy.yml           # GitHub Pages auto-deploy
 ```
 
-Puis ajoutez les scripts dans votre `package.json` :
+After `npm run build`, a `dist/` folder is generated with the complete static site.
+
+---
+
+## CLI Commands
+
+All commands are available via `retro-portfolio <command>` or through npm scripts.
+
+| Command | npm script | Description |
+|---------|-----------|-------------|
+| `retro-portfolio init [dir]` | — | Create a new portfolio (interactive setup) |
+| `retro-portfolio sync` | `npm run sync` | Update portfolio with latest templates (non-destructive) |
+| `retro-portfolio build` | `npm run build` | Generate static site in `dist/` |
+| `retro-portfolio dev` | `npm run dev` | Start dev server (default: port 8000) |
+| `retro-portfolio admin` | `npm run admin` | Start admin API (default: port 5001) |
+| `retro-portfolio validate` | `npm run validate` | Check all config and data files |
+| `retro-portfolio deploy` | `npm run deploy` | Deploy to GitHub Pages (coming soon) |
+| `retro-portfolio ports` | — | List all active localhost ports |
+| `retro-portfolio kill <port>` | — | Kill process on a specific port |
+| `retro-portfolio localhost` | — | Visual UI to manage localhost servers |
+
+### Command Options
+
+```bash
+retro-portfolio init [dir] --force     # overwrite existing files
+retro-portfolio sync --force           # also update workflow files and styles.json
+retro-portfolio build --output public  # custom output directory
+retro-portfolio build --watch          # rebuild on file changes
+retro-portfolio dev --port 3000        # custom port
+retro-portfolio dev --open             # auto-open browser
+retro-portfolio admin --port 5002      # custom API port
+retro-portfolio admin --open           # auto-open browser
+```
+
+---
+
+## Configuration Reference
+
+> Full configuration reference with all fields and examples is in **CONFIGURATION.md**, which is included in every generated portfolio and updated automatically when you run `retro-portfolio sync`.
+
+Here's a summary of each config file:
+
+### config/app.json
+
+Top-level site settings:
 
 ```json
 {
-  "scripts": {
-    "build": "retro-portfolio build",
-    "dev": "retro-portfolio dev",
-    "admin": "retro-portfolio admin"
+  "app": {
+    "name": "My Retro Portfolio",
+    "version": "1.0",
+    "adminTitle": "PORTFOLIO MANAGER"
+  },
+  "api": {
+    "host": "127.0.0.1",
+    "port": 5001,
+    "baseUrl": "http://127.0.0.1:5001"
+  },
+  "paths": {
+    "dataDir": "data",
+    "langDir": "lang",
+    "pagesDir": "pages"
+  },
+  "github": {
+    "username": "yourusername",
+    "repoName": "your-portfolio",
+    "mediaReleaseTag": "media",
+    "uploadCategories": ["music"]
+  },
+  "counter": {
+    "apiUrl": "https://api.counterapi.dev/v1/retro-portfolio/visits/up"
+  },
+  "winamp": {
+    "title": "My Playlist",
+    "bitrate": "192",
+    "frequency": "44"
+  },
+  "pagination": {
+    "pageSize": 24
   }
 }
 ```
 
----
+### config/categories.json
 
-## 📁 Structure de votre projet
+Define your content types (up to 7 recommended). Each category creates a filter button in the UI and links to a data file:
 
-Après `init`, votre projet contient **uniquement vos données** :
-
-```
-mon-portfolio/
-├── package.json          (dépendance: @mtldev514/retro-portfolio-maker)
-├── config/               (VOS configurations)
-│   ├── app.json
-│   ├── languages.json
-│   └── categories.json
-├── data/                 (VOTRE contenu)
-│   ├── painting.json
-│   └── projects.json
-├── lang/                 (VOS traductions)
-│   ├── en.json
-│   └── fr.json
-└── assets/               (VOS images, etc.)
-```
-
-**Pas de code du site** dans votre repo ! Tout vient du package NPM.
-
----
-
-## 🛠️ Commandes
-
-### `retro-portfolio init [directory]`
-
-Crée un nouveau portfolio avec les templates de données.
-
-```bash
-# Créer dans le dossier actuel
-retro-portfolio init
-
-# Créer dans un nouveau dossier
-retro-portfolio init mon-portfolio
-
-# Forcer l'écrasement
-retro-portfolio init --force
+```json
+{
+  "contentTypes": [
+    {
+      "id": "painting",
+      "name": "Painting",
+      "icon": "🎨",
+      "mediaType": "image",
+      "dataFile": "data/painting.json",
+      "description": "Traditional paintings using various media",
+      "fields": {
+        "required": ["title", "url"],
+        "optional": [
+          { "name": "medium", "type": "text", "label": "Medium", "placeholder": "e.g., Oil on canvas" },
+          { "name": "dimensions", "type": "text", "label": "Dimensions" },
+          { "name": "year", "type": "text", "label": "Year" },
+          { "name": "description", "type": "textarea", "label": "Description" },
+          { "name": "date", "type": "text", "label": "Date" }
+        ]
+      }
+    }
+  ]
+}
 ```
 
-### `retro-portfolio sync` (ou `update`)
+**Key fields:**
+- `id` — unique identifier, used in translation keys (`nav_<id>`)
+- `name` — display name (string or `{ "en": "...", "fr": "..." }` for i18n)
+- `icon` — emoji shown in the filter bar
+- `mediaType` — one of: `image`, `audio`, `video`, `text`, `link` (defines the viewer)
+- `dataFile` — path to the JSON file holding this category's content
+- `fields.required` — fields the admin panel requires
+- `fields.optional` — extra metadata fields with type, label, and placeholder
 
-Synchronise un portfolio existant avec les derniers templates **sans écraser vos données**.
+### config/languages.json
 
-```bash
-# Dans votre répertoire de portfolio
-retro-portfolio sync
-
-# Forcer la mise à jour des workflows GitHub
-retro-portfolio sync --force
+```json
+{
+  "defaultLanguage": "en",
+  "supportedLanguages": [
+    { "code": "en", "name": "English", "flag": "🇺🇸" },
+    { "code": "fr", "name": "Francais", "flag": "🇫🇷" }
+  ]
+}
 ```
 
-**Ce qui est synchronisé** :
-- ✅ Dossiers manquants (config/, data/, lang/, assets/)
-- ✅ Fichiers de configuration manquants
-- ✅ .gitignore et .env.example (mis à jour)
-- ✅ GitHub Actions workflow
-- ✅ **Scripts npm manquants** dans package.json (build, dev, admin, validate, sync, etc.)
+Add any language — just create a matching `lang/<code>.json` file with all translation keys.
 
-**Ce qui est préservé** :
-- ✅ Vos données (data/*.json)
-- ✅ Vos configurations (config/*.json)
-- ✅ Vos traductions (lang/*.json)
-- ✅ Vos credentials (.env)
-- ✅ Vos scripts npm personnalisés (ne sont jamais écrasés)
+### config/media-types.json
 
-**Exemple** : Si votre `package.json` n'a que `build` et `dev`, la commande `sync` ajoutera automatiquement les nouveaux scripts comme `validate`, `sync`, `deploy` sans toucher à vos scripts existants.
+Defines how each media type is rendered:
 
-### `retro-portfolio build`
-
-Génère le site statique en fusionnant le moteur avec vos données.
-
-```bash
-# Build standard
-npm run build
-
-# Spécifier le dossier de sortie
-retro-portfolio build --output public
-
-# Watch mode (rebuild automatique)
-retro-portfolio build --watch
+```json
+{
+  "mediaTypes": [
+    { "id": "image", "name": "Image", "viewer": "ImageViewer", "supportsGallery": true, "acceptedFormats": [".jpg", ".png", ".gif", ".webp", ".svg"], "uploadDestination": "cloudinary" },
+    { "id": "audio", "name": "Audio", "viewer": "AudioPlayer", "supportsGallery": false, "acceptedFormats": [".mp3", ".wav", ".ogg", ".flac"], "uploadDestination": "github" },
+    { "id": "video", "name": "Video", "viewer": "VideoPlayer", "supportsGallery": false, "acceptedFormats": [".mp4", ".webm", ".mov"], "uploadDestination": "cloudinary" },
+    { "id": "text",  "name": "Text",  "viewer": "TextRenderer", "supportsGallery": false, "acceptedFormats": [".md", ".txt", ".html"], "uploadDestination": "none" },
+    { "id": "link",  "name": "Link",  "viewer": "LinkCard", "supportsGallery": false, "acceptedFormats": [], "uploadDestination": "none" }
+  ]
+}
 ```
 
-**Ce qui se passe** :
-1. Le package copie ses fichiers engine (HTML, CSS, JS)
-2. Il fusionne avec vos fichiers `config/`, `data/`, `lang/`
-3. Génère un site complet dans `dist/`
+### styles/styles.json
 
-### `retro-portfolio dev`
+Theme registry:
 
-Lance un serveur de développement local.
-
-```bash
-npm run dev
-
-# Port personnalisé
-retro-portfolio dev --port 3000
-
-# Ouvrir automatiquement le navigateur
-retro-portfolio dev --open
+```json
+{
+  "defaultTheme": "ciment",
+  "allowUserSwitch": true,
+  "themes": [
+    { "id": "jr16", "name": "JR-16", "emoji": "🌿", "file": "jr16.css" },
+    { "id": "beton", "name": "Beton", "emoji": "🌫️", "file": "beton.css" },
+    { "id": "ciment", "name": "Ciment", "emoji": "🪨", "file": "ciment.css" },
+    { "id": "bubblegum", "name": "Bubble Gum", "emoji": "🍬", "file": "bubblegum.css" }
+  ]
+}
 ```
 
-### `retro-portfolio admin`
-
-Lance l'interface d'administration pour gérer votre contenu.
-
-```bash
-npm run admin
-
-# Port personnalisé
-retro-portfolio admin --port 5001
-
-# Ouvrir automatiquement le navigateur
-retro-portfolio admin --open
-```
-
-**Interface admin** : Ajoutez/modifiez votre contenu visuellement, uploadez des images, gérez les traductions.
+Set `allowUserSwitch: false` to lock visitors to a single theme.
 
 ---
 
-## 🔄 Workflow Complet
+## Data Format
 
-### 1️⃣ Setup initial
+Each category has a data file (e.g., `data/painting.json`). The format is:
+
+```json
+{
+  "items": [
+    {
+      "id": "sunset-001",
+      "title": { "en": "Sunset", "fr": "Coucher de soleil" },
+      "description": { "en": "A beautiful sunset", "fr": "Un magnifique coucher de soleil" },
+      "image": "https://res.cloudinary.com/your-cloud/image/upload/...",
+      "date": "2026-01-15",
+      "medium": "Oil on canvas",
+      "dimensions": "24x36 inches"
+    }
+  ]
+}
+```
+
+**Notes:**
+- `title` and `description` can be i18n objects (`{ "en": "...", "fr": "..." }`) or plain strings
+- `image`/`url` should be full URLs (Cloudinary, GitHub release, etc.) or relative paths in `assets/`
+- Extra fields (like `medium`, `dimensions`, `genre`) match the `fields.optional` entries in your category config
+
+---
+
+## Workflow
+
+### Initial Setup
 
 ```bash
-npx @mtldev514/retro-portfolio-maker init mon-portfolio
-cd mon-portfolio
+npx @mtldev514/retro-portfolio-maker init my-portfolio
+cd my-portfolio
 npm install
 ```
 
-### 2️⃣ Configuration
+### Configure
 
-Éditez vos fichiers de config :
+1. Edit `config/app.json` — set your site name, GitHub username
+2. Edit `config/categories.json` — define your content types (see CONFIGURATION.md for full reference)
+3. Edit `lang/en.json` (and other languages) — customize translations
+4. Edit `.env` — add your Cloudinary credentials
+
+### Add Content
+
+**Option A: Admin panel (recommended)**
 
 ```bash
-# Configurez votre site
-nano config/app.json
-
-# Ajoutez vos catégories
-nano config/categories.json
+npm start
+# Open http://localhost:8000/admin.html
+# Upload images, add descriptions, manage translations
 ```
 
-### 3️⃣ Ajout de contenu
-
-**Option A** : Via l'admin (recommandé)
+**Option B: Edit JSON directly**
 
 ```bash
-npm run admin
-# Ouvrir http://localhost:8000/admin.html
-# Upload images, ajouter descriptions, etc.
-```
-
-**Option B** : Édition manuelle JSON
-
-```bash
+# Edit data files in data/
 nano data/painting.json
 ```
 
-### 4️⃣ Preview local
+### Preview
 
 ```bash
 npm run dev
-# Ouvrir http://localhost:8000
+# Open http://localhost:8000
 ```
 
-### 5️⃣ Build pour production
+### Build and Deploy
 
 ```bash
-npm run build
-# → génère dist/
+npm run build       # generates dist/
+git add . && git commit -m "update portfolio"
+git push            # GitHub Action auto-deploys to Pages
 ```
-
-### 6️⃣ Déploiement
-
-**GitHub Pages** :
-
-```bash
-# Pusher le dossier dist/ sur la branche gh-pages
-git add dist -f
-git commit -m "Deploy"
-git subtree push --prefix dist origin gh-pages
-```
-
-Ou utilisez la GitHub Action fournie (voir section Déploiement).
 
 ---
 
-## 🎨 Personnalisation
+## Updating the Engine
 
-### Définir vos propres catégories
+To get the latest features and fixes:
 
-**Vous pouvez créer n'importe quelles catégories que vous voulez (jusqu'à 7 max) !**
+```bash
+# Update the engine package
+npm update @mtldev514/retro-portfolio-maker
 
-1. **Éditez `config/categories.json`** :
+# Sync templates (adds missing files, updates docs, never overwrites your data)
+npx retro-portfolio sync
+
+# Rebuild
+npm run build
+```
+
+### What `sync` does
+
+**Creates if missing:**
+- Required directories (`config/`, `data/`, `lang/`, `assets/`)
+- Config files (`app.json`, `categories.json`, `languages.json`, `media-types.json`)
+- Language files (`en.json`, `fr.json`)
+- Theme files (`styles/` directory and `styles.json` registry)
+- Missing npm scripts (`validate`, `sync`, `deploy`, etc.)
+- `.gitignore`, `.env.example`, GitHub Actions workflow
+
+**Always updates:**
+- `CONFIGURATION.md` — full config reference (engine-maintained documentation)
+- `.env.example` — latest template
+
+**Never overwrites:**
+- Your data files (`data/*.json`)
+- Your config files (`config/*.json`)
+- Your translations (`lang/*.json`)
+- Your credentials (`.env`)
+- Your custom npm scripts
+- Your custom theme CSS files
+
+---
+
+## Customization
+
+### Creating Your Own Categories
+
+Edit `config/categories.json`. Here's an example replacing the defaults with your own:
 
 ```json
 {
@@ -270,7 +382,14 @@ Ou utilisez la GitHub Action fournie (voir section Déploiement).
       "icon": "🏺",
       "mediaType": "image",
       "dataFile": "data/pottery.json",
-      "description": "My ceramic works"
+      "description": "My ceramic works",
+      "fields": {
+        "required": ["title", "url"],
+        "optional": [
+          { "name": "material", "type": "text", "label": "Material" },
+          { "name": "description", "type": "textarea", "label": "Description" }
+        ]
+      }
     },
     {
       "id": "videos",
@@ -278,218 +397,135 @@ Ou utilisez la GitHub Action fournie (voir section Déploiement).
       "icon": "🎬",
       "mediaType": "video",
       "dataFile": "data/videos.json",
-      "description": "Video projects"
+      "description": "Video projects",
+      "fields": {
+        "required": ["title", "url"],
+        "optional": [
+          { "name": "duration", "type": "text", "label": "Duration" },
+          { "name": "description", "type": "textarea", "label": "Description" }
+        ]
+      }
     }
   ]
 }
 ```
 
-2. **Créez le fichier de données correspondant** (ex: `data/pottery.json`) :
+Then:
+1. Create the data file: `echo '{ "items": [] }' > data/pottery.json`
+2. Add translations in `lang/en.json`: `"nav_pottery": "Pottery"`, `"nav_videos": "Videos"`
+3. Rebuild: `npm run build`
 
-```json
-[
-  {
-    "id": "vase-001",
-    "title": { "en": "Blue Vase", "fr": "Vase bleu" },
-    "url": "https://your-image-url.com/vase.jpg",
-    "date": "2026-01-15"
-  }
-]
-```
+Filter buttons are **automatically generated** from your categories.
 
-3. **Ajoutez les traductions dans `lang/en.json` et `lang/fr.json`** :
+### Adding a Custom Theme
 
-```json
-{
-  "nav_pottery": "Pottery",
-  "nav_videos": "Videos"
-}
-```
+1. Duplicate an existing theme CSS file in `styles/`:
+   ```bash
+   cp styles/ciment.css styles/my-theme.css
+   ```
+2. Edit `styles/my-theme.css` with your colors, fonts, etc.
+3. Register it in `styles/styles.json`:
+   ```json
+   { "id": "my-theme", "name": "My Theme", "emoji": "🎨", "file": "my-theme.css" }
+   ```
+4. Rebuild: `npm run build`
 
-4. **Rebuild** : `npm run build`
+### Adding a Language
 
-Les filtres seront automatiquement générés à partir de votre configuration ! 🎉
-
-### Ajouter un thème custom
-
-Créez `assets/custom-theme.css` :
-
-```css
-:root {
-  --primary-color: #your-color;
-  --font-family: 'Your-Font', monospace;
-}
-```
-
-Le build l'inclura automatiquement !
-
-### Ajouter des pages custom
-
-Créez `pages/about.html` dans votre projet. Le moteur le détectera au build.
+1. Add the language to `config/languages.json`
+2. Create `lang/<code>.json` with all translation keys (copy `lang/en.json` as a starting point)
+3. Rebuild
 
 ---
 
-## 🔄 Mettre à jour le moteur
+## Deployment
 
-Pour récupérer les dernières features du moteur :
+### GitHub Pages (Automatic)
 
-```bash
-npm update @mtldev514/retro-portfolio-maker
+The `init` command creates `.github/workflows/deploy.yml` automatically. Just:
 
-# Ou version spécifique
-npm install @mtldev514/retro-portfolio-maker@latest
-```
-
-**Aucun conflit de merge** ! Vos données restent intactes.
-
----
-
-## 🌐 Déploiement
-
-### GitHub Pages (automatique)
-
-Créez `.github/workflows/deploy.yml` :
-
-```yaml
-name: Deploy to GitHub Pages
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - run: npm install
-      - run: npm run build
-
-      - uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-```
-
-Push sur `main` → Site déployé automatiquement ! ✨
+1. Push your code to GitHub
+2. Go to repo Settings > Pages > Source: **GitHub Actions**
+3. Every push to `main` auto-builds and deploys
 
 ### Netlify / Vercel
 
-**Build command** : `npm run build`
-**Publish directory** : `dist`
+- **Build command:** `npm run build`
+- **Publish directory:** `dist`
 
 ---
 
-## 📚 Documentation Avancée
+## Prerequisites
 
-### Structure du package
+- **Node.js** >= 14
+- **Python 3** + Flask (for admin panel — auto-installed via `postinstall`)
 
-```
-@mtldev514/retro-portfolio-maker/
-├── engine/               (Code du site - copié au build)
-│   ├── index.html
-│   ├── style.css
-│   ├── js/
-│   └── admin/
-├── scripts/              (Scripts Node.js)
-│   ├── build.js
-│   ├── serve.js
-│   └── admin.js
-├── bin/
-│   └── cli.js            (CLI retro-portfolio)
-└── templates/            (Templates pour init)
-```
-
-### API de données
-
-Format des fichiers JSON :
-
-**data/painting.json** :
-```json
-{
-  "items": [
-    {
-      "id": "unique-id",
-      "title": {
-        "en": "Sunset",
-        "fr": "Coucher de soleil"
-      },
-      "description": {
-        "en": "A beautiful sunset",
-        "fr": "Un magnifique coucher de soleil"
-      },
-      "image": "https://cloudinary.com/...",
-      "date": "2026-01-15"
-    }
-  ]
-}
-```
-
-**lang/en.json** :
-```json
-{
-  "header_title": "My Portfolio",
-  "nav_painting": "Paintings",
-  "footer_copy": "© 2026 Your Name"
-}
-```
-
----
-
-## 🐛 Dépannage
-
-### Le build échoue
-
-```bash
-# Vérifier que les dossiers requis existent
-ls -la config/ data/ lang/
-
-# Réinstaller le package
-rm -rf node_modules
-npm install
-```
-
-### L'admin ne démarre pas
-
-L'admin nécessite Python 3 et Flask :
-
+If Flask doesn't auto-install:
 ```bash
 pip install flask flask-cors
 ```
 
-### Les images ne s'affichent pas
+---
 
-Vérifiez que vos URLs d'images sont complètes (Cloudinary, etc.) ou placez-les dans `assets/`.
+## Troubleshooting
+
+### Build fails
+```bash
+# Make sure required directories exist
+ls config/ data/ lang/
+
+# Validate your config files
+npm run validate
+
+# Reinstall if needed
+rm -rf node_modules && npm install
+```
+
+### Admin won't start
+```bash
+# Install Flask manually
+pip install flask flask-cors
+
+# Or with pip3
+pip3 install flask flask-cors
+```
+
+### Images don't display
+- Check that image URLs in your data files are complete (Cloudinary URLs, etc.)
+- For local images, place them in `assets/` and reference as `assets/image.jpg`
+
+### Port already in use
+```bash
+# Find what's using the port
+retro-portfolio ports
+
+# Kill a specific port
+retro-portfolio kill 8000
+```
 
 ---
 
-## 🤝 Contribution
+## Contributing
 
-Ce package est open source ! Pour contribuer :
-
-1. Fork le repo [retro-portfolio-maker](https://github.com/YOUR_USERNAME/retro-portfolio-maker)
-2. Créez une branche feature
-3. Soumettez une Pull Request
-
----
-
-## 📄 Licence
-
-MIT © Alex
+1. Fork [retro-portfolio-maker](https://github.com/mtldev514/retro-portfolio-maker)
+2. Create a feature branch
+3. Run tests: `npm test`
+4. Submit a Pull Request
 
 ---
 
-## 🔗 Liens
+## License
 
-- [Documentation](https://github.com/YOUR_USERNAME/retro-portfolio-maker)
+MIT
+
+---
+
+## Links
+
 - [NPM Package](https://www.npmjs.com/package/@mtldev514/retro-portfolio-maker)
-- [Issues](https://github.com/YOUR_USERNAME/retro-portfolio-maker/issues)
-- [Exemples](https://github.com/YOUR_USERNAME/retro-portfolio-examples)
+- [GitHub Repository](https://github.com/mtldev514/retro-portfolio-maker)
+- [Issues](https://github.com/mtldev514/retro-portfolio-maker/issues)
 
 ---
 
-**Fait avec 💜 pour la communauté créative**
+**Made with love for the creative community**

@@ -147,6 +147,15 @@ GITHUB_TOKEN=your_github_token_here
     filesSkipped++;
   }
 
+  // Sync CONFIGURATION.md (always overwrite — this is engine-maintained documentation)
+  const configMdSource = path.join(templatePath, 'CONFIGURATION.md');
+  const configMdTarget = path.join(targetPath, 'CONFIGURATION.md');
+  if (fs.existsSync(configMdSource)) {
+    await fs.copy(configMdSource, configMdTarget);
+    console.log(chalk.green('  ✓ Updated:'), 'CONFIGURATION.md', chalk.gray('(config reference)'));
+    filesAdded++;
+  }
+
   // Sync GitHub Actions workflow
   const workflowDir = path.join(targetPath, '.github', 'workflows');
   const deployWorkflowPath = path.join(workflowDir, 'deploy.yml');
