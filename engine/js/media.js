@@ -9,6 +9,14 @@ const media = {
     playlist: [],
     rawTracks: [],
     vizInterval: null,
+    vizRAF: null,
+
+    // Web Audio API state (for real visualizer)
+    audioCtx: null,
+    analyser: null,
+    sourceNode: null,
+    freqData: null,
+    vizMode: 'fake', // 'real' once AudioContext connected, 'fake' as fallback
 
     tf(field) {
         if (!field) return '';
@@ -160,8 +168,38 @@ const media = {
         }
     },
 
+    /**
+     * Connect Web Audio API for real-time spectrum analysis.
+     * Must be called from a user gesture (play) to satisfy autoplay policy.
+     * Falls back to fake viz if AudioContext unavailable or CORS blocks data.
+     */
+    initAudioContext() {
+        if (this.audioCtx) return; // already connected
+        try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return;
+            this.audioCtx = new AC();
+            this.analyser = this.audioCtx.createAnalyser();
+            this.analyser.fftSize = 64; // 32 bins — we sample 12
+            this.analyser.smoothingTimeConstant = 0.6;
+            this.sourceNode = this.audioCtx.createMediaElementSource(this.audio);
+            this.sourceNode.connect(this.analyser);
+            this.analyser.connect(this.audioCtx.destination);
+            this.freqData = new Uint8Array(this.analyser.frequencyBinCount);
+            this.vizMode = 'real';
+            this._corsCheckCount = 0;
+        } catch (e) {
+            console.warn('AudioContext unavailable, using fake viz:', e.message);
+        }
+    },
+
     play() {
         if (!this.audio.src && this.playlist.length > 0) this.switchTrack(0);
+        // Lazy-init AudioContext on first user-triggered play
+        this.initAudioContext();
+        if (this.audioCtx && this.audioCtx.state === 'suspended') {
+            this.audioCtx.resume();
+        }
         const p = this.audio.play();
         if (p && p.catch) p.catch(e => console.warn('Play blocked:', e));
         this.setPlayingState(true);
@@ -195,6 +233,11 @@ const media = {
         const track = this.playlist[index];
         if (!track) return;
         this.audio.src = track.src;
+        // Reset CORS check for new source (different URL may have different headers)
+        if (this.vizMode === 'fake' && this.analyser) {
+            this.vizMode = 'real';
+            this._corsCheckCount = 0;
+        }
         this.updateTrackDisplay();
         this.play();
         // Highlight active track in playlist
@@ -236,7 +279,7 @@ const media = {
         setTimeout(apply, 200);
     },
 
-    // Mini fake visualizer (random bars, Winamp style)
+    // Spectrum visualizer — uses Web Audio API when available, random fallback otherwise
     startViz() {
         const viz = document.getElementById('winamp-viz');
         if (!viz) return;
@@ -250,21 +293,68 @@ const media = {
         }
 
         const bars = viz.querySelectorAll('.winamp-viz-bar');
+        const barCount = bars.length; // 12
 
-        // Animate based on play state
+        // Map 12 bars to frequency bin indices (bass-heavy weighting)
+        // With fftSize=64 → 32 bins. We pick 12 spread across low-to-high.
+        const binMap = [1, 2, 3, 4, 5, 6, 8, 10, 13, 16, 20, 25];
+
         const animate = () => {
-            bars.forEach(bar => {
-                let h;
-                if (!this.audio.paused && this.audio.src) {
-                    h = Math.random() * 100;
-                } else {
-                    h = 3;
+            this.vizRAF = requestAnimationFrame(animate);
+
+            if (this.audio.paused || !this.audio.src) {
+                // Idle state: flat bars
+                bars.forEach(bar => { bar.style.height = '3%'; });
+                return;
+            }
+
+            if (this.vizMode === 'real' && this.analyser && this.freqData) {
+                // Real spectrum data
+                this.analyser.getByteFrequencyData(this.freqData);
+
+                // CORS check: if first 5 frames return all zeros, fall back
+                if (this._corsCheckCount < 5) {
+                    const sum = this.freqData.reduce((a, b) => a + b, 0);
+                    if (sum === 0) {
+                        this._corsCheckCount++;
+                        if (this._corsCheckCount >= 5) {
+                            console.warn('Analyser returning zeros (CORS?), falling back to fake viz');
+                            this.vizMode = 'fake';
+                        }
+                    } else {
+                        this._corsCheckCount = 5; // passed — stop checking
+                    }
                 }
-                bar.style.height = h + '%';
+
+                if (this.vizMode === 'real') {
+                    for (let i = 0; i < barCount; i++) {
+                        const bin = binMap[i] < this.freqData.length ? binMap[i] : 0;
+                        const val = this.freqData[bin]; // 0–255
+                        const pct = Math.max(3, (val / 255) * 100);
+                        bars[i].style.height = pct + '%';
+                    }
+                    return;
+                }
+            }
+
+            // Fake fallback: random heights (original behavior)
+            bars.forEach(bar => {
+                bar.style.height = Math.random() * 100 + '%';
             });
         };
 
-        this.vizInterval = setInterval(animate, 120);
+        this.vizRAF = requestAnimationFrame(animate);
+    },
+
+    stopViz() {
+        if (this.vizRAF) {
+            cancelAnimationFrame(this.vizRAF);
+            this.vizRAF = null;
+        }
+        if (this.vizInterval) {
+            clearInterval(this.vizInterval);
+            this.vizInterval = null;
+        }
     }
 };
 

@@ -1001,7 +1001,7 @@ nav {
     min-width: 0;
     background: linear-gradient(0deg, var(--text-muted) 0%, var(--text-secondary) 40%, var(--accent-navy) 70%, var(--text-primary) 100%);
     height: 3%;
-    transition: height 0.1s ease-out;
+    transition: height 30ms linear;
     border-radius: 0 0 0 0;
 }
 
