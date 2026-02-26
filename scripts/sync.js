@@ -226,7 +226,8 @@ jobs:
     'config/app.json',
     'config/languages.json',
     'config/categories.json',
-    'config/media-types.json'
+    'config/media-types.json',
+    'config/themes.json'
   ];
 
   for (const configFile of configChecks) {
@@ -266,6 +267,23 @@ jobs:
       console.log(chalk.gray('  ⊘ Skipped:'), langFile, chalk.gray('(preserving your translations)'));
       filesSkipped++;
     }
+  }
+
+  // Check for custom.css starter
+  console.log(chalk.cyan('\n🎨 Checking custom styles...\n'));
+
+  const customCssPath = path.join(targetPath, 'custom.css');
+  const templateCssPath = path.join(templatePath, 'custom.css');
+
+  if (!fs.existsSync(customCssPath)) {
+    if (fs.existsSync(templateCssPath)) {
+      await fs.copy(templateCssPath, customCssPath);
+      console.log(chalk.green('  ✓ Created:'), 'custom.css', chalk.cyan('(starter template — edit to customize styles)'));
+      filesAdded++;
+    }
+  } else {
+    console.log(chalk.gray('  ⊘ Skipped:'), 'custom.css', chalk.gray('(preserving your styles)'));
+    filesSkipped++;
   }
 
   // Sync package.json scripts

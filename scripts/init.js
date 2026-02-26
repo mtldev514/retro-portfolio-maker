@@ -335,6 +335,13 @@ jobs:
     console.log(chalk.green('  ✓'), filePath);
   }
 
+  // Copy custom.css starter template
+  const customCssTemplate = path.join(templatePath, 'custom.css');
+  if (fs.existsSync(customCssTemplate)) {
+    await fs.copy(customCssTemplate, path.join(targetPath, 'custom.css'));
+    console.log(chalk.green('  ✓'), 'custom.css', chalk.gray('(starter template for style overrides)'));
+  }
+
   // Create README
   const readme = `# ${path.basename(targetPath)}
 
