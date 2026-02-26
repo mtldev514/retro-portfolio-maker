@@ -105,7 +105,7 @@ jobs:
             VERSION_TYPE="patch"
           fi
 
-          npm version $VERSION_TYPE -m "chore: release v%s"
+          HUSKY=0 npm version $VERSION_TYPE -m "chore: release v%s"
           git push --follow-tags
 
       - name: 📊 Build summary
