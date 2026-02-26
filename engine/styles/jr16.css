@@ -1,4 +1,6 @@
-/* JR-16 Theme */
+/* JR-16 Theme
+   Minty terminal. High contrast, full saturation.
+   Single hue bias: mint/teal. Neon greens and cyans. */
 :root {
     --page-bg: #e8e8f0;
     --container-bg: #f5fffd;
@@ -84,6 +86,12 @@
     --chrome-active: #252525;
     --chrome-grip-alt: #4a4a4a;
     --chrome-vol-start: #060;
+    --marquee-glow: rgba(129, 244, 177, 0.1);
+    --marquee-glow-text: rgba(129, 244, 177, 0.3);
+    --term-glow: rgba(129, 244, 177, 0.2);
+    --wp-glow-mid: rgba(129, 244, 177, 0.15);
+    --wp-glow-soft: rgba(129, 244, 177, 0.08);
+    --wp-glow-faint: rgba(129, 244, 177, 0.04);
     --sparkle-1: #ffd700;
     --sparkle-2: #ff69b4;
     --sparkle-3: #00ffff;

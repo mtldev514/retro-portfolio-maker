@@ -8,254 +8,259 @@
 }
 
 :root {
-    /* ═══ JR-16 Palette (Lospec) ═══
-       #040404  Black         #81f4b1  Mint green
-       #00374b  Dark teal     #72ffff  Bright cyan
-       #003808  Forest green  #a2a2ac  Silver
-       #00374b  Dark teal     #4d84ff  Bright blue
-       #580a0a  Bordeaux      #d76f6c  Salmon pink
-       #520a54  Dark violet   #d887f0  Lilac
-       #7a3820  Sienna        #f6f8ad  Pale yellow
-       #4b4956  Slate gray    #f5fffd  Off-white
-    ══════════════════════════════════ */
+    /* ═══ Winter Mineral Palette (Brand Guide) ═══
+       Ink:     #1f2230 → #7b839e  (indigo-tinted text scale)
+       Surface: #f4f6fb → #a8afc4  (mineral paper backgrounds)
+       Chrome:  #181a22 → #cfd4e2  (dark UI panels)
+       Accents: Gold #c89850, Clay #bc3c58, Teal #4e6f73
+    ══════════════════════════════════════════════ */
 
     /* ── Page ── */
-    --page-bg: #e8e8f0;
-    /* Cool light gray (neutral canvas) */
-    --container-bg: #f5fffd;
-    /* Off-white */
-    --text-primary: #040404;
-    /* Black */
-    --text-secondary: #4b4956;
-    /* Slate gray */
-    --text-muted: #7a7a88;
-    /* Mid gray (readable) */
-    --text-dim: #4b4956;
-    /* Slate gray */
-    --text-light: #a2a2ac;
-    /* Silver */
+    --page-bg: #e6e9f2;
+    /* Frost Paper (surface-1) */
+    --container-bg: #f4f6fb;
+    /* Snowlight (surface-0) */
+    --text-primary: #1f2230;
+    /* Ink */
+    --text-secondary: #2d3242;
+    /* Ink Soft */
+    --text-muted: #545a72;
+    /* Ink Muted */
+    --text-dim: #2d3242;
+    /* Ink Soft */
+    --text-light: #7b839e;
+    /* Ink Faint */
 
     /* ── Header / Branding ── */
-    --header-bg: #00374b;
-    /* Dark teal — strong identity bar */
-    --header-text: #f5fffd;
-    /* Off-white on navy */
-    --header-border-light: #81f4b1;
-    /* Mint green highlight */
-    --header-border-dark: #040404;
-    /* Black shadow */
-    /* Mirror title gradient (chrome text) */
+    --header-bg: #181a22;
+    /* Chrome Deep — strong identity bar */
+    --header-text: #f4f6fb;
+    /* Snowlight on dark */
+    --header-border-light: #c89850;
+    /* Gold highlight */
+    --header-border-dark: #181a22;
+    /* Chrome Deep shadow */
+    /* Mirror title gradient (gold chrome text) */
     --mirror-shine: #ffffff;
-    --mirror-light: #c0fad8;
-    --mirror-mid: #80d8a8;
+    --mirror-light: #e8d4a8;
+    --mirror-mid: #c89850;
 
     /* ── Win95 Borders (3D effect) ── */
-    --border-light: #f5fffd;
-    /* Off-white */
-    --border-dark: #4b4956;
-    /* Slate gray */
-    --border-groove: #a2a2ac;
-    /* Silver */
-    --border-mid: #7a7a88;
-    /* Mid gray */
+    --border-light: #f4f6fb;
+    /* Snowlight */
+    --border-dark: #a8afc4;
+    /* Mist Indigo */
+    --border-groove: #cfd4e2;
+    /* Pale Slate */
+    --border-mid: #a8afc4;
+    /* Mist Indigo */
 
     /* ── Win95 Buttons ── */
-    --btn-bg-start: #f5fffd;
-    /* Off-white */
-    --btn-bg-mid: #e8e8f0;
-    /* Light gray */
-    --btn-bg-end: #a2a2ac;
-    /* Silver */
-    --btn-hover-start: #e0f8ef;
-    /* Light mint highlight */
-    --btn-hover-mid: #f5fffd;
-    /* Off-white */
-    --btn-hover-end: #a2a2ac;
-    /* Silver */
-    --btn-active-start: #a2a2ac;
-    /* Silver */
-    --btn-active-mid: #4b4956;
-    /* Slate */
-    --btn-active-end: #e8e8f0;
-    /* Light gray */
-    --btn-text: #040404;
-    /* Black */
-    --btn-text-active: #00374b;
-    /* Dark teal */
+    --btn-bg-start: #f4f6fb;
+    /* Snowlight */
+    --btn-bg-mid: #e6e9f2;
+    /* Frost Paper */
+    --btn-bg-end: #cfd4e2;
+    /* Pale Slate */
+    --btn-hover-start: #faf9f6;
+    /* Warm white highlight */
+    --btn-hover-mid: #f4f6fb;
+    /* Snowlight */
+    --btn-hover-end: #cfd4e2;
+    /* Pale Slate */
+    --btn-active-start: #cfd4e2;
+    /* Pale Slate */
+    --btn-active-mid: #a8afc4;
+    /* Mist Indigo */
+    --btn-active-end: #e6e9f2;
+    /* Frost Paper */
+    --btn-text: #1f2230;
+    /* Ink */
+    --btn-text-active: #c89850;
+    /* Gold */
 
     /* ── Filter bar ── */
-    --filter-bg: #e8e8f0;
-    /* Cool light gray */
+    --filter-bg: #e6e9f2;
+    /* Frost Paper */
 
     /* ── Lang switcher ── */
-    --lang-btn-bg: #a2a2ac;
-    /* Silver */
-    --lang-dropdown-bg: #f5fffd;
-    /* Off-white */
+    --lang-btn-bg: #cfd4e2;
+    /* Pale Slate */
+    --lang-dropdown-bg: #f4f6fb;
+    /* Snowlight */
 
     /* ── Terminal / CRT ── */
-    --term-bg: #040404;
-    /* Black */
-    --term-green: #81f4b1;
-    /* Mint green */
-    --term-green-dim: #003808;
-    /* Forest green */
-    --term-cyan: #72ffff;
-    /* Bright cyan */
-    --term-text: #a2a2ac;
-    /* Silver */
-    --term-dim: #4b4956;
-    /* Slate gray */
-    --term-titlebar: #00374b;
-    /* Dark teal */
-    --term-titlebar-border: #81f4b1;
-    /* Mint green */
-    --term-btn-close: #d76f6c;
-    /* Salmon (red-ish) */
-    --term-btn-min: #f6f8ad;
-    /* Pale yellow */
-    --term-btn-max: #81f4b1;
-    /* Mint green */
+    --term-bg: #181a22;
+    /* Chrome Deep */
+    --term-green: #c89850;
+    /* Gold (primary accent) */
+    --term-green-dim: #a87838;
+    /* Burnished */
+    --term-cyan: #cfd4e2;
+    /* Pale Slate */
+    --term-text: #7b839e;
+    /* Ink Faint */
+    --term-dim: #3b3f56;
+    /* Chrome Mid */
+    --term-titlebar: #181a22;
+    /* Chrome Deep */
+    --term-titlebar-border: #c89850;
+    /* Gold */
+    --term-btn-close: #bc3c58;
+    /* Clay Rose */
+    --term-btn-min: #c89850;
+    /* Gold */
+    --term-btn-max: #4e6f73;
+    /* Winter Teal */
 
     /* ── Marquee ── */
-    --marquee-bg: #040404;
-    /* Black */
-    --marquee-text: #81f4b1;
-    /* Mint green */
+    --marquee-bg: #181a22;
+    /* Chrome Deep */
+    --marquee-text: #c89850;
+    /* Gold */
 
     /* ── Winamp Player ── */
-    --wp-bg: #040404;
-    /* Black */
-    --wp-surface: #4b4956;
-    /* Slate gray */
-    --wp-display: #040404;
-    /* Black */
-    --wp-titlebar-start: #00374b;
-    /* Dark teal */
-    --wp-titlebar-mid: #520a54;
-    /* Dark violet */
-    --wp-playlist-bg: #040404;
-    /* Black */
-    --wp-btn-start: #4b4956;
-    /* Slate gray */
-    --wp-btn-mid: #00374b;
-    /* Dark teal */
-    --wp-btn-end: #040404;
-    /* Black */
-    --wp-btn-hover-start: #a2a2ac;
-    /* Silver */
-    --wp-btn-hover-mid: #4b4956;
-    /* Slate gray */
-    --wp-btn-hover-end: #00374b;
-    /* Dark teal */
-    --wp-text: #f6f8ad;
-    /* Pale yellow */
-    --wp-green: #81f4b1;
-    /* Mint green */
-    --wp-info: #72ffff;
-    /* Bright cyan */
-    --wp-selected: #00374b;
-    /* Dark teal */
+    --wp-bg: #181a22;
+    /* Chrome Deep */
+    --wp-surface: #3b3f56;
+    /* Chrome Mid */
+    --wp-display: #181a22;
+    /* Chrome Deep */
+    --wp-titlebar-start: #1f2230;
+    /* Ink */
+    --wp-titlebar-mid: #3b3f56;
+    /* Chrome Mid */
+    --wp-playlist-bg: #181a22;
+    /* Chrome Deep */
+    --wp-btn-start: #3b3f56;
+    /* Chrome Mid */
+    --wp-btn-mid: #1f2230;
+    /* Ink */
+    --wp-btn-end: #181a22;
+    /* Chrome Deep */
+    --wp-btn-hover-start: #545a72;
+    /* Ink Muted */
+    --wp-btn-hover-mid: #3b3f56;
+    /* Chrome Mid */
+    --wp-btn-hover-end: #1f2230;
+    /* Ink */
+    --wp-text: #c89850;
+    /* Gold */
+    --wp-green: #cfd4e2;
+    /* Chrome Soft */
+    --wp-info: #e6e9f2;
+    /* Frost Paper */
+    --wp-selected: #1f2230;
+    /* Ink */
 
     /* ── Music / Audio ── */
-    --music-bg: #040404;
-    /* Black */
-    --music-gold: #f6f8ad;
-    /* Pale yellow */
-    --music-text: #f5fffd;
-    /* Off-white */
-    --music-text-dim: #a2a2ac;
-    /* Silver */
+    --music-bg: #181a22;
+    /* Chrome Deep */
+    --music-gold: #c89850;
+    /* Gold */
+    --music-text: #f4f6fb;
+    /* Snowlight */
+    --music-text-dim: #7b839e;
+    /* Ink Faint */
 
     /* ── Gallery ── */
-    --gallery-border: #00374b;
-    /* Dark teal — ties to accent */
+    --gallery-border: #a8afc4;
+    /* Mist Indigo */
 
     /* ── Detail page ── */
-    --detail-meta-bg: #e8e8f0;
-    /* Cool light gray */
+    --detail-meta-bg: #e6e9f2;
+    /* Frost Paper */
 
     /* ── Badges ── */
-    --badge-public-bg: #e8e8f0;
-    --badge-public-text: #4a4a5e;
-    --badge-private-bg: #e8e8f0;
-    --badge-private-text: #4a4a5e;
+    --badge-public-bg: #e6e9f2;
+    --badge-public-text: #545a72;
+    --badge-private-bg: #e6e9f2;
+    --badge-private-text: #545a72;
 
     /* ── Visitor Counter ── */
-    --counter-text: #d76f6c;
-    /* Salmon — visible accent */
+    --counter-text: #bc3c58;
+    /* Clay Rose — visible accent */
 
     /* ── Accent ── */
-    --accent-navy: #00374b;
-    /* Dark teal */
-    --accent-magenta: #d887f0;
-    /* Lilac */
-    --accent-yellow: #f6f8ad;
-    /* Pale yellow */
+    --accent-navy: #c89850;
+    /* Gold (primary accent) */
+    --accent-magenta: #bc3c58;
+    /* Clay Rose */
+    --accent-yellow: #c89850;
+    /* Gold */
 
-    /* ── Fonts (not theme-switched) ── */
-    --font-primary: "Verdana", sans-serif;
-    --font-mono: "Courier New", monospace;
-    --font-digital: "Digital-7", monospace;
-    --font-winamp: 'Arial', 'Helvetica', sans-serif;
-    --font-admin: 'MS Sans Serif', 'Arial', sans-serif;
+    /* ── Fonts ── */
+    --font-primary: 'Capriola', sans-serif;
+    --font-display: 'Titan One', cursive;
+    --font-accent: 'Rubik Dirt', cursive;
+    --font-mono: 'DM Mono', 'Courier New', monospace;
+    --font-digital: 'DM Mono', monospace;
+    --font-winamp: 'DM Mono', 'Arial', sans-serif;
+    --font-admin: 'Capriola', 'Arial', sans-serif;
 
     /* ── Chrome / UI tones (dark widget surfaces) ── */
-    --chrome-black: #000;
-    /* Pure black */
-    --chrome-darkest: #111;
-    /* Near-black */
-    --chrome-darker: #222;
-    /* Very dark gray */
-    --chrome-dark: #333;
-    /* Dark gray */
-    --chrome-mid: #444;
-    /* Mid-dark gray */
-    --chrome-gray: #555;
-    /* Medium gray */
-    --chrome-light: #777;
-    /* Light-mid gray */
-    --chrome-border: #999;
-    /* Light border gray */
-    --chrome-soft: #ccc;
-    /* Soft gray */
-    --chrome-active: #252525;
+    --chrome-black: #181a22;
+    /* Studio Black (chrome-deep) */
+    --chrome-darkest: #1c1e28;
+    /* Near-black tinted */
+    --chrome-darker: #22242e;
+    /* Very dark indigo */
+    --chrome-dark: #2a2d3a;
+    /* Dark indigo */
+    --chrome-mid: #3b3f56;
+    /* Deep Indigo (chrome-mid) */
+    --chrome-gray: #545a72;
+    /* Ink Muted */
+    --chrome-light: #7b839e;
+    /* Ink Faint */
+    --chrome-border: #a8afc4;
+    /* Mist Indigo */
+    --chrome-soft: #cfd4e2;
+    /* Pale Slate (chrome-soft) */
+    --chrome-active: #22242e;
     /* Active pressed bg */
-    --chrome-grip-alt: #4a4a4a;
+    --chrome-grip-alt: #3b3f56;
     /* Grip pattern alt */
-    --chrome-vol-start: #060;
-    /* Volume gradient start */
+    --chrome-vol-start: #2a4a3a;
+    /* Volume gradient start (tinted) */
 
     /* ── Sparkle cursor colors ── */
-    --sparkle-1: #ffd700;
+    --sparkle-1: #c89850;
     /* Gold */
-    --sparkle-2: #ff69b4;
-    /* Hot pink */
-    --sparkle-3: #00ffff;
-    /* Cyan */
-    --sparkle-4: #ff00ff;
-    /* Magenta */
-    --sparkle-5: #fff;
-    /* White */
-    --sparkle-6: #7fff00;
-    /* Chartreuse */
-    --sparkle-7: #ff4500;
-    /* Orange-red */
+    --sparkle-2: #bc3c58;
+    /* Clay Rose */
+    --sparkle-3: #cfd4e2;
+    /* Pale Slate */
+    --sparkle-4: #a87838;
+    /* Burnished */
+    --sparkle-5: #f4f6fb;
+    /* Snowlight */
+    --sparkle-6: #4e6f73;
+    /* Teal */
+    --sparkle-7: #e6e9f2;
+    /* Frost Paper */
 
     /* ── Petals ── */
-    --petal-color: #88d8b0;
-    /* Soft mint (JR-16 default) */
+    --petal-color: #c89850;
+    /* Gold (brand accent) */
+
+    /* ── Brand shadows (tinted) ── */
+    --shadow-sm: 0 1px 3px rgba(31, 34, 48, 0.12);
+    --shadow-md: 0 6px 18px rgba(31, 34, 48, 0.18);
+    --shadow-lg: 0 12px 40px rgba(31, 34, 48, 0.24);
+    --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 
 }
 
 body {
     background-color: var(--page-bg);
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4YyKAAAABlBMVEUAAAD///+l2Z/dAAAAbUlEQVR42u3TQQqAIBBF0d9F979mRREInAiaEPR9FzM6eA4A+K8iSioqqqiiiooqqqiiiooqqqiiiooqqqiiiooqqqiiiooqqqiiiooqqqiiiooqqqiiiooqqqiiiooqqqiiiooqqqiiiooqqqiiiooqiioqqiiioooAAAAAElFTkSuQmCC');
-    /* Subtle tiled pattern */
+    /* Clean mineral surface — no tiled pattern */
     font-family: var(--font-primary);
     color: var(--text-primary);
     margin: 0;
     padding: 20px;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.65;
 }
 
 /* ===== Petal Rain (Béton theme) ===== */
@@ -303,11 +308,11 @@ body {
     background-color: var(--container-bg);
     border: 3px solid;
     border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
-    border-radius: 12px;
+    border-radius: 14px;
     box-shadow:
-        6px 6px 0px rgba(0, 0, 0, 0.35),
-        12px 12px 0px rgba(0, 0, 0, 0.15),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+        6px 6px 0px rgba(31, 34, 48, 0.35),
+        12px 12px 0px rgba(31, 34, 48, 0.15),
+        var(--shadow-inset);
     padding: 20px;
     position: relative;
     z-index: 1;
@@ -351,7 +356,7 @@ body {
     border: 2px outset var(--container-bg);
     border-radius: 8px;
     width: 180px;
-    box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.2);
+    box-shadow: 3px 3px 0px rgba(31, 34, 48, 0.2);
     overflow: hidden;
 }
 
@@ -418,19 +423,20 @@ header {
     background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 40%, rgba(0, 0, 0, 0.05) 100%);
     border: 2px solid;
     border-color: var(--header-border-light) var(--header-border-dark) var(--header-border-dark) var(--header-border-light);
-    border-radius: 10px;
+    border-radius: 14px;
     padding: 10px;
     margin-bottom: 20px;
     text-align: center;
-    box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.6), inset -1px -1px 0 rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-inset), 0 6px 18px rgba(31, 34, 48, 0.18);
     position: relative;
 }
 
 h1 {
+    font-family: var(--font-display);
     font-size: 3.2em;
-    font-weight: 900;
+    font-weight: 400;
     margin: 0;
-    letter-spacing: 0.3em;
+    letter-spacing: 0.06em;
     text-transform: lowercase;
     background: linear-gradient(135deg,
             var(--mirror-shine) 0%,
@@ -480,7 +486,7 @@ nav {
     border: 2px outset var(--container-bg);
     border-radius: 6px;
     background: linear-gradient(180deg, var(--btn-bg-start) 0%, var(--btn-bg-mid) 50%, var(--btn-bg-end) 100%);
-    box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+    box-shadow: 1px 1px 0 rgba(31, 34, 48, 0.2);
     cursor: pointer;
     font-family: inherit;
     font-size: inherit;
@@ -494,7 +500,7 @@ nav {
 .filter-btn:active {
     border-style: inset;
     background: linear-gradient(180deg, var(--btn-active-start) 0%, var(--btn-active-mid) 50%, var(--btn-active-end) 100%);
-    box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: inset 1px 1px 2px rgba(31, 34, 48, 0.3);
 }
 
 .filter-btn.active {
@@ -536,7 +542,7 @@ nav {
     border-style: inset;
     background: linear-gradient(180deg, var(--btn-bg-end) 0%, var(--btn-bg-mid) 50%, var(--btn-hover-mid) 100%);
     color: var(--btn-text-active);
-    box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: inset 1px 1px 2px rgba(31, 34, 48, 0.3);
 }
 
 .category-icon {
@@ -551,9 +557,9 @@ nav {
     margin-bottom: 20px;
     border: 3px solid;
     border-color: var(--text-primary) var(--text-secondary) var(--text-secondary) var(--text-primary);
-    border-radius: 8px;
-    box-shadow: inset 0 0 10px var(--marquee-glow, rgba(0, 255, 0, 0.1)), inset 2px 2px 4px rgba(0, 0, 0, 0.5);
-    text-shadow: 0 0 5px var(--marquee-glow-text, rgba(0, 255, 0, 0.5));
+    border-radius: 10px;
+    box-shadow: inset 0 0 10px var(--marquee-glow, rgba(200, 152, 80, 0.1)), inset 2px 2px 4px rgba(31, 34, 48, 0.5);
+    text-shadow: 0 0 5px var(--marquee-glow-text, rgba(200, 152, 80, 0.3));
 }
 
 .content {
@@ -599,11 +605,11 @@ nav {
 }
 
 .gallery-item {
-    border: 4px ridge rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
+    border: 4px ridge rgba(31, 34, 48, 0.1);
+    border-radius: 14px;
     padding: 5px;
     background: var(--container-bg);
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-sm);
     overflow: hidden;
 }
 
@@ -804,8 +810,8 @@ nav {
     font-family: var(--font-digital);
     border: 2px inset var(--term-dim);
     border-radius: 4px;
-    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.6), 0 0 4px rgba(255, 0, 0, 0.15);
-    text-shadow: 0 0 6px rgba(255, 0, 0, 0.5);
+    box-shadow: inset 1px 1px 3px rgba(31, 34, 48, 0.6), 0 0 4px rgba(188, 60, 88, 0.15);
+    text-shadow: 0 0 6px rgba(188, 60, 88, 0.5);
     letter-spacing: 2px;
 }
 
@@ -851,7 +857,7 @@ nav {
 /* ── Playing state effects ── */
 .winamp.playing {
     box-shadow:
-        2px 2px 6px rgba(0, 0, 0, 0.5),
+        2px 2px 6px rgba(31, 34, 48, 0.5),
         0 0 8px var(--wp-glow-mid, rgba(0, 255, 0, 0.15)),
         0 0 20px var(--wp-glow-soft, rgba(0, 255, 0, 0.08));
     animation: winamp-glow 2s ease-in-out infinite;
@@ -861,11 +867,11 @@ nav {
 
     0%,
     100% {
-        box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5), 0 0 6px var(--wp-glow-soft, rgba(0, 255, 0, 0.12)), 0 0 16px var(--wp-glow-faint, rgba(0, 255, 0, 0.06));
+        box-shadow: 2px 2px 6px rgba(31, 34, 48, 0.5), 0 0 6px var(--wp-glow-soft, rgba(0, 255, 0, 0.12)), 0 0 16px var(--wp-glow-faint, rgba(0, 255, 0, 0.06));
     }
 
     50% {
-        box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5), 0 0 12px var(--wp-glow-mid, rgba(0, 255, 0, 0.25)), 0 0 28px var(--wp-glow-soft, rgba(0, 255, 0, 0.12));
+        box-shadow: 2px 2px 6px rgba(31, 34, 48, 0.5), 0 0 12px var(--wp-glow-mid, rgba(0, 255, 0, 0.25)), 0 0 28px var(--wp-glow-soft, rgba(0, 255, 0, 0.12));
     }
 }
 
@@ -1316,7 +1322,7 @@ nav {
     border-radius: 6px;
     background: linear-gradient(180deg, var(--btn-bg-start) 0%, var(--btn-bg-mid) 50%, var(--btn-bg-end) 100%);
     display: inline-block;
-    box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+    box-shadow: 1px 1px 0 rgba(31, 34, 48, 0.2);
 }
 
 .btn:hover {
@@ -1327,7 +1333,7 @@ nav {
 .btn:active {
     border-style: inset;
     background: linear-gradient(180deg, var(--btn-active-start) 0%, var(--btn-active-mid) 50%, var(--btn-active-end) 100%);
-    box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: inset 1px 1px 2px rgba(31, 34, 48, 0.3);
 }
 
 .social-links a:hover i {
@@ -1347,7 +1353,7 @@ nav {
     width: 100%;
     aspect-ratio: 4 / 3;
     overflow: hidden;
-    box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.5), 2px 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: inset 2px 2px 6px rgba(31, 34, 48, 0.5), 2px 2px 4px rgba(31, 34, 48, 0.2);
 }
 
 .retro-video {
@@ -1515,9 +1521,9 @@ nav {
 }
 
 .gallery-item:hover {
-    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
-    transform: translateY(-2px);
-    transition: all 0.15s ease;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-4px);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .gallery-link img {
@@ -1581,8 +1587,8 @@ nav {
     background: var(--container-bg);
     border: 3px solid;
     border-color: var(--container-bg) var(--border-mid) var(--border-mid) var(--container-bg);
-    border-radius: 10px;
-    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+    border-radius: 14px;
+    box-shadow: var(--shadow-md);
     overflow: hidden;
 }
 
@@ -1598,7 +1604,7 @@ nav {
     max-height: 500px;
     object-fit: contain;
     border-radius: 8px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 15px rgba(31, 34, 48, 0.4);
 }
 
 .detail-info {

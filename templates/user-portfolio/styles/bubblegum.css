@@ -1,4 +1,6 @@
-/* Bubble Gum Theme */
+/* Bubblegum Theme
+   Pink warmth. Playful or personal contexts.
+   Single hue bias: rose. All neutrals tinted pink. */
 :root {
     --page-bg: #f2dce4;
     --container-bg: #fceef3;
@@ -84,12 +86,12 @@
     --chrome-active: #302030;
     --chrome-grip-alt: #503848;
     --chrome-vol-start: #303030;
-    --marquee-glow: rgba(200,160,180,0.1);
-    --marquee-glow-text: rgba(200,160,180,0.3);
-    --term-glow: rgba(200,160,180,0.15);
-    --wp-glow-mid: rgba(200,160,180,0.15);
-    --wp-glow-soft: rgba(200,160,180,0.08);
-    --wp-glow-faint: rgba(200,160,180,0.04);
+    --marquee-glow: rgba(200, 160, 180, 0.1);
+    --marquee-glow-text: rgba(200, 160, 180, 0.3);
+    --term-glow: rgba(200, 160, 180, 0.15);
+    --wp-glow-mid: rgba(200, 160, 180, 0.15);
+    --wp-glow-soft: rgba(200, 160, 180, 0.08);
+    --wp-glow-faint: rgba(200, 160, 180, 0.04);
     --sparkle-1: #d888a8;
     --sparkle-2: #e8b0c8;
     --sparkle-3: #f0d8a0;

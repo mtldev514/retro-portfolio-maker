@@ -5,32 +5,33 @@
    ═══════════════════════════════════════════════════ */
 
 :root {
-    --admin-muted-text: #666;
-    --admin-file-type: blue;
-    --admin-connected: green;
-    --admin-bg: #3a6ea5;
-    --admin-win-bg: #c0c0c0;
-    --admin-win-blue: #000080;
-    --admin-win-text: #000;
-    --admin-win-border-light: #fff;
-    --admin-win-border-dark: #808080;
-    --admin-tab-inactive: #d4d4d4;
-    --admin-console-bg: #000;
-    --admin-console-text: #0f0;
-    --admin-readonly-bg: #eee;
-    --admin-readonly-text: #555;
-    --admin-save-bg: #e0e0ff;
-    --admin-hint-bg: #fffff0;
-    --admin-hint-border: #cc9;
-    --admin-preview-bg: #eee;
-    --admin-preview-border: #808080;
-    --admin-status-success: lime;
-    --admin-status-error: red;
-    --admin-status-warn: orange;
-    --admin-status-info: cyan;
-    --admin-status-highlight: yellow;
-    --chrome-soft: #ccc;
-    --admin-win-title-bg: #000080;
+    /* ═══ Admin — Brand Guide (indigo-tinted Win95) ═══ */
+    --admin-muted-text: #7b839e;
+    --admin-file-type: #3b3f56;
+    --admin-connected: #4e6f73;
+    --admin-bg: #3b3f56;
+    --admin-win-bg: #cfd4e2;
+    --admin-win-blue: #1f2230;
+    --admin-win-text: #1f2230;
+    --admin-win-border-light: #f4f6fb;
+    --admin-win-border-dark: #7b839e;
+    --admin-tab-inactive: #e6e9f2;
+    --admin-console-bg: #181a22;
+    --admin-console-text: #c89850;
+    --admin-readonly-bg: #e6e9f2;
+    --admin-readonly-text: #545a72;
+    --admin-save-bg: #e6e9f2;
+    --admin-hint-bg: #f4f6fb;
+    --admin-hint-border: #a8afc4;
+    --admin-preview-bg: #e6e9f2;
+    --admin-preview-border: #7b839e;
+    --admin-status-success: #4e6f73;
+    --admin-status-error: #bc3c58;
+    --admin-status-warn: #c89850;
+    --admin-status-info: #cfd4e2;
+    --admin-status-highlight: #c89850;
+    --chrome-soft: #cfd4e2;
+    --admin-win-title-bg: #1f2230;
 }
 
 body.admin-page {
@@ -66,7 +67,7 @@ body.admin-page {
     background: var(--admin-win-bg);
     border: 2px solid;
     border-color: var(--admin-win-border-light) var(--admin-win-border-dark) var(--admin-win-border-dark) var(--admin-win-border-light);
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+    box-shadow: 2px 2px 5px rgba(31, 34, 48, 0.5);
     padding: 2px;
 }
 
@@ -496,7 +497,7 @@ body.admin-page {
     background: white;
     border: 2px solid;
     border-color: var(--admin-win-border-light) var(--admin-win-border-dark) var(--admin-win-border-dark) var(--admin-win-border-light);
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+    box-shadow: 2px 2px 6px rgba(31, 34, 48, 0.3);
     min-width: 220px;
     max-height: 200px;
     overflow-y: auto;
@@ -540,7 +541,7 @@ body.admin-page {
 
 .gallery-card:hover {
     transform: translateY(-2px);
-    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 2px 2px 8px rgba(31, 34, 48, 0.3);
 }
 
 .gallery-card.dragging {
@@ -655,7 +656,7 @@ body.admin-page {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(31, 34, 48, 0.7);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -673,7 +674,7 @@ body.admin-page {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(31, 34, 48, 0.7);
     display: flex;
     align-items: center;
     justify-content: center;

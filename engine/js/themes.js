@@ -7,7 +7,7 @@
  *   3. buildThemeSwitcher() dynamically populates theme options in settings dropdown
  */
 const themes = {
-    currentTheme: localStorage.getItem('selectedTheme') || 'ciment',
+    currentTheme: localStorage.getItem('selectedTheme') || 'mineral',
     definitions: {},
     definitionsArray: [],
     allowUserSwitch: true,
