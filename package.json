@@ -7,7 +7,11 @@
     "retro-portfolio": "./bin/cli.js"
   },
   "scripts": {
-    "prepare": "node scripts/post-install.js"
+    "prepare": "husky",
+    "postinstall": "node scripts/post-install.js",
+    "test:build": "node tests/global-setup.js",
+    "test:e2e": "npx playwright test",
+    "test": "npm run test:build && npm run test:e2e"
   },
   "keywords": [
     "portfolio",
@@ -39,9 +43,10 @@
     "fs-extra": "^11.1.1"
   },
   "devDependencies": {
-    "http-server": "^14.1.1"
+    "@playwright/test": "^1.58.2",
+    "http-server": "^14.1.1",
+    "husky": "^9.1.7"
   },
-  "peerDependencies": {},
   "publishConfig": {
     "access": "restricted"
   }

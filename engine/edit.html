@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>EDIT ITEM - ALEX-CONTROL-PANEL V1.0</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="fonts.css">
+</head>
+
+<body class="admin-page">
+
+    <div class="window narrow">
+        <div class="title-bar">
+            <span id="windowTitle">EDIT ITEM</span>
+            <div class="title-bar-controls">
+                <button>_</button>
+                <button>[]</button>
+                <button onclick="window.location.href='admin.html'">X</button>
+            </div>
+        </div>
+
+        <div class="edit-body">
+            <div id="loading">
+                Loading item data...
+            </div>
+
+            <div id="errorBox">
+                <p>ERROR: Could not load item.</p>
+                <p style="font-size: 12px;" id="errorMsg"></p>
+                <br>
+                <button type="button" onclick="window.location.href='admin.html'"
+                    style="padding: 5px 20px; cursor: pointer;">Back to Dashboard</button>
+            </div>
+
+            <form id="editForm">
+                <div class="info-row">
+                    <div class="form-group">
+                        <label>Category:</label>
+                        <input type="text" id="editCategory" class="readonly" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>ID:</label>
+                        <input type="text" id="editId" class="readonly" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Date Added:</label>
+                        <input type="text" id="editDate" class="readonly" readonly>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Title:</label>
+                    <input type="text" id="editTitle" required>
+                </div>
+
+                <div class="form-group" id="mediumGroup" style="display: none;">
+                    <label>Medium:</label>
+                    <input type="text" id="editMedium">
+                </div>
+
+                <div class="form-group" id="genreGroup" style="display: none;">
+                    <label>Genre / Style:</label>
+                    <input type="text" id="editGenre">
+                </div>
+
+                <div class="form-group" id="descriptionGroup">
+                    <label>Description:</label>
+                    <textarea id="editDescription"></textarea>
+                </div>
+
+                <div class="form-group" id="lyricsGroup" style="display: none;">
+                    <label>Lyrics:</label>
+                    <textarea id="editLyrics" rows="8" style="white-space: pre-wrap; font-family: inherit; font-size: 12px;"></textarea>
+                </div>
+
+                <div class="form-group" id="urlGroup">
+                    <label>URL / Source:</label>
+                    <input type="text" id="editUrl" class="readonly" readonly>
+                </div>
+
+                <div id="previewGroup" class="preview-box" style="display: none;">
+                    <p style="font-size: 10px; margin: 0 0 5px; font-weight: bold;">PREVIEW</p>
+                    <img id="previewImg" src="" alt="Preview">
+                </div>
+
+                <div id="audioPreviewGroup" class="preview-box" style="display: none;">
+                    <p style="font-size: 10px; margin: 0 0 5px; font-weight: bold;">AUDIO PREVIEW</p>
+                    <audio id="audioPreview" controls style="width: 100%;"></audio>
+                </div>
+
+                <div id="galleryManagerGroup" class="preview-box" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <p style="font-size: 10px; margin: 0; font-weight: bold;">GALLERY MANAGER</p>
+                        <p style="font-size: 9px; margin: 0; color: #7a7a88;">Drag to reorder - Click "Set as Cover" to change main image</p>
+                    </div>
+                    <div id="galleryGrid" class="gallery-manager-grid">
+                    </div>
+                </div>
+
+                <div class="button-bar">
+                    <button type="button" onclick="window.location.href='admin.html'">Cancel</button>
+                    <button type="submit" class="save-btn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="console short" id="console">
+            [EDIT-MODE] Initializing...
+        </div>
+
+        <div class="status-bar">
+            Editor V1.0 | <span id="statusText">Loading...</span>
+        </div>
+    </div>
+
+    <script>
+        let API_URL = 'http://127.0.0.1:5001'; // fallback, overridden by bootstrapConfig()
+
+        // Parse URL params
+        const params = new URLSearchParams(window.location.search);
+        const category = params.get('category');
+        const itemId = params.get('id');
+
+        const consoleBox = document.getElementById('console');
+
+        // Map color names to CSS classes (all colours centralised in admin.css)
+        const colorClassMap = {
+            '#0f0': 'con-success', 'lime': 'con-success', 'green': 'con-success',
+            'red': 'con-error',
+            'cyan': 'con-info',
+            'yellow': 'con-hi',
+            'orange': 'con-warn'
+        };
+        function log(msg, color = '#0f0') {
+            const cls = colorClassMap[color] || 'con-success';
+            consoleBox.innerHTML += `<br><span class="${cls}">> ${msg}</span>`;
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+        }
+
+        // Helper: detect if Flask server is not running
+        function isServerDown(err) {
+            return err instanceof TypeError && err.message === 'Failed to fetch';
+        }
+        function serverDownMsg() {
+            return `Flask server is not running on ${API_URL}. Start it with: npm run admin`;
+        }
+
+        // Auto commit & push after data changes
+        async function autoCommitAndPush(action) {
+            try {
+                const res = await fetch(`${API_URL}/api/git/commit-push`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `Admin: ${action}` })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    if (result.message === 'No changes to commit') {
+                        log('No changes to commit.', 'cyan');
+                    } else {
+                        log('Changes committed & pushed!', 'lime');
+                    }
+                } else {
+                    log('Git error: ' + (result.error || 'unknown'), 'orange');
+                }
+            } catch (err) {
+                log('Auto-commit skipped: ' + err.message, 'orange');
+            }
+        }
+
+        // Bootstrap: load API_URL from config/app.json
+        async function bootstrapConfig() {
+            try {
+                const appConfig = await fetch('config/app.json').then(r => r.json());
+                API_URL = appConfig.api?.baseUrl
+                    || `http://${appConfig.api?.host || '127.0.0.1'}:${appConfig.api?.port || 5001}`;
+            } catch (e) {
+                log('Using default API URL (config not found)', 'orange');
+            }
+        }
+
+        async function loadItem() {
+            if (!category || !itemId) {
+                showError('Missing category or id in URL parameters.');
+                return;
+            }
+
+            log(`Fetching ${category}/${itemId}...`);
+
+            try {
+                const res = await fetch(`${API_URL}/api/content/item?category=${encodeURIComponent(category)}&id=${encodeURIComponent(itemId)}`);
+                const data = await res.json();
+
+                if (!res.ok || !data.success) {
+                    showError(data.error || 'Unknown error');
+                    return;
+                }
+
+                populateForm(data.item, data.category);
+            } catch (err) {
+                if (isServerDown(err)) {
+                    showError(serverDownMsg());
+                } else {
+                    showError('Network error: Could not reach the admin API at ' + API_URL);
+                }
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('errorBox').style.display = 'block';
+            document.getElementById('errorMsg').innerText = msg;
+            log(msg, 'red');
+        }
+
+        // Resolve a multilingual field to its English value (for admin editing)
+        function resolveField(field) {
+            if (!field) return '';
+            if (typeof field === 'object' && !Array.isArray(field)) return field.en || '';
+            return field;
+        }
+
+        // Current item data, stored for saving back with all languages preserved
+        let currentItem = null;
+        let galleryOrder = []; // Track current gallery order
+        let coverUrl = ''; // Track current cover URL
+        let draggedIndex = null;
+
+        function populateForm(item, cat) {
+            currentItem = item;
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('editForm').style.display = 'block';
+
+            const titleStr = resolveField(item.title);
+            const idStr = item.id || (typeof item.title === 'string' ? item.title : titleStr);
+
+            document.getElementById('editCategory').value = cat.toUpperCase();
+            document.getElementById('editId').value = idStr;
+            document.getElementById('editDate').value = item.date || 'N/A';
+            document.getElementById('editTitle').value = titleStr;
+            document.getElementById('editUrl').value = item.url || '';
+
+            document.getElementById('windowTitle').innerText = `EDITING: ${titleStr}`;
+            document.getElementById('statusText').innerText = `Editing ${cat}/${idStr}`;
+
+            // Show medium field for painting/drawing/sculpting
+            if (cat === 'painting' || cat === 'drawing' || cat === 'sculpting') {
+                document.getElementById('mediumGroup').style.display = 'block';
+                document.getElementById('editMedium').value = resolveField(item.medium);
+            }
+
+            // Show genre + lyrics fields for music
+            if (cat === 'music') {
+                document.getElementById('genreGroup').style.display = 'block';
+                document.getElementById('editGenre').value = resolveField(item.genre);
+                document.getElementById('lyricsGroup').style.display = 'block';
+                document.getElementById('editLyrics').value = resolveField(item.lyrics);
+            }
+
+            // Always populate description
+            document.getElementById('editDescription').value = resolveField(item.description);
+
+            // Show image preview for visual categories
+            if (item.url && (cat === 'painting' || cat === 'drawing' || cat === 'photography' || cat === 'sculpting')) {
+                document.getElementById('previewGroup').style.display = 'block';
+                document.getElementById('previewImg').src = item.url;
+            }
+
+            // Show audio preview for music
+            if (item.url && cat === 'music') {
+                document.getElementById('audioPreviewGroup').style.display = 'block';
+                document.getElementById('audioPreview').src = item.url;
+            }
+
+            // Show gallery manager for image piles
+            if (item.gallery && item.gallery.length > 0 && (cat === 'painting' || cat === 'drawing' || cat === 'photography' || cat === 'sculpting')) {
+                document.getElementById('galleryManagerGroup').style.display = 'block';
+                coverUrl = item.url;
+                galleryOrder = [...item.gallery];
+                renderGalleryManager();
+            }
+
+            log(`Item loaded successfully: "${titleStr}"`, 'cyan');
+        }
+
+        function renderGalleryManager() {
+            const grid = document.getElementById('galleryGrid');
+            grid.innerHTML = '';
+
+            // Render cover image
+            const coverCard = createGalleryCard(coverUrl, -1, true);
+            grid.appendChild(coverCard);
+
+            // Render gallery images
+            galleryOrder.forEach((url, index) => {
+                const card = createGalleryCard(url, index, false);
+                grid.appendChild(card);
+            });
+        }
+
+        function createGalleryCard(url, index, isCover) {
+            const card = document.createElement('div');
+            card.className = 'gallery-card' + (isCover ? ' gallery-card-cover' : '');
+            card.draggable = !isCover;
+            card.dataset.index = index;
+
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = isCover ? 'Cover Image' : `Gallery ${index + 1}`;
+
+            const label = document.createElement('div');
+            label.className = 'gallery-card-label';
+
+            // Check if this image has metadata
+            let hasMetadata = false;
+            if (!isCover && currentItem.galleryMetadata && currentItem.galleryMetadata[url]) {
+                hasMetadata = true;
+            }
+
+            label.textContent = isCover ? 'COVER' : `#${index + 1}${hasMetadata ? ' [meta]' : ''}`;
+
+            const actions = document.createElement('div');
+            actions.className = 'gallery-card-actions';
+
+            if (!isCover) {
+                const editMetaBtn = document.createElement('button');
+                editMetaBtn.type = 'button';
+                editMetaBtn.className = 'gallery-action-btn';
+                editMetaBtn.textContent = 'Meta';
+                editMetaBtn.title = 'Edit title & description';
+                editMetaBtn.onclick = () => editImageMetadata(index);
+                actions.appendChild(editMetaBtn);
+
+                const setCoverBtn = document.createElement('button');
+                setCoverBtn.type = 'button';
+                setCoverBtn.className = 'gallery-action-btn';
+                setCoverBtn.textContent = 'Cover';
+                setCoverBtn.onclick = () => swapCover(index);
+                actions.appendChild(setCoverBtn);
+
+                const extractBtn = document.createElement('button');
+                extractBtn.type = 'button';
+                extractBtn.className = 'gallery-action-btn gallery-extract-btn';
+                extractBtn.textContent = 'Extract';
+                extractBtn.title = 'Remove from pile and create standalone item';
+                extractBtn.onclick = () => extractImage(index);
+                actions.appendChild(extractBtn);
+            }
+
+            card.appendChild(img);
+            card.appendChild(label);
+            card.appendChild(actions);
+
+            // Drag events (only for non-cover images)
+            if (!isCover) {
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragover', handleDragOver);
+                card.addEventListener('drop', handleDrop);
+                card.addEventListener('dragend', handleDragEnd);
+            }
+
+            return card;
+        }
+
+        function handleDragStart(e) {
+            draggedIndex = parseInt(e.currentTarget.dataset.index);
+            e.currentTarget.classList.add('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            const card = e.currentTarget;
+            if (card.classList.contains('gallery-card-cover')) return;
+            card.classList.add('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const card = e.currentTarget;
+            card.classList.remove('drag-over');
+
+            if (card.classList.contains('gallery-card-cover')) return;
+
+            const targetIndex = parseInt(card.dataset.index);
+            if (draggedIndex === targetIndex) return;
+
+            // Reorder array
+            const [removed] = galleryOrder.splice(draggedIndex, 1);
+            galleryOrder.splice(targetIndex, 0, removed);
+
+            renderGalleryManager();
+            log('Gallery reordered', 'cyan');
+        }
+
+        function handleDragEnd(e) {
+            e.currentTarget.classList.remove('dragging');
+            document.querySelectorAll('.gallery-card').forEach(c => c.classList.remove('drag-over'));
+        }
+
+        function swapCover(galleryIndex) {
+            const oldCover = coverUrl;
+            const newCover = galleryOrder[galleryIndex];
+
+            // Swap
+            coverUrl = newCover;
+            galleryOrder[galleryIndex] = oldCover;
+
+            renderGalleryManager();
+            log('Cover image swapped!', 'lime');
+        }
+
+        async function extractImage(galleryIndex) {
+            const imageUrl = galleryOrder[galleryIndex];
+
+            // Close any existing picker
+            document.querySelectorAll('.extract-picker').forEach(p => p.remove());
+
+            // Fetch all items in this category to show as options
+            try {
+                const res = await fetch(`${API_URL}/api/content`);
+                const allContent = await res.json();
+                const items = (allContent[category] || []).filter(item => {
+                    const id = item.id || (typeof item.title === 'string' ? item.title : (item.title && item.title.en) || '');
+                    return id !== itemId; // Exclude current item
+                });
+
+                // Create picker modal
+                const picker = document.createElement('div');
+                picker.className = 'extract-picker-modal';
+
+                let optionsHtml = '';
+                items.forEach(item => {
+                    const titleStr = (typeof item.title === 'object' && item.title !== null) ? (item.title.en || '') : (item.title || '');
+                    const id = item.id || titleStr;
+                    const safeId = id.replace(/"/g, '&quot;');
+                    const galleryCount = (item.gallery && item.gallery.length) ? item.gallery.length + 1 : 1;
+                    optionsHtml += `<div class="extract-picker-item" data-target-id="${safeId}">
+                        ${titleStr} <span class="admin-muted">(${galleryCount} img${galleryCount > 1 ? 's' : ''})</span>
+                    </div>`;
+                });
+
+                picker.innerHTML = `
+                    <div class="extract-picker-content window" style="width: 500px;">
+                        <div class="title-bar">
+                            <span>EXTRACT IMAGE</span>
+                            <div class="title-bar-controls">
+                                <button onclick="closeExtractPicker()">X</button>
+                            </div>
+                        </div>
+                        <div style="padding: 20px;">
+                            <p style="margin: 0 0 15px; font-size: 12px;">What would you like to do with this image?</p>
+                            <button type="button" class="extract-option-btn" onclick="extractAsNewItem(${galleryIndex})">
+                                Create New Item
+                            </button>
+                            <button type="button" class="extract-option-btn" onclick="showExtractPileList(${galleryIndex})">
+                                Add to Existing Pile
+                            </button>
+                            <div id="extractPileList" style="display: none; margin-top: 15px;">
+                                <p style="font-size: 10px; margin: 0 0 8px; font-weight: bold;">Select destination pile:</p>
+                                <div style="max-height: 200px; overflow-y: auto; border: 2px inset var(--admin-win-border-dark); background: white;">
+                                    ${optionsHtml || '<p style="padding: 10px; margin: 0; text-align: center; font-size: 11px;">No other items available</p>'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(picker);
+
+                // Add click handler for pile items
+                picker.querySelectorAll('.extract-picker-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const targetId = item.dataset.targetId;
+                        extractToPile(galleryIndex, targetId);
+                    });
+                });
+
+            } catch (err) {
+                if (isServerDown(err)) {
+                    log(serverDownMsg(), 'red');
+                } else {
+                    log('Error loading items: ' + err.message, 'red');
+                }
+            }
+        }
+
+        window.closeExtractPicker = function() {
+            const picker = document.querySelector('.extract-picker-modal');
+            if (picker) picker.remove();
+        };
+
+        window.showExtractPileList = function(galleryIndex) {
+            document.getElementById('extractPileList').style.display = 'block';
+        };
+
+        window.extractAsNewItem = async function(galleryIndex) {
+            closeExtractPicker();
+
+            const imageUrl = galleryOrder[galleryIndex];
+
+            // Get metadata for this image if it exists
+            let imageMetadata = null;
+            if (currentItem.galleryMetadata && currentItem.galleryMetadata[imageUrl]) {
+                imageMetadata = currentItem.galleryMetadata[imageUrl];
+            }
+
+            const suggestedTitle = imageMetadata ? resolveField(imageMetadata.title) : `Photo ${galleryIndex + 1}`;
+            const suggestedDesc = imageMetadata ? resolveField(imageMetadata.description) : '';
+
+            // Prompt for title
+            const newTitle = prompt('Enter title for the new item:', suggestedTitle);
+            if (!newTitle || newTitle.trim() === '') {
+                log('Extraction cancelled', 'yellow');
+                return;
+            }
+
+            log('Extracting image as new item...', 'yellow');
+
+            try {
+                const res = await fetch(`${API_URL}/api/content/extract-from-pile`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category,
+                        sourceId: itemId,
+                        imageUrl: imageUrl,
+                        imageIndex: galleryIndex,
+                        customTitle: newTitle.trim(),
+                        customDescription: suggestedDesc
+                    })
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    galleryOrder.splice(galleryIndex, 1);
+                    // Remove metadata for this image
+                    if (currentItem.galleryMetadata && currentItem.galleryMetadata[imageUrl]) {
+                        delete currentItem.galleryMetadata[imageUrl];
+                    }
+                    renderGalleryManager();
+                    log(`Image extracted! New item created: "${result.newTitle}"`, 'lime');
+                    autoCommitAndPush(`extract image from pile in ${category}`);
+                } else {
+                    log('Error extracting image: ' + (result.error || 'Unknown'), 'red');
+                }
+            } catch (err) {
+                if (isServerDown(err)) {
+                    log(serverDownMsg(), 'red');
+                } else {
+                    log('Network error: ' + err.message, 'red');
+                }
+            }
+        };
+
+        async function extractToPile(galleryIndex, targetId) {
+            closeExtractPicker();
+
+            const imageUrl = galleryOrder[galleryIndex];
+
+            log('Moving image to pile...', 'yellow');
+
+            try {
+                const res = await fetch(`${API_URL}/api/content/add-to-pile`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category,
+                        sourceId: itemId,
+                        targetId: targetId,
+                        imageUrl: imageUrl,
+                        imageIndex: galleryIndex
+                    })
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    galleryOrder.splice(galleryIndex, 1);
+                    renderGalleryManager();
+                    log(`Image moved to pile! (${result.targetGalleryCount} images total)`, 'lime');
+                    autoCommitAndPush(`move image to pile in ${category}`);
+                } else {
+                    log('Error moving image: ' + (result.error || 'Unknown'), 'red');
+                }
+            } catch (err) {
+                if (isServerDown(err)) {
+                    log(serverDownMsg(), 'red');
+                } else {
+                    log('Network error: ' + err.message, 'red');
+                }
+            }
+        }
+
+        // Edit metadata for individual gallery image
+        function editImageMetadata(index) {
+            const imageUrl = galleryOrder[index];
+
+            // Get current metadata if it exists
+            let currentMetadata = {};
+            if (currentItem.galleryMetadata && currentItem.galleryMetadata[imageUrl]) {
+                currentMetadata = currentItem.galleryMetadata[imageUrl];
+            }
+
+            const currentTitle = resolveField(currentMetadata.title) || '';
+            const currentDesc = resolveField(currentMetadata.description) || '';
+
+            // Create modal
+            const modal = document.createElement('div');
+            modal.className = 'extract-picker-modal';
+            modal.innerHTML = `
+                <div class="extract-picker-content" style="max-width: 500px;">
+                    <div class="extract-picker-header">
+                        <span>Edit Image Metadata</span>
+                        <button onclick="closeMetadataModal()" class="extract-picker-close">x</button>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="text-align: center; margin-bottom: 15px;">
+                            <img src="${imageUrl}" style="max-width: 100%; max-height: 200px; border: 2px solid var(--admin-win-border-dark);">
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px; font-size: 11px;">Title (English):</label>
+                            <input type="text" id="metaTitle" value="${currentTitle}" style="width: 100%; padding: 5px; font-family: 'MS Sans Serif', sans-serif; font-size: 11px; border: 2px inset var(--admin-win-border-dark);">
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px; font-size: 11px;">Description (English):</label>
+                            <textarea id="metaDescription" rows="4" style="width: 100%; padding: 5px; font-family: 'MS Sans Serif', sans-serif; font-size: 11px; border: 2px inset var(--admin-win-border-dark); resize: vertical;">${currentDesc}</textarea>
+                        </div>
+                        <div style="text-align: right;">
+                            <button type="button" onclick="closeMetadataModal()" style="padding: 5px 15px; margin-right: 10px;">Cancel</button>
+                            <button type="button" onclick="saveImageMetadata(${index})" style="padding: 5px 15px; font-weight: bold;">Save</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+        }
+
+        window.closeMetadataModal = function() {
+            const modal = document.querySelector('.extract-picker-modal');
+            if (modal) modal.remove();
+        };
+
+        window.saveImageMetadata = function(index) {
+            const imageUrl = galleryOrder[index];
+            const newTitle = document.getElementById('metaTitle').value.trim();
+            const newDesc = document.getElementById('metaDescription').value.trim();
+
+            // Initialize galleryMetadata if it doesn't exist
+            if (!currentItem.galleryMetadata) {
+                currentItem.galleryMetadata = {};
+            }
+
+            // Store metadata for this image
+            currentItem.galleryMetadata[imageUrl] = {
+                title: { en: newTitle, fr: newTitle, mx: newTitle, ht: newTitle },
+                description: { en: newDesc, fr: newDesc, mx: newDesc, ht: newDesc }
+            };
+
+            log(`Metadata updated for image #${index + 1}`, 'lime');
+            closeMetadataModal();
+            renderGalleryManager(); // Refresh to show metadata indicator
+        };
+
+        // Build a multilingual update: set the 'en' value, preserve other langs from the original
+        function makeMultilingualUpdate(originalField, newEnValue) {
+            if (typeof originalField === 'object' && originalField !== null && !Array.isArray(originalField)) {
+                return { ...originalField, en: newEnValue };
+            }
+            // If original was a plain string, convert to multilingual
+            return { en: newEnValue, fr: newEnValue, mx: newEnValue, ht: newEnValue };
+        }
+
+        // Form submission
+        document.getElementById('editForm').onsubmit = async (e) => {
+            e.preventDefault();
+
+            const updates = {
+                title: makeMultilingualUpdate(currentItem.title, document.getElementById('editTitle').value)
+            };
+
+            // Include medium if visible
+            const mediumGroup = document.getElementById('mediumGroup');
+            if (mediumGroup.style.display !== 'none') {
+                updates.medium = makeMultilingualUpdate(currentItem.medium, document.getElementById('editMedium').value);
+            }
+
+            // Include genre if visible
+            const genreGroup = document.getElementById('genreGroup');
+            if (genreGroup.style.display !== 'none') {
+                updates.genre = makeMultilingualUpdate(currentItem.genre, document.getElementById('editGenre').value);
+            }
+
+            // Include lyrics if visible
+            const lyricsGroup = document.getElementById('lyricsGroup');
+            if (lyricsGroup.style.display !== 'none') {
+                updates.lyrics = makeMultilingualUpdate(currentItem.lyrics, document.getElementById('editLyrics').value);
+            }
+
+            // Always include description
+            updates.description = makeMultilingualUpdate(currentItem.description, document.getElementById('editDescription').value);
+
+            // Include gallery changes if gallery manager was visible
+            if (document.getElementById('galleryManagerGroup').style.display !== 'none') {
+                updates.url = coverUrl;
+                updates.gallery = galleryOrder;
+                // Include gallery metadata if it exists
+                if (currentItem.galleryMetadata) {
+                    updates.galleryMetadata = currentItem.galleryMetadata;
+                }
+            }
+
+            log('Saving changes...', 'yellow');
+
+            try {
+                const res = await fetch(`${API_URL}/api/content/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category,
+                        id: itemId,
+                        updates
+                    })
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    log('Changes saved successfully!', 'lime');
+                    document.getElementById('statusText').innerText = 'Saved! Redirecting...';
+                    autoCommitAndPush(`edit item in ${category}`);
+                    setTimeout(() => {
+                        window.location.href = 'admin.html#manage';
+                    }, 1500);
+                } else {
+                    log('Error: ' + (result.error || 'Unknown'), 'red');
+                }
+            } catch (err) {
+                if (isServerDown(err)) {
+                    log(serverDownMsg(), 'red');
+                } else {
+                    log('Network error: ' + err.message, 'red');
+                }
+            }
+        };
+
+        // Initialize: bootstrap config first, then load item
+        (async () => {
+            await bootstrapConfig();
+            loadItem();
+        })();
+    </script>
+</body>
+
+</html>

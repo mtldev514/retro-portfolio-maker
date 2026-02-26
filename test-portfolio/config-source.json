@@ -1,0 +1,8 @@
+{
+  "mode": "local",
+  "local": {
+    "configDir": "config",
+    "dataDir": "data",
+    "langDir": "lang"
+  }
+}

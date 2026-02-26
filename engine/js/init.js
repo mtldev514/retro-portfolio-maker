@@ -15,16 +15,16 @@
     // Initialize language selector dynamically
     initLanguageSelector();
 
-    // Initialize theme selector dynamically
-    initThemeSelector();
-
     // Initialize other modules
     if (typeof i18n !== 'undefined') {
         i18n.init();
     }
 
     if (typeof themes !== 'undefined') {
+        // Synchronous init restores cached colors (flash-free)
         themes.init();
+        // Async load fetches themes.json and builds dynamic switcher
+        await themes.loadThemeDefinitions();
     }
 
     console.log('✅ Application initialized');
@@ -72,10 +72,3 @@ function initLanguageSelector() {
     }
 }
 
-/**
- * Dynamically build theme selector from config
- */
-function initThemeSelector() {
-    // This will be implemented when we externalize themes.js
-    // For now, themes are still in themes.js
-}

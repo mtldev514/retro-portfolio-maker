@@ -6,6 +6,9 @@ dist/
 
 # Testing
 coverage/
+test-portfolio/dist/
+test-results/
+playwright-report/
 
 # Environment
 .env

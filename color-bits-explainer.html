@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 Color Depth Through Time</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0e27;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            scroll-snap-align: start;
+        }
+
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 8vw, 5rem);
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ff6b9d, #c06bf8, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(20deg); }
+        }
+
+        h2 {
+            font-size: clamp(1.5rem, 5vw, 3rem);
+            margin-bottom: 1rem;
+            color: #4ecdc4;
+            text-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
+        }
+
+        .subtitle {
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            color: #a0a0a0;
+            margin-bottom: 2rem;
+        }
+
+        .timeline-badge {
+            display: inline-block;
+            background: rgba(255, 107, 157, 0.2);
+            border: 2px solid #ff6b9d;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            color: #ff6b9d;
+            font-weight: bold;
+        }
+
+        .bit-display {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(78, 205, 196, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .bit-display:hover {
+            transform: translateY(-5px);
+            border-color: rgba(78, 205, 196, 0.6);
+            box-shadow: 0 10px 30px rgba(78, 205, 196, 0.2);
+        }
+
+        .channel-demo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .channel-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .channel-box canvas {
+            width: 100%;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+            image-rendering: pixelated;
+        }
+
+        .channel-label {
+            font-size: 0.9rem;
+            color: #a0a0a0;
+            margin-top: 0.5rem;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 5px;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .color-swatch {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+            transition: transform 0.2s;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+
+        .tech-spec {
+            background: rgba(192, 107, 248, 0.1);
+            border-left: 3px solid #c06bf8;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 5px;
+        }
+
+        .tech-spec strong {
+            color: #c06bf8;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .comparison-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .comparison-item canvas {
+            width: 100%;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+
+        .scroll-indicator::before {
+            content: '↓';
+            font-size: 2rem;
+            color: #4ecdc4;
+        }
+
+        code {
+            background: rgba(78, 205, 196, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            color: #4ecdc4;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b9d, #c06bf8, #4ecdc4);
+            z-index: 1000;
+            transition: width 0.1s ease;
+        }
+
+        .bg-circles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(50px, -50px) scale(1.1); }
+            66% { transform: translate(-50px, 50px) scale(0.9); }
+        }
+
+        .highlight {
+            color: #ff6b9d;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .section {
+                padding: 1rem;
+            }
+            .bit-display {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="bg-circles" id="bgCircles"></div>
+
+    <!-- Intro Section -->
+    <section class="section">
+        <div class="container">
+            <h1>🎨 Color Depth Through Time</h1>
+            <p class="subtitle">How computer graphics evolved from monochrome to millions of colors</p>
+            <div class="bit-display">
+                <h3 style="margin-bottom: 1rem;">Understanding Color Channels</h3>
+                <p style="line-height: 1.8;">
+                    In the beginning, computers didn't use <strong>RGB (Red, Green, Blue)</strong> at all!
+                    They started with just <span class="highlight">1 channel</span> (black & white), then gradually
+                    evolved to use <span class="highlight">3 separate channels</span> (RGB) to create millions of colors.
+                </p>
+                <p style="line-height: 1.8; margin-top: 1rem;">
+                    Each era had different constraints: memory was expensive, processors were slow,
+                    and displays had physical limitations. Let's journey through time! 👇
+                </p>
+            </div>
+        </div>
+        <div class="scroll-indicator"></div>
+    </section>
+
+    <!-- 1 Channel: Monochrome Era (1950s-1970s) -->
+    <section class="section">
+        <div class="container">
+            <div class="timeline-badge">1950s - 1970s</div>
+            <h2>1 Channel: Monochrome Era</h2>
+            <div class="bit-display">
+                <p style="margin-bottom: 1rem; line-height: 1.6;">
+                    Early computers used <strong>1 single channel</strong> - just intensity, no color!
+                    Think of it like a dimmer switch: you could only control how bright or dark a pixel was.
+                </p>
+
+                <div class="tech-spec">
+                    <strong>1-bit monochrome:</strong> 1 bit per pixel = 2 values (black or white)<br>
+                    <strong>Examples:</strong> Early terminals, original Macintosh (1984)
+                </div>
+
+                <div class="channel-demo">
+                    <div class="channel-box">
+                        <canvas id="mono1bit" width="200" height="200"></canvas>
+                        <div class="channel-label">1-bit (2 colors)</div>
+                    </div>
+                    <div class="channel-box">
+                        <canvas id="mono4bit" width="200" height="200"></canvas>
+                        <div class="channel-label">4-bit (16 shades of gray)</div>
+                    </div>
+                </div>
+
+                <div class="color-palette">
+                    <div class="color-swatch" style="background: #000000;">Black</div>
+                    <div class="color-swatch" style="background: #FFFFFF; color: #000;">White</div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator"></div>
+    </section>
+
+    <!-- 3 Channels: Early RGB (Late 1970s-1980s) -->
+    <section class="section">
+        <div class="container">
+            <div class="timeline-badge">Late 1970s - 1980s</div>
+            <h2>3 Channels: RGB is Born! 🌈</h2>
+            <div class="bit-display">
+                <p style="margin-bottom: 1rem; line-height: 1.6;">
+                    Revolutionary! Computers now use <strong>3 separate channels</strong>: Red, Green, and Blue.
+                    But memory was expensive, so each channel only got <span class="highlight">1 bit</span>.
+                </p>
+
+                <div class="tech-spec">
+                    <strong>3-bit RGB (1-1-1):</strong> 1 bit red + 1 bit green + 1 bit blue = 3 bits total<br>
+                    <strong>Math:</strong> 2 × 2 × 2 = <span class="highlight">8 colors</span><br>
+                    <strong>Examples:</strong> IBM CGA (1981), early Apple II
+                </div>
+
+                <div class="channel-demo">
+                    <div class="channel-box">
+                        <canvas id="rgb3bitRed" width="150" height="150"></canvas>
+                        <div class="channel-label">Red channel (1-bit)</div>
+                    </div>
+                    <div class="channel-box">
+                        <canvas id="rgb3bitGreen" width="150" height="150"></canvas>
+                        <div class="channel-label">Green channel (1-bit)</div>
+                    </div>
+                    <div class="channel-box">
+                        <canvas id="rgb3bitBlue" width="150" height="150"></canvas>
+                        <div class="channel-label">Blue channel (1-bit)</div>
+                    </div>
+                    <div class="channel-box">
+                        <canvas id="rgb3bitFull" width="150" height="150"></canvas>
+                        <div class="channel-label">Combined (8 colors!)</div>
+                    </div>
+                </div>
+
+                <div class="color-palette" id="palette3bit"></div>
+            </div>
+        </div>
+        <div class="scroll-indicator"></div>
+    </section>
+
+    <!-- 8-bit Color: Palette Era (1987-1990s) -->
+    <section class="section">
+        <div class="container">
+            <div class="timeline-badge">1987 - 1990s</div>
+            <h2>8-bit: The Palette Era</h2>
+            <div class="bit-display">
+                <p style="margin-bottom: 1rem; line-height: 1.6;">
+                    A clever trick! Instead of RGB channels, use <strong>8 bits to pick from a palette</strong>
+                    of 256 pre-selected colors. Games like Super Mario and Sonic used this!
+                </p>
+
+                <div class="tech-spec">
+                    <strong>8-bit indexed color:</strong> 8 bits per pixel = 256 colors from a palette<br>
+                    <strong>Common palette:</strong> 3-3-2 RGB (3 bits red, 3 bits green, 2 bits blue)<br>
+                    <strong>Examples:</strong> VGA, GIF files, SNES, Sega Genesis
+                </div>
+
+                <div class="comparison-grid">
+                    <div class="comparison-item">
+                        <canvas id="palette8bit" width="250" height="250"></canvas>
+                        <div>8-bit palette (256 colors)</div>
+                    </div>
+                </div>
+
+                <p style="margin-top: 1rem; line-height: 1.6; color: #a0a0a0;">
+                    💡 <strong>Why palettes?</strong> Storing RGB values for every pixel took too much memory.
+                    Palettes let you pick 256 "favorite" colors and reference them with just 1 byte!
+                </p>
+            </div>
+        </div>
+        <div class="scroll-indicator"></div>
+    </section>
+
+    <!-- 16-bit RGB: High Color (1990s) -->
+    <section class="section">
+        <div class="container">
+            <div class="timeline-badge">1990s</div>
+            <h2>16-bit RGB: "High Color"</h2>
+            <div class="bit-display">
+                <p style="margin-bottom: 1rem; line-height: 1.6;">
+                    Back to true RGB! <strong>16 bits split across 3 channels</strong>, but not evenly.
+                    Green gets more bits because our eyes are more sensitive to it!
+                </p>
+
+                <div class="tech-spec">
+                    <strong>16-bit RGB (5-6-5):</strong> 5 bits red + 6 bits green + 5 bits blue = 16 bits total<br>
+                    <strong>Math:</strong> 32 × 64 × 32 = <span class="highlight">65,536 colors</span><br>
+                    <strong>Examples:</strong> PlayStation 1, early Windows games
+                </div>
+
+                <div class="channel-demo">
+                    <div class="channel-box">
+                        <canvas id="rgb16bitRed" width="150" height="150"></canvas>
+                        <div class="channel-label">Red (5-bit = 32 shades)</div>
+                    </div>
+                    <div class="channel-box">
+                        <canvas id="rgb16bitGreen" width="150" height="150"></canvas>
+                        <div class="channel-label">Green (6-bit = 64 shades)</div>
+                    </div>
+                    <div class="channel-box">
+                        <canvas id="rgb16bitBlue" width="150" height="150"></canvas>
+                        <div class="channel-label">Blue (5-bit = 32 shades)</div>
+                    </div>
+                    <div class="channel-box">
+                        <canvas id="rgb16bitFull" width="150" height="150"></canvas>
+                        <div class="channel-label">Combined (65K colors)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator"></div>
+    </section>
+
+    <!-- 24-bit RGB: True Color (Mid 1990s - Today) -->
+    <section class="section">
+        <div class="container">
+            <div class="timeline-badge">Mid 1990s - Today</div>
+            <h2>24-bit RGB: "True Color"</h2>
+            <div class="bit-display">
+                <p style="margin-bottom: 1rem; line-height: 1.6;">
+                    The modern standard! <strong>8 bits per channel, evenly distributed.</strong>
+                    This gives us more colors than the human eye can distinguish!
+                </p>
+
+                <div class="tech-spec">
+                    <strong>24-bit RGB (8-8-8):</strong> 8 bits red + 8 bits green + 8 bits blue = 24 bits total<br>
+                    <strong>Math:</strong> 256 × 256 × 256 = <span class="highlight">16,777,216 colors</span><br>
+                    <strong>Storage:</strong> 3 bytes per pixel<br>
+                    <strong>Examples:</strong> Modern displays, JPEG, PNG (without alpha)
+                </div>
+
+                <div class="channel-demo">
+                    <div class="channel-box">
+                        <canvas id="rgb24bitRed" width="150" height="150"></canvas>
+                        <div class="channel-label">Red (8-bit = 256 shades)</div>
+                    </div>
+                    <div class="channel-box">
+                        <canvas id="rgb24bitGreen" width="150" height="150"></canvas>
+                        <div class="channel-label">Green (8-bit = 256 shades)</div>
+                    </div>
+                    <div class="channel-box">
+                        <canvas id="rgb24bitBlue" width="150" height="150"></canvas>
+                        <div class="channel-label">Blue (8-bit = 256 shades)</div>
+                    </div>
+                    <div class="channel-box">
+                        <canvas id="rgb24bitFull" width="150" height="150"></canvas>
+                        <div class="channel-label">Combined (16.7M colors)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator"></div>
+    </section>
+
+    <!-- 32-bit RGBA: Adding Transparency (Late 1990s - Today) -->
+    <section class="section">
+        <div class="container">
+            <div class="timeline-badge">Late 1990s - Today</div>
+            <h2>32-bit RGBA: Adding a 4th Channel</h2>
+            <div class="bit-display">
+                <p style="margin-bottom: 1rem; line-height: 1.6;">
+                    Same RGB as 24-bit, but adds <strong>Alpha channel</strong> for transparency!
+                    Now we have <span class="highlight">4 channels total</span>.
+                </p>
+
+                <div class="tech-spec">
+                    <strong>32-bit RGBA (8-8-8-8):</strong> 8 bits red + 8 bits green + 8 bits blue + 8 bits alpha<br>
+                    <strong>Math:</strong> 16.7M colors × 256 transparency levels = <span class="highlight">4.3 billion combinations</span><br>
+                    <strong>Storage:</strong> 4 bytes per pixel<br>
+                    <strong>Examples:</strong> PNG with transparency, modern UI graphics, Photoshop
+                </div>
+
+                <div class="channel-demo">
+                    <div class="channel-box">
+                        <canvas id="rgba32bitRed" width="120" height="120"></canvas>
+                        <div class="channel-label">Red (8-bit)</div>
+                    </div>
+                    <div class="channel-box">
+                        <canvas id="rgba32bitGreen" width="120" height="120"></canvas>
+                        <div class="channel-label">Green (8-bit)</div>
+                    </div>
+                    <div class="channel-box">
+                        <canvas id="rgba32bitBlue" width="120" height="120"></canvas>
+                        <div class="channel-label">Blue (8-bit)</div>
+                    </div>
+                    <div class="channel-box">
+                        <canvas id="rgba32bitAlpha" width="120" height="120"></canvas>
+                        <div class="channel-label">Alpha (8-bit)</div>
+                    </div>
+                    <div class="channel-box">
+                        <canvas id="rgba32bitFull" width="120" height="120"></canvas>
+                        <div class="channel-label">Combined (with transparency)</div>
+                    </div>
+                </div>
+
+                <p style="margin-top: 1rem; line-height: 1.6; color: #a0a0a0;">
+                    💡 The alpha channel controls transparency: 0 = fully transparent, 255 = fully opaque
+                </p>
+            </div>
+        </div>
+        <div class="scroll-indicator"></div>
+    </section>
+
+    <!-- Timeline Summary -->
+    <section class="section">
+        <div class="container">
+            <h2>The Evolution Summary</h2>
+            <div class="comparison-grid">
+                <div class="comparison-item">
+                    <canvas id="compMono" width="200" height="200"></canvas>
+                    <div><strong>1 Channel</strong><br>Monochrome (B&W)</div>
+                </div>
+                <div class="comparison-item">
+                    <canvas id="comp3bit" width="200" height="200"></canvas>
+                    <div><strong>3 Channels</strong><br>RGB 1-bit each (8 colors)</div>
+                </div>
+                <div class="comparison-item">
+                    <canvas id="comp8bit" width="200" height="200"></canvas>
+                    <div><strong>Palette</strong><br>8-bit indexed (256 colors)</div>
+                </div>
+                <div class="comparison-item">
+                    <canvas id="comp16bit" width="200" height="200"></canvas>
+                    <div><strong>3 Channels</strong><br>RGB 5-6-5 (65K colors)</div>
+                </div>
+                <div class="comparison-item">
+                    <canvas id="comp24bit" width="200" height="200"></canvas>
+                    <div><strong>3 Channels</strong><br>RGB 8-8-8 (16.7M colors)</div>
+                </div>
+                <div class="comparison-item">
+                    <canvas id="comp32bit" width="200" height="200"></canvas>
+                    <div><strong>4 Channels</strong><br>RGBA 8-8-8-8 (+ transparency)</div>
+                </div>
+            </div>
+
+            <div class="bit-display" style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem; color: #ff6b9d;">Key Takeaways 🎓</h3>
+                <ul style="list-style: none; line-height: 2;">
+                    <li>🕰️ <strong>1 channel (1950s-1970s):</strong> Just intensity, no color at all</li>
+                    <li>🌈 <strong>3 channels (late 1970s):</strong> RGB is invented! Red + Green + Blue</li>
+                    <li>🎨 <strong>Palette era (1987):</strong> 8-bit using pre-selected colors to save memory</li>
+                    <li>📺 <strong>16-bit RGB (1990s):</strong> 5-6-5 split, green gets extra bit</li>
+                    <li>✨ <strong>24-bit RGB (mid-1990s):</strong> 8-8-8, the modern standard</li>
+                    <li>👻 <strong>32-bit RGBA (late 1990s):</strong> Adds 4th channel for transparency</li>
+                    <li>💾 <strong>Why multiples of 8?</strong> Because 8 bits = 1 byte, the computer's basic unit!</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Progress bar
+        window.addEventListener('scroll', () => {
+            const winScroll = document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progressBar').style.width = scrolled + '%';
+        });
+
+        // Background circles
+        const bgCircles = document.getElementById('bgCircles');
+        const colors = ['#ff6b9d', '#c06bf8', '#4ecdc4'];
+        for (let i = 0; i < 5; i++) {
+            const circle = document.createElement('div');
+            circle.className = 'circle';
+            circle.style.width = Math.random() * 300 + 100 + 'px';
+            circle.style.height = circle.style.width;
+            circle.style.left = Math.random() * 100 + '%';
+            circle.style.top = Math.random() * 100 + '%';
+            circle.style.background = colors[Math.floor(Math.random() * colors.length)];
+            circle.style.animationDelay = Math.random() * 5 + 's';
+            bgCircles.appendChild(circle);
+        }
+
+        // Drawing functions
+        function drawGradient(canvas, colors) {
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const ratio = Math.sqrt((x/width)**2 + (y/height)**2) / Math.sqrt(2);
+                    const colorIndex = Math.min(Math.floor(ratio * colors.length), colors.length - 1);
+                    ctx.fillStyle = colors[colorIndex];
+                    ctx.fillRect(x, y, 1, 1);
+                }
+            }
+        }
+
+        function drawChannel(canvas, channel, bitDepth) {
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const ratio = Math.sqrt((x/width)**2 + (y/height)**2) / Math.sqrt(2);
+                    let value = Math.floor(ratio * ((2 ** bitDepth) - 1));
+                    value = Math.floor((value / ((2 ** bitDepth) - 1)) * 255);
+
+                    if (channel === 'red') {
+                        ctx.fillStyle = `rgb(${value}, 0, 0)`;
+                    } else if (channel === 'green') {
+                        ctx.fillStyle = `rgb(0, ${value}, 0)`;
+                    } else if (channel === 'blue') {
+                        ctx.fillStyle = `rgb(0, 0, ${value})`;
+                    } else if (channel === 'gray') {
+                        ctx.fillStyle = `rgb(${value}, ${value}, ${value})`;
+                    }
+                    ctx.fillRect(x, y, 1, 1);
+                }
+            }
+        }
+
+        function drawRGBCombined(canvas, rBits, gBits, bBits) {
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const ratio = Math.sqrt((x/width)**2 + (y/height)**2) / Math.sqrt(2);
+
+                    let r = Math.floor(ratio * ((2 ** rBits) - 1));
+                    let g = Math.floor(ratio * ((2 ** gBits) - 1));
+                    let b = Math.floor(ratio * ((2 ** bBits) - 1));
+
+                    r = Math.floor((r / ((2 ** rBits) - 1)) * 255);
+                    g = Math.floor((g / ((2 ** gBits) - 1)) * 255);
+                    b = Math.floor((b / ((2 ** bBits) - 1)) * 255);
+
+                    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                    ctx.fillRect(x, y, 1, 1);
+                }
+            }
+        }
+
+        function drawAlphaChannel(canvas) {
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const ratio = Math.sqrt((x/width)**2 + (y/height)**2) / Math.sqrt(2);
+                    const value = Math.floor(ratio * 255);
+                    ctx.fillStyle = `rgb(${value}, ${value}, ${value})`;
+                    ctx.fillRect(x, y, 1, 1);
+                }
+            }
+        }
+
+        function drawRGBA(canvas) {
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Checkerboard background
+            for (let y = 0; y < height; y += 10) {
+                for (let x = 0; x < width; x += 10) {
+                    ctx.fillStyle = ((x + y) / 10) % 2 === 0 ? '#333' : '#666';
+                    ctx.fillRect(x, y, 10, 10);
+                }
+            }
+
+            // Gradient with alpha
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const ratio = Math.sqrt((x/width)**2 + (y/height)**2) / Math.sqrt(2);
+                    const value = Math.floor(ratio * 255);
+                    const alpha = 1 - ratio;
+                    ctx.fillStyle = `rgba(78, 205, 196, ${alpha})`;
+                    ctx.fillRect(x, y, 1, 1);
+                }
+            }
+        }
+
+        // Monochrome
+        drawGradient(document.getElementById('mono1bit'), ['#000000', '#FFFFFF']);
+        drawGradient(document.getElementById('mono4bit'), [
+            '#000', '#111', '#222', '#333', '#444', '#555', '#666', '#777',
+            '#888', '#999', '#AAA', '#BBB', '#CCC', '#DDD', '#EEE', '#FFF'
+        ]);
+
+        // 3-bit RGB (1-1-1)
+        const colors3bit = [
+            '#000000', '#0000FF', '#00FF00', '#00FFFF',
+            '#FF0000', '#FF00FF', '#FFFF00', '#FFFFFF'
+        ];
+
+        drawChannel(document.getElementById('rgb3bitRed'), 'red', 1);
+        drawChannel(document.getElementById('rgb3bitGreen'), 'green', 1);
+        drawChannel(document.getElementById('rgb3bitBlue'), 'blue', 1);
+        drawRGBCombined(document.getElementById('rgb3bitFull'), 1, 1, 1);
+
+        // 3-bit palette
+        const palette3bit = document.getElementById('palette3bit');
+        colors3bit.forEach((color, i) => {
+            const swatch = document.createElement('div');
+            swatch.className = 'color-swatch';
+            swatch.style.background = color;
+            const labels = ['Black', 'Blue', 'Green', 'Cyan', 'Red', 'Magenta', 'Yellow', 'White'];
+            swatch.textContent = labels[i];
+            palette3bit.appendChild(swatch);
+        });
+
+        // 8-bit palette
+        const ctx8bit = document.getElementById('palette8bit').getContext('2d');
+        for (let y = 0; y < 250; y++) {
+            for (let x = 0; x < 250; x++) {
+                const r = Math.floor((x / 250) * 7) * 36;
+                const g = Math.floor((y / 250) * 7) * 36;
+                const b = 128;
+                ctx8bit.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                ctx8bit.fillRect(x, y, 1, 1);
+            }
+        }
+
+        // 16-bit RGB (5-6-5)
+        drawChannel(document.getElementById('rgb16bitRed'), 'red', 5);
+        drawChannel(document.getElementById('rgb16bitGreen'), 'green', 6);
+        drawChannel(document.getElementById('rgb16bitBlue'), 'blue', 5);
+        drawRGBCombined(document.getElementById('rgb16bitFull'), 5, 6, 5);
+
+        // 24-bit RGB (8-8-8)
+        drawChannel(document.getElementById('rgb24bitRed'), 'red', 8);
+        drawChannel(document.getElementById('rgb24bitGreen'), 'green', 8);
+        drawChannel(document.getElementById('rgb24bitBlue'), 'blue', 8);
+        drawRGBCombined(document.getElementById('rgb24bitFull'), 8, 8, 8);
+
+        // 32-bit RGBA
+        drawChannel(document.getElementById('rgba32bitRed'), 'red', 8);
+        drawChannel(document.getElementById('rgba32bitGreen'), 'green', 8);
+        drawChannel(document.getElementById('rgba32bitBlue'), 'blue', 8);
+        drawAlphaChannel(document.getElementById('rgba32bitAlpha'));
+        drawRGBA(document.getElementById('rgba32bitFull'));
+
+        // Comparison grid
+        drawChannel(document.getElementById('compMono'), 'gray', 1);
+        drawRGBCombined(document.getElementById('comp3bit'), 1, 1, 1);
+        drawRGBCombined(document.getElementById('comp8bit'), 3, 3, 2);
+        drawRGBCombined(document.getElementById('comp16bit'), 5, 6, 5);
+        drawRGBCombined(document.getElementById('comp24bit'), 8, 8, 8);
+        drawRGBA(document.getElementById('comp32bit'));
+
+        // Hide last scroll indicator
+        document.querySelectorAll('.section').forEach((section, index, sections) => {
+            if (index === sections.length - 1) {
+                const indicator = section.querySelector('.scroll-indicator');
+                if (indicator) indicator.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

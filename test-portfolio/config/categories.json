@@ -1,0 +1,52 @@
+{
+  "contentTypes": [
+    {
+      "id": "painting",
+      "name": { "en": "Painting", "fr": "Peinture", "mx": "Pintura", "ht": "Penti" },
+      "icon": "🎨",
+      "mediaType": "image",
+      "dataFile": "data/painting.json",
+      "description": "Paintings"
+    },
+    {
+      "id": "drawing",
+      "name": { "en": "Drawing", "fr": "Dessin", "mx": "Dibujo", "ht": "Desen" },
+      "icon": "✏️",
+      "mediaType": "image",
+      "dataFile": "data/drawing.json",
+      "description": "Drawings"
+    },
+    {
+      "id": "photography",
+      "name": { "en": "Photography", "fr": "Photographie", "mx": "Fotografía", "ht": "Fotografi" },
+      "icon": "📷",
+      "mediaType": "image",
+      "dataFile": "data/photography.json",
+      "description": "Photos"
+    },
+    {
+      "id": "sculpting",
+      "name": { "en": "Sculpting", "fr": "Sculpture", "mx": "Escultura", "ht": "Eskilti" },
+      "icon": "🗿",
+      "mediaType": "image",
+      "dataFile": "data/sculpting.json",
+      "description": "Sculptures"
+    },
+    {
+      "id": "music",
+      "name": { "en": "Music", "fr": "Musique", "mx": "Música", "ht": "Mizik" },
+      "icon": "🎵",
+      "mediaType": "audio",
+      "dataFile": "data/music.json",
+      "description": "Music"
+    },
+    {
+      "id": "projects",
+      "name": { "en": "Projects", "fr": "Projets", "mx": "Proyectos", "ht": "Pwojè" },
+      "icon": "💻",
+      "mediaType": "link",
+      "dataFile": "data/projects.json",
+      "description": "Projects"
+    }
+  ]
+}

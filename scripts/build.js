@@ -81,6 +81,22 @@ async function build(options = {}) {
     console.log(chalk.green('  ✓'), `assets/ (${assetCount} files)`);
   }
 
+  // Copy custom.css if exists — user CSS overrides
+  const customCssPath = path.join(cwd, 'custom.css');
+  if (fs.existsSync(customCssPath)) {
+    await fs.copy(customCssPath, path.join(outputDir, 'custom.css'));
+    console.log(chalk.green('  ✓'), 'custom.css (user CSS overrides)');
+
+    // Inject <link> into index.html after fonts.css
+    const indexPath = path.join(outputDir, 'index.html');
+    let indexHtml = await fs.readFile(indexPath, 'utf8');
+    indexHtml = indexHtml.replace(
+      '<link rel="stylesheet" href="fonts.css">',
+      '<link rel="stylesheet" href="fonts.css">\n    <link rel="stylesheet" href="custom.css">'
+    );
+    await fs.writeFile(indexPath, indexHtml, 'utf8');
+  }
+
   // Create build info
   const buildInfo = {
     buildDate: new Date().toISOString(),

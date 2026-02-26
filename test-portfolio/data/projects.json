@@ -1,0 +1,40 @@
+[
+  {
+    "id": "project-1",
+    "title": { "en": "Weather App", "fr": "Appli Météo", "mx": "App del Clima", "ht": "App Meteyo" },
+    "url": "https://github.com/testuser/weather-app",
+    "date": "2025-06-15",
+    "visibility": "public",
+    "description": { "en": "Real-time weather dashboard", "fr": "Tableau de bord météo en temps réel", "mx": "Panel de clima en tiempo real", "ht": "Tablo meteyo an tan reyèl" },
+    "website": "https://weather-app.example.com"
+  },
+  {
+    "id": "project-2",
+    "title": { "en": "Task Manager", "fr": "Gestionnaire de tâches", "mx": "Gestor de tareas", "ht": "Jere travay" },
+    "url": "https://github.com/testuser/task-manager",
+    "date": "2025-03-01",
+    "visibility": "public",
+    "description": { "en": "Kanban-style task board", "fr": "Tableau de tâches Kanban", "mx": "Tablero de tareas Kanban", "ht": "Tablo travay Kanban" }
+  },
+  {
+    "id": "project-3",
+    "title": { "en": "Secret Project", "fr": "Projet secret", "mx": "Proyecto secreto", "ht": "Pwojè sekrè" },
+    "date": "2024-11-20",
+    "visibility": "private",
+    "description": { "en": "Work in progress", "fr": "En cours de développement", "mx": "En desarrollo", "ht": "Nan devlopman" }
+  },
+  {
+    "id": "project-4",
+    "title": { "en": "Portfolio Engine", "fr": "Moteur de portfolio", "mx": "Motor de portafolio", "ht": "Motè pòtfolyo" },
+    "date": "2025-09-10",
+    "visibility": "private",
+    "description": { "en": "This very engine", "fr": "Ce moteur même", "mx": "Este mismo motor", "ht": "Motè sa a menm" }
+  },
+  {
+    "id": "project-5",
+    "title": { "en": "Data Viz Tool", "fr": "Outil de visualisation", "mx": "Herramienta de visualización", "ht": "Zouti vizyalizasyon" },
+    "date": "2024-07-05",
+    "visibility": "private",
+    "description": { "en": "Interactive data visualization", "fr": "Visualisation de données interactive", "mx": "Visualización de datos interactiva", "ht": "Vizyalizasyon done entèraktif" }
+  }
+]

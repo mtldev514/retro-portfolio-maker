@@ -1,0 +1,28 @@
+[
+  {
+    "id": "sculpt-1",
+    "title": { "en": "Clay Figure", "fr": "Figure en argile", "mx": "Figura de arcilla", "ht": "Figi ajil" },
+    "url": "https://picsum.photos/seed/sculpt1/400/300",
+    "date": "2025-02-14",
+    "description": { "en": "Handmade clay sculpture", "fr": "Sculpture en argile faite main", "mx": "Escultura de arcilla hecha a mano", "ht": "Eskilti ajil fè alamen" }
+  },
+  {
+    "id": "sculpt-2",
+    "title": { "en": "Bronze Bird", "fr": "Oiseau en bronze", "mx": "Pájaro de bronce", "ht": "Zwazo an bwonz" },
+    "url": "https://picsum.photos/seed/sculpt2/400/300",
+    "date": "2024-06-30"
+  },
+  {
+    "id": "sculpt-3",
+    "title": { "en": "Stone Vessel", "fr": "Vase en pierre", "mx": "Vasija de piedra", "ht": "Vaz an wòch" },
+    "url": "https://picsum.photos/seed/sculpt3/400/300",
+    "date": "2025-10-08",
+    "description": { "en": "Carved stone vessel", "fr": "Vase en pierre sculpté", "mx": "Vasija de piedra tallada", "ht": "Vaz an wòch taye" }
+  },
+  {
+    "id": "sculpt-4",
+    "title": { "en": "Abstract Form", "fr": "Forme abstraite", "mx": "Forma abstracta", "ht": "Fòm abstrè" },
+    "date": "2025-04-25",
+    "description": { "en": "Abstract sculptural form without image", "fr": "Forme sculpturale abstraite sans image", "mx": "Forma escultórica abstracta sin imagen", "ht": "Fòm eskilti abstrè san imaj" }
+  }
+]

@@ -6,8 +6,17 @@ TODO.md
 
 # Tests
 test/
+tests/
 *.test.js
+*.spec.js
 coverage/
+test-portfolio/
+playwright.config.js
+playwright-report/
+test-results/
+
+# Husky
+.husky/
 
 # Docs (keep README.md)
 docs/

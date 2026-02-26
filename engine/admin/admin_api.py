@@ -475,6 +475,166 @@ def git_commit_push():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route('/api/content/item', methods=['GET'])
+def get_single_item():
+    """Get a single content item by category and ID"""
+    category = request.args.get('category')
+    item_id = request.args.get('id')
+
+    if not category or not item_id:
+        return jsonify({"error": "Category and ID are required"}), 400
+
+    data_file = os.path.join(USER_DATA_DIR, f'{category}.json')
+    if not os.path.exists(data_file):
+        return jsonify({"error": f"Invalid category or file not found: {category}"}), 404
+
+    with open(data_file, 'r', encoding='utf-8') as f:
+        data_list = json.load(f)
+
+    for item in data_list:
+        item_title = item.get("title")
+        if isinstance(item_title, dict):
+            item_title = item_title.get("en", "")
+        if item.get('id') == item_id or item_title == item_id:
+            return jsonify({"success": True, "item": item, "category": category})
+
+    return jsonify({"error": "Item not found"}), 404
+
+@app.route('/api/content/extract-from-pile', methods=['POST'])
+def extract_from_pile():
+    """Extract a single image from a pile's gallery and create a new standalone item."""
+    import time
+
+    data = request.json
+    category = data.get('category')
+    source_id = data.get('sourceId')
+    image_url = data.get('imageUrl')
+    image_index = data.get('imageIndex')
+    custom_title = data.get('customTitle')
+    custom_description = data.get('customDescription', '')
+
+    if not category or not source_id or image_url is None or image_index is None:
+        return jsonify({"error": "category, sourceId, imageUrl, and imageIndex are required"}), 400
+
+    data_file = os.path.join(USER_DATA_DIR, f'{category}.json')
+    if not os.path.exists(data_file):
+        return jsonify({"error": f"Invalid category: {category}"}), 404
+
+    with open(data_file, 'r', encoding='utf-8') as f:
+        data_list = json.load(f)
+
+    source_item = None
+    for item in data_list:
+        item_title = item.get("title")
+        if isinstance(item_title, dict):
+            item_title = item_title.get("en", "")
+        if item.get('id') == source_id or item_title == source_id:
+            source_item = item
+            break
+
+    if not source_item:
+        return jsonify({"error": "Source item not found"}), 404
+
+    if 'gallery' not in source_item or image_index >= len(source_item['gallery']):
+        return jsonify({"error": "Invalid image index"}), 400
+
+    # Remove the image from the gallery
+    extracted_url = source_item['gallery'].pop(image_index)
+
+    # Remove metadata for this image if it exists
+    if 'galleryMetadata' in source_item and extracted_url in source_item['galleryMetadata']:
+        del source_item['galleryMetadata'][extracted_url]
+
+    # Create a new item with the extracted image
+    new_id = f"{category}_extracted_{int(time.time())}"
+
+    if custom_title:
+        new_title = custom_title
+    else:
+        source_title = source_item.get('title', {})
+        if isinstance(source_title, dict):
+            source_title_en = source_title.get('en', 'Untitled')
+        else:
+            source_title_en = source_title or 'Untitled'
+        new_title = f"Photo {image_index + 1} from {source_title_en}"
+
+    # Use config's language-aware multilingual object creation
+    new_item = {
+        "id": new_id,
+        "title": config.create_multilingual_object(new_title),
+        "url": extracted_url,
+        "date": source_item.get('date', time.strftime('%Y-%m-%d')),
+        "created": time.strftime('%Y-%m-%d'),
+        "description": config.create_multilingual_object(custom_description)
+    }
+
+    data_list.append(new_item)
+
+    with open(data_file, 'w', encoding='utf-8') as f:
+        json.dump(data_list, f, indent=2, ensure_ascii=False)
+
+    return jsonify({
+        "success": True,
+        "newTitle": new_title,
+        "newId": new_id
+    })
+
+@app.route('/api/content/add-to-pile', methods=['POST'])
+def add_to_pile():
+    """Move a single image from one pile's gallery to another pile's gallery."""
+    data = request.json
+    category = data.get('category')
+    source_id = data.get('sourceId')
+    target_id = data.get('targetId')
+    image_url = data.get('imageUrl')
+    image_index = data.get('imageIndex')
+
+    if not category or not source_id or not target_id or image_url is None or image_index is None:
+        return jsonify({"error": "category, sourceId, targetId, imageUrl, and imageIndex are required"}), 400
+
+    data_file = os.path.join(USER_DATA_DIR, f'{category}.json')
+    if not os.path.exists(data_file):
+        return jsonify({"error": f"Invalid category: {category}"}), 404
+
+    with open(data_file, 'r', encoding='utf-8') as f:
+        data_list = json.load(f)
+
+    source_item = None
+    target_item = None
+    for item in data_list:
+        item_title = item.get("title")
+        if isinstance(item_title, dict):
+            item_title = item_title.get("en", "")
+        item_identifier = item.get("id") or item_title
+        if item_identifier == source_id:
+            source_item = item
+        if item_identifier == target_id:
+            target_item = item
+
+    if not source_item:
+        return jsonify({"error": "Source item not found"}), 404
+    if not target_item:
+        return jsonify({"error": "Target item not found"}), 404
+
+    if 'gallery' not in source_item or image_index >= len(source_item['gallery']):
+        return jsonify({"error": "Invalid image index"}), 400
+
+    # Remove the image from source gallery
+    extracted_url = source_item['gallery'].pop(image_index)
+
+    # Add to target gallery
+    if 'gallery' not in target_item:
+        target_item['gallery'] = []
+    target_item['gallery'].append(extracted_url)
+
+    with open(data_file, 'w', encoding='utf-8') as f:
+        json.dump(data_list, f, indent=2, ensure_ascii=False)
+
+    return jsonify({
+        "success": True,
+        "targetGalleryCount": len(target_item.get('gallery', []))
+    })
+
 if __name__ == '__main__':
     print(f"🔧 Admin API starting...")
     print(f"   Data dir: {os.path.abspath(USER_DATA_DIR)}")
