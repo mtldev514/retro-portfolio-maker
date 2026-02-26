@@ -3,6 +3,7 @@ from flask_cors import CORS
 import os
 import sys
 import json
+import subprocess
 import requests as http_requests
 
 # Get user data directories from environment variables
@@ -10,6 +11,7 @@ import requests as http_requests
 USER_DATA_DIR = os.environ.get('DATA_DIR', '../../data')
 USER_CONFIG_DIR = os.environ.get('CONFIG_DIR', '../../config')
 USER_LANG_DIR = os.environ.get('LANG_DIR', '../../lang')
+PROJECT_DIR = os.environ.get('PROJECT_DIR', os.path.dirname(os.path.abspath(USER_DATA_DIR)))
 PORT = int(os.environ.get('PORT', 5001))
 
 # Add scripts directory to path
@@ -425,6 +427,51 @@ def sync_github():
         return jsonify({"success": True, "count": len(items)})
     except http_requests.exceptions.RequestException as e:
         return jsonify({"success": False, "error": f"GitHub API error: {str(e)}"}), 502
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/git/commit-push', methods=['POST'])
+def git_commit_push():
+    """Commit and push changes to GitHub"""
+    try:
+        data = request.json or {}
+        message = data.get('message', 'Update from admin panel')
+
+        # Check if PROJECT_DIR is a git repo
+        git_dir = os.path.join(PROJECT_DIR, '.git')
+        if not os.path.exists(git_dir):
+            return jsonify({"success": False, "error": "Project directory is not a git repository"}), 400
+
+        # Stage data, config, and lang directories
+        subprocess.run(
+            ['git', 'add', 'data/', 'config/', 'lang/'],
+            cwd=PROJECT_DIR, check=True, capture_output=True, text=True
+        )
+
+        # Check if there are staged changes
+        status = subprocess.run(
+            ['git', 'diff', '--cached', '--quiet'],
+            cwd=PROJECT_DIR, capture_output=True
+        )
+        if status.returncode == 0:
+            return jsonify({"success": True, "message": "No changes to commit"})
+
+        # Commit
+        subprocess.run(
+            ['git', 'commit', '-m', message],
+            cwd=PROJECT_DIR, check=True, capture_output=True, text=True
+        )
+
+        # Push
+        push_result = subprocess.run(
+            ['git', 'push'],
+            cwd=PROJECT_DIR, check=True, capture_output=True, text=True
+        )
+
+        return jsonify({"success": True, "message": "Changes committed and pushed"})
+    except subprocess.CalledProcessError as e:
+        error_msg = e.stderr.strip() if e.stderr else str(e)
+        return jsonify({"success": False, "error": f"Git error: {error_msg}"}), 500
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

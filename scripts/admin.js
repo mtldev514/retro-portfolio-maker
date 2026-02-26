@@ -34,6 +34,7 @@ async function admin(options = {}) {
     DATA_DIR: path.join(userDataPath, 'data'),
     CONFIG_DIR: path.join(userDataPath, 'config'),
     LANG_DIR: path.join(userDataPath, 'lang'),
+    PROJECT_DIR: userDataPath,
     PORT: port
   };
 

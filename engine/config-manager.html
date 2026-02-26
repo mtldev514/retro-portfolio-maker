@@ -368,6 +368,13 @@
 
     <script>
         let API_URL = 'http://127.0.0.1:5001'; // fallback, overridden after AppConfig loads
+
+        function isServerDown(err) {
+            return err instanceof TypeError && err.message === 'Failed to fetch';
+        }
+        function serverDownMsg() {
+            return `Flask server is not running on ${API_URL}. Start it with: npm run admin`;
+        }
         let currentMediaTypes = [];
         let currentContentTypes = [];
         let editingMediaTypeIndex = null;
@@ -399,7 +406,9 @@
                 document.getElementById('statusText').textContent = 'Configuration loaded';
             } catch (error) {
                 console.error('Error loading config:', error);
-                document.getElementById('statusText').textContent = 'Error loading configuration';
+                document.getElementById('statusText').textContent = isServerDown(error)
+                    ? serverDownMsg()
+                    : 'Error loading configuration';
             }
         }
 
@@ -686,13 +695,27 @@
 
                 if (mtResponse.ok && ctResponse.ok) {
                     document.getElementById('statusText').textContent = 'Configuration saved successfully!';
-                    alert('Configuration saved! Reload the page to see changes.');
+                    // Auto commit & push
+                    try {
+                        const gitRes = await fetch(`${API_URL}/api/git/commit-push`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ message: 'Admin: update configuration' })
+                        });
+                        const gitResult = await gitRes.json();
+                        if (gitResult.success && gitResult.message !== 'No changes to commit') {
+                            document.getElementById('statusText').textContent = 'Configuration saved and pushed to GitHub!';
+                        }
+                    } catch (gitErr) {
+                        console.warn('Auto commit-push failed:', gitErr);
+                    }
+                    alert('Configuration saved!');
                 } else {
                     throw new Error('Failed to save configuration');
                 }
             } catch (error) {
                 console.error('Save error:', error);
-                alert('Error saving configuration: ' + error.message);
+                alert(isServerDown(error) ? serverDownMsg() : 'Error saving configuration: ' + error.message);
             }
         }
 

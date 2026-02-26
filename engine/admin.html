@@ -159,6 +159,39 @@
     <script>
         let API_URL = 'http://127.0.0.1:5001'; // fallback, overridden by bootstrapConfig()
 
+        // Helper: detect if Flask server is not running
+        function isServerDown(err) {
+            return err instanceof TypeError && err.message === 'Failed to fetch';
+        }
+        function serverDownMsg() {
+            return `Flask server is not running on ${API_URL}. Start it with: npm run admin`;
+        }
+
+        // Auto commit & push after data changes
+        async function autoCommitAndPush(action) {
+            try {
+                const res = await fetch(`${API_URL}/api/git/commit-push`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `Admin: ${action}` })
+                });
+                const result = await res.json();
+                const consoleBox = document.getElementById('console');
+                if (result.success) {
+                    if (result.message === 'No changes to commit') {
+                        consoleBox.innerHTML += `<br><span class="con-info">> Git: no new changes to commit.</span>`;
+                    } else {
+                        consoleBox.innerHTML += `<br><span class="con-success">> Git: ${result.message}</span>`;
+                    }
+                } else {
+                    consoleBox.innerHTML += `<br><span class="con-warn">> Git: ${result.error}</span>`;
+                }
+            } catch (err) {
+                // Silent fail — git push is best-effort
+                console.warn('Auto commit-push failed:', err);
+            }
+        }
+
         async function bootstrapConfig() {
             try {
                 const appConfig = await fetch('config/app.json').then(r => r.json());
@@ -215,7 +248,11 @@
                     console.log('✅ Configuration loaded from API');
                     return true;
                 } catch (error) {
-                    console.error('❌ Failed to load configuration from API:', error);
+                    if (isServerDown(error)) {
+                        console.error('❌ ' + serverDownMsg());
+                    } else {
+                        console.error('❌ Failed to load configuration from API:', error);
+                    }
                     return false;
                 }
             },
@@ -441,6 +478,7 @@
                 consoleBox.innerHTML += `<br><span class="con-success">> Bulk upload complete: ${result.uploaded} uploaded, ${result.failed} failed.</span>`;
 
                 if (result.uploaded > 0) {
+                    autoCommitAndPush(`bulk upload ${result.uploaded} file(s)`);
                     setTimeout(() => {
                         bulkFiles = bulkFiles.filter((_, i) => {
                             const s = document.getElementById(`bulk-status-${i}`);
@@ -450,7 +488,9 @@
                     }, 2000);
                 }
             } catch (err) {
-                consoleBox.innerHTML += `<br><span class="con-error">> NETWORK ERROR: ${err.message}</span>`;
+                consoleBox.innerHTML += isServerDown(err)
+                    ? `<br><span class="con-error">> ${serverDownMsg()}</span>`
+                    : `<br><span class="con-error">> NETWORK ERROR: ${err.message}</span>`;
             }
 
             uploadBtn.disabled = false;
@@ -477,7 +517,9 @@
                 });
                 grid.innerHTML = html;
             } catch (err) {
-                grid.innerHTML = 'Error loading translations.';
+                grid.innerHTML = isServerDown(err)
+                    ? `<span class="con-error">${serverDownMsg()}</span>`
+                    : 'Error loading translations.';
             }
         }
 
@@ -492,8 +534,11 @@
                     body: JSON.stringify(trans)
                 });
                 document.getElementById('console').innerHTML += `<br>> Translation "${key}" updated for [${lang}].`;
+                autoCommitAndPush(`update translation "${key}" for ${lang}`);
             } catch (err) {
-                document.getElementById('console').innerHTML += `<br><span class="con-error">> Error updating translation.</span>`;
+                document.getElementById('console').innerHTML += isServerDown(err)
+                    ? `<br><span class="con-error">> ${serverDownMsg()}</span>`
+                    : `<br><span class="con-error">> Error updating translation.</span>`;
             }
         }
 
@@ -534,7 +579,9 @@
                 }
                 consoleBox.innerHTML += `<br><span class="con-hi">> TIP: Ask Antigravity in the chat to 'Translate the missing keys for ${Object.keys(missing).join(', ')}' and they will be fixed instantly!</span>`;
             } catch (err) {
-                consoleBox.innerHTML += `<br><span class="con-error">> Error checking missing keys.</span>`;
+                consoleBox.innerHTML += isServerDown(err)
+                    ? `<br><span class="con-error">> ${serverDownMsg()}</span>`
+                    : `<br><span class="con-error">> Error checking missing keys.</span>`;
             }
         }
 
@@ -593,7 +640,9 @@
 
                 list.innerHTML = html || '<p align="center">No content found for this category.</p>';
             } catch (err) {
-                list.innerHTML = '<p align="center" class="con-error">Error loading content list.</p>';
+                list.innerHTML = isServerDown(err)
+                    ? `<p align="center" class="con-error">${serverDownMsg()}</p>`
+                    : '<p align="center" class="con-error">Error loading content list.</p>';
             }
         }
 
@@ -699,6 +748,7 @@
                     const result = await res.json();
                     if (result.success) {
                         document.getElementById('console').innerHTML += `<br><span class="con-success">> Moved into pile (${result.targetGalleryCount + 1} images total).</span>`;
+                        autoCommitAndPush(`move item to pile in ${category}`);
                         picker.remove();
                         loadContent();
                     } else {
@@ -706,7 +756,9 @@
                         picker.remove();
                     }
                 } catch (err) {
-                    document.getElementById('console').innerHTML += `<br><span class="con-error">> Network error: ${err.message}</span>`;
+                    document.getElementById('console').innerHTML += isServerDown(err)
+                        ? `<br><span class="con-error">> ${serverDownMsg()}</span>`
+                        : `<br><span class="con-error">> Network error: ${err.message}</span>`;
                     picker.remove();
                 }
             });
@@ -734,12 +786,15 @@
                 if (result.success) {
                     document.getElementById('console').innerHTML += `<br><span class="con-warn">> Item "${id}" deleted from ${category}.</span>`;
                     statusSpan.innerHTML = '<span class="con-success">deleted!</span>';
+                    autoCommitAndPush(`delete "${id}" from ${category}`);
                     setTimeout(() => loadContent(), 500);
                 } else {
                     statusSpan.innerHTML = `<span class="con-error">error: ${result.error}</span>`;
                 }
             } catch (err) {
-                statusSpan.innerHTML = '<span class="con-error">network error</span>';
+                statusSpan.innerHTML = isServerDown(err)
+                    ? `<span class="con-error">${serverDownMsg()}</span>`
+                    : '<span class="con-error">network error</span>';
             }
         }
 
@@ -754,11 +809,14 @@
                 if (result.success) {
                     consoleBox.innerHTML += `<br><span class="con-success">> GitHub Sync Successful: ${result.count} repositories fetched.</span>`;
                     consoleBox.innerHTML += `<br><span class="con-info">> ${result.count} projects updated in data/projects.json.</span>`;
+                    autoCommitAndPush(`sync ${result.count} GitHub repos`);
                 } else {
                     consoleBox.innerHTML += `<br><span class="con-error">> GitHub Sync Failed: ${result.error}</span>`;
                 }
             } catch (err) {
-                consoleBox.innerHTML += `<br><span class="con-error">> Network Error during GitHub Sync.</span>`;
+                consoleBox.innerHTML += isServerDown(err)
+                    ? `<br><span class="con-error">> ${serverDownMsg()}</span>`
+                    : `<br><span class="con-error">> Network Error during GitHub Sync.</span>`;
             }
         }
 
@@ -817,7 +875,9 @@
                 renderBulkEditList();
                 actions.style.display = 'block';
             } catch (err) {
-                list.innerHTML = '<p align="center" class="con-error">Error loading content</p>';
+                list.innerHTML = isServerDown(err)
+                    ? `<p align="center" class="con-error">${serverDownMsg()}</p>`
+                    : '<p align="center" class="con-error">Error loading content</p>';
             }
         }
 
@@ -976,6 +1036,7 @@
 
             if (successCount > 0) {
                 document.getElementById('console').innerHTML += `<br><span class="con-success">> Bulk edited ${successCount} items in ${category}</span>`;
+                autoCommitAndPush(`bulk edit ${successCount} items in ${category}`);
                 setTimeout(() => {
                     closeBulkEditModal();
                     loadBulkEditContent();
