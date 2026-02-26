@@ -6,6 +6,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const chalk = require('chalk');
+const generateReadme = require('./lib/readme-template');
 
 /**
  * Sync package.json scripts without overwriting existing ones
@@ -146,6 +147,12 @@ GITHUB_TOKEN=your_github_token_here
     console.log(chalk.gray('  ⊘ Skipped:'), '.env', chalk.gray('(preserving your credentials)'));
     filesSkipped++;
   }
+
+  // Sync README.md (always overwrite — engine-maintained, uses project name from package.json)
+  const projectName = packageJson.name || path.basename(targetPath);
+  await fs.writeFile(path.join(targetPath, 'README.md'), generateReadme(projectName));
+  console.log(chalk.green('  ✓ Updated:'), 'README.md');
+  filesAdded++;
 
   // Sync CONFIGURATION.md (always overwrite — this is engine-maintained documentation)
   const configMdSource = path.join(templatePath, 'CONFIGURATION.md');
