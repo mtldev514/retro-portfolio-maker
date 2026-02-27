@@ -39,7 +39,7 @@ const DB_TO_JS = {
 };
 
 /** Internal DB columns excluded from returned item objects */
-const INTERNAL_COLUMNS = new Set(['media_type', 'updated_at']);
+const INTERNAL_COLUMNS = new Set(['media_type', 'updated_at', 'created_at']);
 
 /** Known item columns in the DB (snake_case, excluding id and media_type) */
 const ITEM_COLUMNS = new Set([
