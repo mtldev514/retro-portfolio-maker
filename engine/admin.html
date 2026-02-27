@@ -317,11 +317,21 @@
 
         async function bootstrapConfig() {
             try {
-                const appConfig = await fetch('config/app.json').then(r => r.json());
-                API_URL = appConfig.api?.baseUrl
-                    || `http://${appConfig.api?.host || '127.0.0.1'}:${appConfig.api?.port || 5001}`;
-                const portText = document.getElementById('server-port');
-                if (portText) portText.textContent = appConfig.api?.port || 5001;
+                // Try local file first, fall back to API (Supabase mode skips local config)
+                let appConfig;
+                const localRes = await fetch('config/app.json');
+                if (localRes.ok) {
+                    appConfig = await localRes.json();
+                } else {
+                    const apiRes = await fetch(`${API_URL}/api/config/app`);
+                    if (apiRes.ok) appConfig = await apiRes.json();
+                }
+                if (appConfig) {
+                    API_URL = appConfig.api?.baseUrl
+                        || `http://${appConfig.api?.host || '127.0.0.1'}:${appConfig.api?.port || 5001}`;
+                    const portText = document.getElementById('server-port');
+                    if (portText) portText.textContent = appConfig.api?.port || 5001;
+                }
             } catch (e) {
                 console.warn('Could not load app config, using default API URL');
             }
@@ -329,7 +339,16 @@
 
         async function initializeLanguages() {
             try {
-                const langConfig = await fetch('config/languages.json').then(r => r.json());
+                // Try local file first, fall back to API (Supabase mode skips local config)
+                let langConfig;
+                const localRes = await fetch('config/languages.json');
+                if (localRes.ok) {
+                    langConfig = await localRes.json();
+                } else {
+                    const apiRes = await fetch(`${API_URL}/api/config/languages`);
+                    if (apiRes.ok) langConfig = await apiRes.json();
+                }
+                if (!langConfig?.supportedLanguages) return;
                 const select = document.getElementById('langSelect');
                 select.innerHTML = '';
                 const adminSwitch = document.getElementById('adminLangSwitch');
