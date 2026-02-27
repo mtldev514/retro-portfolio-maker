@@ -191,6 +191,10 @@ const themes = {
         // Update sparkle colors
         if (window.sparkle) sparkle.refreshColors();
 
+        // Force wave color refresh (CSS variables changed, trigger repaint)
+        const waveEl = document.getElementById('ambient-waves');
+        if (waveEl) waveEl.offsetHeight; // eslint-disable-line no-unused-expressions
+
         // Toggle petal rain
         this.togglePetals();
     },

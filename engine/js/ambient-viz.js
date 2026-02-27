@@ -1,35 +1,38 @@
 /**
- * Ambient Music-Reactive Circle Visualizer
- * Draws soft, glowing circles behind the header and page background
- * that pulse gently with audio frequency data from the media player.
+ * Ambient Music-Reactive Visualizer
+ *
+ * Two layers:
+ *   1. Bottom Waves (#ambient-waves) — CSS clip-path: shape() waves at viewport
+ *      bottom, always animating via CSS. JS drives --wave-lift for audio-reactive
+ *      vertical rise and --wave-hue-shift for color modulation.
+ *   2. Header Glow (#ambient-header) — Canvas with radial-gradient circles
+ *      that pulse with audio frequency data (unchanged from original).
  */
 const ambientViz = {
-    bgCanvas: null,
-    bgCtx: null,
+    // Header glow (canvas)
     hdCanvas: null,
     hdCtx: null,
-    bgCircles: [],
     hdCircles: [],
+
+    // Bottom waves (CSS)
+    _waveContainer: null,
+    _liftLerp: 0,
+
     raf: null,
     _started: false,
 
     // Color palette (HSL hues) — WMP-inspired warm/cool mix
     palette: [300, 180, 270, 40, 160, 330],
 
-    // Frequency bins mapped to circles (bass → treble, 32-bin FFT)
-    bgBins: [1, 2, 4, 8, 16],
+    // Frequency bins for header circles
     hdBins: [1, 3, 6, 10, 16, 22],
 
     init() {
-        this.bgCanvas = document.getElementById('ambient-bg');
+        this._waveContainer = document.getElementById('ambient-waves');
         this.hdCanvas = document.getElementById('ambient-header');
-        if (!this.bgCanvas && !this.hdCanvas) return;
 
-        if (this.bgCanvas) {
-            this.bgCtx = this.bgCanvas.getContext('2d');
-            this._sizeCanvas(this.bgCanvas, window.innerWidth, window.innerHeight);
-            this._initBgCircles();
-        }
+        if (!this._waveContainer && !this.hdCanvas) return;
+
         if (this.hdCanvas) {
             this.hdCtx = this.hdCanvas.getContext('2d');
             const header = this.hdCanvas.parentElement;
@@ -52,33 +55,10 @@ const ambientViz = {
     },
 
     _onResize() {
-        if (this.bgCanvas) {
-            this._sizeCanvas(this.bgCanvas, window.innerWidth, window.innerHeight);
-        }
         if (this.hdCanvas) {
             const header = this.hdCanvas.parentElement;
             this._sizeCanvas(this.hdCanvas, header.offsetWidth, header.offsetHeight);
         }
-    },
-
-    _initBgCircles() {
-        const w = window.innerWidth;
-        const h = window.innerHeight;
-        this.bgCircles = this.bgBins.map((bin, i) => ({
-            x: Math.random() * w,
-            y: Math.random() * h,
-            baseRadius: 100 + Math.random() * 120,
-            currentRadius: 60,
-            targetRadius: 60,
-            hue: this.palette[i % this.palette.length],
-            baseOpacity: 0.10 + Math.random() * 0.08,
-            currentOpacity: 0.04,
-            targetOpacity: 0.04,
-            driftX: (Math.random() - 0.5) * 0.3,
-            driftY: (Math.random() - 0.5) * 0.2,
-            freqBin: bin,
-            phase: Math.random() * Math.PI * 2,
-        }));
     },
 
     _initHdCircles() {
@@ -127,76 +107,38 @@ const ambientViz = {
         this._started = true;
         const animate = (timestamp) => {
             this.raf = requestAnimationFrame(animate);
-            this._drawBg(timestamp);
+            this._updateWaves(timestamp);
             this._drawHd(timestamp);
         };
         this.raf = requestAnimationFrame(animate);
     },
 
-    _drawBg(time) {
-        if (!this.bgCtx) return;
-        const ctx = this.bgCtx;
-        const w = window.innerWidth;
-        const h = window.innerHeight;
-        const playing = this._isPlaying();
+    // ─── Bottom Waves (CSS animation always runs; JS adds vertical lift) ────
 
-        // Fade-clear for gentle trails
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = 'rgba(230, 233, 242, 0.15)';
-        ctx.fillRect(0, 0, w, h);
-
-        ctx.globalCompositeOperation = 'source-over';
-
-        for (const c of this.bgCircles) {
-            // Read frequency
-            const freq = this._readFreq(c.freqBin, time);
-
-            // Target radius/opacity based on music
-            if (playing) {
-                c.targetRadius = c.baseRadius * (0.6 + freq * 0.8);
-                c.targetOpacity = c.baseOpacity * (0.5 + freq * 1.0);
-            } else {
-                // Idle: gentle breathing via sine
-                const breath = Math.sin(time * 0.0005 + c.phase) * 0.15 + 0.85;
-                c.targetRadius = c.baseRadius * 0.4 * breath;
-                c.targetOpacity = c.baseOpacity * 0.4;
+    _updateWaves(time) {
+        if (!this._waveContainer) return;
+        if (!this._isPlaying()) {
+            // When not playing, lerp lift back to 0
+            if (Math.abs(this._liftLerp) > 0.1) {
+                this._liftLerp += (0 - this._liftLerp) * 0.04;
+                this._waveContainer.style.setProperty('--wave-lift', this._liftLerp.toFixed(1) + 'px');
+                this._waveContainer.style.setProperty('--wave-hue-shift', '0deg');
             }
-
-            // Smooth lerp
-            c.currentRadius += (c.targetRadius - c.currentRadius) * 0.06;
-            c.currentOpacity += (c.targetOpacity - c.currentOpacity) * 0.06;
-
-            // Drift
-            c.x += c.driftX;
-            c.y += c.driftY;
-
-            // Wrap around edges with margin
-            const margin = c.currentRadius * 2;
-            if (c.x < -margin) c.x = w + margin;
-            if (c.x > w + margin) c.x = -margin;
-            if (c.y < -margin) c.y = h + margin;
-            if (c.y > h + margin) c.y = -margin;
-
-            // Slow hue rotation
-            const hue = (c.hue + time * 0.005) % 360;
-
-            // Draw concentric rings radiating outward
-            const rings = 5;
-            const spacing = c.currentRadius / rings;
-            for (let r = 0; r < rings; r++) {
-                const ringRadius = spacing * (r + 1);
-                const fade = 1 - (r / rings);       // outer rings fade out
-                const alpha = c.currentOpacity * fade * 1.5;
-                if (alpha < 0.005) continue;
-                const lightness = 45 + fade * 20;   // inner rings brighter
-                ctx.strokeStyle = `hsla(${hue}, 75%, ${lightness}%, ${alpha})`;
-                ctx.lineWidth = Math.max(1.5, 4 * fade);
-                ctx.beginPath();
-                ctx.arc(c.x, c.y, ringRadius, 0, Math.PI * 2);
-                ctx.stroke();
-            }
+            return;
         }
+
+        // Read bass frequency for vertical lift (waves rise on bass hits)
+        const bass = this._readFreq(1, time);
+        const target = bass * -30; // negative = upward, up to 30px rise
+
+        // Smooth lerp
+        this._liftLerp += (target - this._liftLerp) * 0.08;
+
+        this._waveContainer.style.setProperty('--wave-lift', this._liftLerp.toFixed(1) + 'px');
+        this._waveContainer.style.setProperty('--wave-hue-shift', (bass * 25).toFixed(1) + 'deg');
     },
+
+    // ─── Header Glow (Canvas) ────────────────────────────
 
     _drawHd(time) {
         if (!this.hdCtx) return;
