@@ -98,11 +98,18 @@ body.admin-page {
     border-color: var(--admin-win-border-light) var(--admin-win-border-dark) var(--admin-win-border-dark) var(--admin-win-border-light);
 }
 
+.admin-page .admin-lang-bar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 2px 5px;
+    background: var(--admin-win-bg);
+    border-bottom: 1px solid var(--admin-win-border-dark);
+}
+
 .admin-page .admin-lang-switch {
-    height: 14px;
+    height: 16px;
     font-size: 9px;
     padding: 0 2px;
-    margin-right: 6px;
     border: 1px solid;
     border-color: var(--admin-win-border-light) var(--admin-win-border-dark) var(--admin-win-border-dark) var(--admin-win-border-light);
     background: var(--admin-win-bg);
