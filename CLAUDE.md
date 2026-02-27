@@ -20,8 +20,8 @@ Child repositories (e.g. `alex_a_montreal`) consume this engine as a dependency.
 ```bash
 npm test
 ```
-- Tests run automatically via pre-commit hook (husky), but run them explicitly to catch issues early.
-- All 53+ tests must pass before pushing.
+- Tests run automatically via pre-push hook (husky), but run them explicitly to catch issues early.
+- All 38 tests must pass before pushing.
 
 ### 3. Commit and push
 ```bash
@@ -30,7 +30,9 @@ git commit -m "descriptive message"
 git push
 ```
 - CI auto-publishes to npm on push to main (`.github/workflows/publish-npm.yml`)
-- CI auto-bumps the patch version — **never manually run `npm version`**
+- CI auto-bumps the **patch** version — **never manually run `npm version`**
+- CI only triggers when publishable files change: `engine/`, `scripts/`, `bin/`, `templates/`, `index.js`, `package.json`, `README.md`, `LICENSE`. Pushing only `.md` files (except README), tests, or `.github/` will NOT trigger a publish.
+- To trigger a **minor or major** bump: use GitHub Actions → "Publish to NPM" → Run workflow → choose bump type.
 - If push is rejected (CI bumped version), do: `git pull --rebase && git push`
 
 ### 4. Wait for CI publish to complete
@@ -54,8 +56,9 @@ npm run build               # Rebuild with new engine
 ## Key Architecture
 
 ### Theming (styles/ directory)
-- Themes are standalone CSS files in `styles/` (e.g. `ciment.css`, `bubblegum.css`)
-- `styles/styles.json` is the registry: theme list, order, default, allowUserSwitch
+- Themes are standalone CSS files in `styles/` (e.g. `beton.css`)
+- `styles/styles.json` is the registry: theme list, order, default, `allowUserSwitch`
+- `styles/theme.json` holds **design token overrides** — applied on top of the base theme via `setProperty()`. Format: `{ "overrides": { "page-bg": "#fff", ... } }`. Applied synchronously from localStorage on load (FOUC prevention).
 - `engine/js/themes.js` loads CSS via `<link>` swapping with localStorage caching for FOUC prevention
 - Backward compat: falls back to legacy `config/themes.json` if `styles/styles.json` missing
 
@@ -69,14 +72,19 @@ npm run build               # Rebuild with new engine
 - Route modules in `engine/admin/api/routes/` (upload, content, config, translations, styles, integrations)
 - Shared libs in `engine/admin/api/lib/` (config-loader, manager, validator)
 - Env vars: DATA_DIR, CONFIG_DIR, LANG_DIR, STYLES_DIR, PROJECT_DIR, PORT
-- `/api/styles` endpoints for reading/writing styles.json from admin panel
+- `/api/styles` — read/write `styles.json` (theme registry)
+- `/api/styles/tokens` — read/write `theme.json` (CSS token overrides)
 
 ### Scripts
-- `init` — scaffolds new project from templates/user-portfolio/
+- `init` — scaffolds new project from `templates/user-portfolio/`
 - `sync` — updates existing project with missing template files (non-destructive)
-- `build` — copies engine + user files to dist/
+- `build` — copies engine + user files to `dist/`
 - `admin` — launches Express admin API
-- `validate` — checks config/data files for errors (Node.js-based)
+- `validate` — checks config/data files for errors
+- `serve` — static file server for `dist/` (used by `npm run dev`)
+- `sync-supabase` — syncs local data files to a Supabase project
+- `migrate-data-format` — one-time migration helper for data format changes
+- `kill-port` / `list-ports` — port management utilities used by dev scripts
 
 ## Coding Principles
 
@@ -90,7 +98,9 @@ npm run build               # Rebuild with new engine
 - **Keep it simple**: Don't add abstractions, error handling, or features beyond what's needed for the current task.
 
 ## Common Gotchas
-- Branch may fall behind origin after CI version bump — always `git pull --rebase` before pushing
-- Pre-commit hook runs full test suite — be patient (takes ~10s)
+- Branch will fall behind origin after every CI publish (version bump commit) — always `git pull --rebase && git push` when rejected
+- Pre-push hook runs full test suite — takes ~15s, be patient
 - `test-portfolio/` is the test fixture; changes there don't ship to users
-- `templates/user-portfolio/` is what gets copied to new/existing projects
+- `templates/user-portfolio/` is what gets copied to new/existing projects via `init`/`sync`
+- Pushing only `.md` files (other than `README.md`) will NOT trigger CI publish — useful for doc-only commits
+- `theme.json` overrides persist in localStorage; clearing it forces a fresh fetch on next load
