@@ -43,6 +43,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         await media.init();
     }
 
+    // 9. Init ambient music visualizer (needs media + DOM ready)
+    if (window.ambientViz) {
+        ambientViz.init();
+    }
+
     console.log('✅ Application initialized');
 });
 
@@ -53,7 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 function applyMarqueeText() {
     const marqueeText = AppConfig.getSetting('marquee');
     if (marqueeText) {
-        const marqueeEl = document.querySelector('.marquee-container marquee');
+        const marqueeEl = document.querySelector('.marquee-container .marquee-text');
         if (marqueeEl) {
             marqueeEl.textContent = marqueeText;
         }

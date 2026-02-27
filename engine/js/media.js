@@ -4,12 +4,10 @@
  * Loads tracks dynamically from data/music.json
  */
 const media = {
-    audio: new Audio(),
+    audio: Object.assign(new Audio(), { crossOrigin: 'anonymous' }),
     currentTrackIndex: 0,
     playlist: [],
     rawTracks: [],
-    vizInterval: null,
-    vizRAF: null,
 
     // Web Audio API state (for real visualizer)
     audioCtx: null,
@@ -32,7 +30,6 @@ const media = {
         this.setupEventListeners();
         this.updateTrackDisplay();
         this.populateTrackSelector();
-        this.startViz();
         console.log(`Winamp initialized with ${this.playlist.length} tracks`);
     },
 
@@ -153,6 +150,16 @@ const media = {
 
         // Auto-advance to next track
         this.audio.onended = () => this.next();
+
+        // CORS fallback: if crossOrigin='anonymous' causes a load error
+        // (server doesn't send Access-Control-Allow-Origin), rebuild the
+        // Audio element without crossOrigin for direct playback.
+        this.audio.onerror = () => {
+            if (this.audio.crossOrigin && !this._noCors) {
+                console.warn('Audio CORS load failed, rebuilding without crossOrigin');
+                this._rebuildAudioElement();
+            }
+        };
     },
 
     setPlayingState(isPlaying) {
@@ -180,6 +187,7 @@ const media = {
      */
     initAudioContext() {
         if (this.audioCtx) return; // already connected
+        if (this._noCors) return;  // CORS failed — skip Web Audio entirely
         try {
             const AC = window.AudioContext || window.webkitAudioContext;
             if (!AC) return;
@@ -200,6 +208,38 @@ const media = {
         } catch (e) {
             console.warn('AudioContext unavailable, using fake viz:', e.message);
             this.vizMode = 'fake';
+        }
+    },
+
+    /**
+     * Recreate the Audio element for direct playback (no Web Audio routing).
+     * Called when CORS prevents crossOrigin audio from loading.
+     * createMediaElementSource() permanently captures output, so we must
+     * create a fresh element to restore sound.
+     */
+    _rebuildAudioElement() {
+        const wasPlaying = !this.audio.paused;
+        const src = this.audio.src;
+        const vol = this.audio.volume;
+        this.audio.pause();
+        this.audio.removeAttribute('src');
+        // Disconnect Web Audio graph
+        if (this.sourceNode) { try { this.sourceNode.disconnect(); } catch (_) {} }
+        if (this.analyser) { try { this.analyser.disconnect(); } catch (_) {} }
+        if (this.audioCtx) { try { this.audioCtx.close(); } catch (_) {} }
+        this.audioCtx = null;
+        this.analyser = null;
+        this.sourceNode = null;
+        this.freqData = null;
+        this.vizMode = 'fake';
+        this._noCors = true;
+        // Fresh Audio element without crossOrigin — direct playback
+        this.audio = new Audio();
+        this.audio.volume = vol;
+        this.setupEventListeners();
+        if (src) {
+            this.audio.src = src;
+            if (wasPlaying) this.audio.play().catch(() => {});
         }
     },
 
@@ -274,100 +314,6 @@ const media = {
             el.innerText = `${idx}. ${this.playlist[this.currentTrackIndex].name}`;
         } else {
             el.innerText = (window.i18n && i18n.translations.sidebar_radio_no_tracks) || 'No tracks available';
-        }
-        this.setupTickerScroll(el);
-    },
-
-    setupTickerScroll(el) {
-        if (!el) el = document.querySelector('.radio-track-name');
-        if (!el) return;
-        const container = el.parentElement;
-        const apply = () => {
-            if (!container.clientWidth) return;
-            const totalDist = container.clientWidth + el.scrollWidth;
-            const speed = Math.max(6, totalDist / 40);
-            el.style.setProperty('--ticker-speed', `${speed}s`);
-            el.style.setProperty('--ticker-end', `-${el.scrollWidth}px`);
-        };
-        apply();
-        setTimeout(apply, 200);
-    },
-
-    // Spectrum visualizer — uses Web Audio API when available, random fallback otherwise
-    startViz() {
-        const viz = document.getElementById('winamp-viz');
-        if (!viz) return;
-
-        // Create 12 bars
-        viz.innerHTML = '';
-        for (let i = 0; i < 12; i++) {
-            const bar = document.createElement('div');
-            bar.className = 'winamp-viz-bar';
-            viz.appendChild(bar);
-        }
-
-        const bars = viz.querySelectorAll('.winamp-viz-bar');
-        const barCount = bars.length; // 12
-
-        // Map 12 bars to frequency bin indices (bass-heavy weighting)
-        // With fftSize=64 → 32 bins. We pick 12 spread across low-to-high.
-        const binMap = [1, 2, 3, 4, 5, 6, 8, 10, 13, 16, 20, 25];
-
-        const animate = () => {
-            this.vizRAF = requestAnimationFrame(animate);
-
-            if (this.audio.paused || !this.audio.src) {
-                // Idle state: flat bars
-                bars.forEach(bar => { bar.style.height = '3%'; });
-                return;
-            }
-
-            if (this.vizMode === 'real' && this.analyser && this.freqData) {
-                // Real spectrum data
-                this.analyser.getByteFrequencyData(this.freqData);
-
-                // CORS check: if first 5 frames return all zeros, fall back
-                if (this._corsCheckCount < 5) {
-                    const sum = this.freqData.reduce((a, b) => a + b, 0);
-                    if (sum === 0) {
-                        this._corsCheckCount++;
-                        if (this._corsCheckCount >= 5) {
-                            console.warn('Analyser returning zeros (CORS?), falling back to fake viz');
-                            this.vizMode = 'fake';
-                        }
-                    } else {
-                        this._corsCheckCount = 5; // passed — stop checking
-                    }
-                }
-
-                if (this.vizMode === 'real') {
-                    for (let i = 0; i < barCount; i++) {
-                        const bin = binMap[i] < this.freqData.length ? binMap[i] : 0;
-                        const val = this.freqData[bin]; // 0–255
-                        const pct = Math.max(3, (val / 255) * 100);
-                        bars[i].style.height = pct + '%';
-                    }
-                    return;
-                }
-            }
-
-            // Fake fallback: random heights (original behavior)
-            bars.forEach(bar => {
-                bar.style.height = Math.random() * 100 + '%';
-            });
-        };
-
-        this.vizRAF = requestAnimationFrame(animate);
-    },
-
-    stopViz() {
-        if (this.vizRAF) {
-            cancelAnimationFrame(this.vizRAF);
-            this.vizRAF = null;
-        }
-        if (this.vizInterval) {
-            clearInterval(this.vizInterval);
-            this.vizInterval = null;
         }
     }
 };

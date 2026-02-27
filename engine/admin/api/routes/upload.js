@@ -92,10 +92,10 @@ function createUploadRouter(upload) {
     }
 
     res.json({
-      success: results.length,
-      errors: errors.length,
+      uploaded: results.length,
+      failed: errors.length,
       results,
-      errorDetails: errors,
+      errors,
     });
   });
 
