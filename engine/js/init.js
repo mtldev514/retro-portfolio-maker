@@ -17,31 +17,48 @@ document.addEventListener('DOMContentLoaded', async () => {
         themes.init();
     }
 
-    // 3. Build dynamic language selector from config
+    // 3. Apply configurable marquee text from app.json
+    applyMarqueeText();
+
+    // 4. Build dynamic language selector from config
     initLanguageSelector();
 
-    // 4. Load translations (needs AppConfig for lang paths)
+    // 5. Load translations (needs AppConfig for lang paths)
     if (typeof i18n !== 'undefined') {
         await i18n.init();
     }
 
-    // 5. Fetch theme definitions + build dynamic switcher (needs DOM)
+    // 6. Fetch theme definitions + build dynamic switcher (needs DOM)
     if (typeof themes !== 'undefined' && themes.loadThemeDefinitions) {
         await themes.loadThemeDefinitions();
     }
 
-    // 6. Set up router (event listeners) and load initial page
+    // 7. Set up router (event listeners) and load initial page
     if (typeof router !== 'undefined') {
         await router.init();
     }
 
-    // 7. Init media controller (needs DOM populated by router)
+    // 8. Init media controller (needs DOM populated by router)
     if (window.media) {
         await media.init();
     }
 
     console.log('✅ Application initialized');
 });
+
+/**
+ * Apply marquee text from app.json config (if set).
+ * Priority: app.json "marquee" field > translation file > HTML default.
+ */
+function applyMarqueeText() {
+    const marqueeText = AppConfig.getSetting('marquee');
+    if (marqueeText) {
+        const marqueeEl = document.querySelector('.marquee-container marquee');
+        if (marqueeEl) {
+            marqueeEl.textContent = marqueeText;
+        }
+    }
+}
 
 /**
  * Dynamically build language selector from config

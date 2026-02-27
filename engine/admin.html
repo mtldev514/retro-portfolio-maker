@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>YOUR-CONTROL-PANEL V1.0</title>
+    <title>YOUR-CONTROL-PANEL</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Capriola&family=Titan+One&family=Rubik+Dirt&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
@@ -16,8 +16,9 @@
 
     <div class="window">
         <div class="title-bar">
-            <span data-i18n="admin_title">PORTFOLIO MANAGER V1.0</span>
+            <span data-i18n="admin_title">PORTFOLIO MANAGER</span>
             <div class="title-bar-controls">
+                <select id="adminLangSwitch" class="admin-lang-switch" title="Admin language"></select>
                 <button>_</button>
                 <button>[]</button>
                 <button onclick="window.location.href='/'">X</button>
@@ -69,7 +70,8 @@
                     <div>
                         <button type="button" onclick="selectAllInCategory()">Select All</button>
                         <button type="button" onclick="clearBulkSelection()">Clear</button>
-                        <button type="button" class="src-btn-active" onclick="showBulkEditForm()">Edit Selected</button>
+                        <button type="button" class="con-error" onclick="bulkDelete()">Delete</button>
+                        <button type="button" class="src-btn-active" onclick="showBulkChangeCategory()">Move Category</button>
                     </div>
                 </div>
                 <div id="contentListInner">
@@ -329,16 +331,44 @@
                 const langConfig = await fetch('config/languages.json').then(r => r.json());
                 const select = document.getElementById('langSelect');
                 select.innerHTML = '';
+                const adminSwitch = document.getElementById('adminLangSwitch');
                 langConfig.supportedLanguages.forEach(lang => {
                     const option = document.createElement('option');
                     option.value = lang.code;
                     option.textContent = lang.name;
                     select.appendChild(option);
+                    // Also populate admin language switch
+                    if (adminSwitch) {
+                        const opt2 = option.cloneNode(true);
+                        opt2.textContent = lang.code.toUpperCase();
+                        adminSwitch.appendChild(opt2);
+                    }
                 });
+                // Restore admin language from localStorage
+                const savedLang = localStorage.getItem('adminLang');
+                if (savedLang && adminSwitch) adminSwitch.value = savedLang;
             } catch (e) {
                 console.warn('Could not load languages config');
             }
         }
+
+        // Admin panel UI translation
+        let adminTranslations = {};
+        async function translateAdminUI(lang) {
+            try {
+                const res = await fetch(`${API_URL}/api/translations/${lang}`);
+                adminTranslations = await res.json();
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (adminTranslations[key]) el.textContent = adminTranslations[key];
+                });
+                localStorage.setItem('adminLang', lang);
+            } catch (_) { /* silent — translations optional */ }
+        }
+
+        document.getElementById('adminLangSwitch')?.addEventListener('change', (e) => {
+            translateAdminUI(e.target.value);
+        });
 
         const AppConfig = {
             app: null,
@@ -584,12 +614,8 @@
                     if (!items || items.length === 0) return;
 
                     const categoryInfo = AppConfig.getContentType(category);
-                    const categoryDisplay = categoryInfo
-                        ? `${categoryInfo.icon} ${categoryInfo.name.toUpperCase()}`
-                        : category.toUpperCase();
                     const isImage = isImageCategory(category);
 
-                    html += `<h4 class="content-header">${categoryDisplay}</h4>`;
                     items.forEach(item => {
                         const titleStr = (typeof item.title === 'object' && item.title !== null) ? (item.title.en || '') : (item.title || '');
                         const id = item.id || titleStr;
@@ -615,7 +641,6 @@
                                 <div style="min-width:0; flex:1;">
                                     <div class="content-title">${titleStr}</div>
                                     <div class="content-meta">
-                                        ${cat === 'all' ? `<span class="content-badge">${categoryInfo ? categoryInfo.name : category}</span>` : ''}
                                         <span>${item.date || 'N/A'}</span>
                                         ${galleryCount > 1 ? `<span>${galleryCount} imgs</span>` : ''}
                                     </div>
@@ -831,45 +856,57 @@
             return items;
         }
 
-        function showBulkEditForm() {
+        async function bulkDelete() {
             const selected = getSelectedItems();
-            if (selected.length === 0) {
-                alert('Please select at least one item to edit');
-                return;
+            if (selected.length === 0) return;
+            if (!confirm(`Delete ${selected.length} item(s)? This cannot be undone.`)) return;
+
+            let ok = 0, fail = 0;
+            for (const { category, id } of selected) {
+                try {
+                    const res = await fetch(`${API_URL}/api/content/delete`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ category, id })
+                    });
+                    const r = await res.json();
+                    if (r.success) ok++; else fail++;
+                } catch (_) { fail++; }
             }
+            conLog(`> Bulk delete: ${ok} removed, ${fail} failed`, ok ? 'con-success' : 'con-error');
+            if (ok) {
+                autoCommitAndPush(`bulk delete ${ok} items`);
+                loadContent();
+            }
+        }
+
+        function showBulkChangeCategory() {
+            const selected = getSelectedItems();
+            if (selected.length === 0) return;
+
+            const allCats = AppConfig.getAllContentTypes();
+            const options = allCats.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
 
             const modal = document.createElement('div');
             modal.className = 'bulk-edit-modal';
             modal.innerHTML = `
-                <div class="bulk-edit-modal-content window" style="width: 600px;">
+                <div class="bulk-edit-modal-content window" style="width: 400px;">
                     <div class="title-bar">
-                        <span>BULK EDIT: ${selected.length} items</span>
+                        <span>MOVE ${selected.length} ITEM(S)</span>
                         <div class="title-bar-controls">
                             <button onclick="closeBulkEditModal()">X</button>
                         </div>
                     </div>
                     <div style="padding: 20px;">
-                        <div class="admin-hint">
-                            Leave fields blank to keep existing values. Changes apply to English (EN) version only.
-                        </div>
                         <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="bulkUpdateTitle" style="width:auto;"> Update Title:
-                            </label>
-                            <input type="text" id="bulkTitleValue" placeholder="New title for all selected items">
-                        </div>
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="bulkUpdateDesc" style="width:auto;"> Update Description:
-                            </label>
-                            <textarea id="bulkDescValue" placeholder="New description for all selected items"></textarea>
+                            <label>Move to category:</label>
+                            <select id="bulkTargetCategory">${options}</select>
                         </div>
                         <div class="button-bar">
                             <button type="button" onclick="closeBulkEditModal()">Cancel</button>
-                            <button type="button" class="save-btn" onclick="applyBulkEdit()">Apply Changes</button>
+                            <button type="button" class="save-btn" onclick="applyBulkChangeCategory()">Move</button>
                         </div>
                     </div>
-                    <div class="console short" id="bulkEditConsole">[BULK-EDIT] Ready...</div>
                 </div>
             `;
             document.body.appendChild(modal);
@@ -880,65 +917,29 @@
             if (modal) modal.remove();
         };
 
-        window.applyBulkEdit = async function() {
-            const updateTitle = document.getElementById('bulkUpdateTitle').checked;
-            const updateDesc = document.getElementById('bulkUpdateDesc').checked;
-            const titleValue = document.getElementById('bulkTitleValue').value;
-            const descValue = document.getElementById('bulkDescValue').value;
-            const consoleBox = document.getElementById('bulkEditConsole');
-
-            if (!updateTitle && !updateDesc) {
-                consoleBox.innerHTML += '<br><span class="con-warn">> Please select at least one field to update</span>';
-                return;
-            }
-
+        window.applyBulkChangeCategory = async function() {
+            const toCategory = document.getElementById('bulkTargetCategory').value;
             const selected = getSelectedItems();
-            consoleBox.innerHTML += `<br>> Applying bulk edit to ${selected.length} items...`;
+            let ok = 0, fail = 0;
 
-            let successCount = 0;
-            let errorCount = 0;
-
-            for (const { category, id, item } of selected) {
-                const updates = {};
-
-                if (updateTitle && titleValue) {
-                    const original = item.title;
-                    if (typeof original === 'object' && original !== null) {
-                        updates.title = { ...original, en: titleValue };
-                    } else {
-                        updates.title = { en: titleValue, fr: titleValue, mx: titleValue, ht: titleValue };
-                    }
-                }
-
-                if (updateDesc && descValue) {
-                    const original = item.description;
-                    if (typeof original === 'object' && original !== null) {
-                        updates.description = { ...original, en: descValue };
-                    } else {
-                        updates.description = { en: descValue, fr: descValue, mx: descValue, ht: descValue };
-                    }
-                }
-
+            for (const { category, id } of selected) {
+                if (category === toCategory) { ok++; continue; }
                 try {
-                    const res = await fetch(`${API_URL}/api/content/update`, {
+                    const res = await fetch(`${API_URL}/api/content/change-category`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ category, id, updates })
+                        body: JSON.stringify({ id, fromCategory: category, toCategory })
                     });
-                    const result = await res.json();
-                    if (result.success) { successCount++; } else { errorCount++; }
-                } catch (err) { errorCount++; }
+                    const r = await res.json();
+                    if (r.success) ok++; else fail++;
+                } catch (_) { fail++; }
             }
 
-            consoleBox.innerHTML += `<br><span class="con-success">> Bulk edit complete: ${successCount} updated, ${errorCount} failed</span>`;
-
-            if (successCount > 0) {
-                conLog(`> Bulk edited ${successCount} items`, 'con-success');
-                autoCommitAndPush(`bulk edit ${successCount} items`);
-                setTimeout(() => {
-                    closeBulkEditModal();
-                    loadContent();
-                }, 1500);
+            conLog(`> Moved ${ok} items to ${toCategory}${fail ? `, ${fail} failed` : ''}`, ok ? 'con-success' : 'con-error');
+            if (ok) {
+                autoCommitAndPush(`move ${ok} items to ${toCategory}`);
+                closeBulkEditModal();
+                loadContent();
             }
         };
 
@@ -955,13 +956,42 @@
             try {
                 const res = await fetch(`${API_URL}/api/translations/${lang}`);
                 const trans = await res.json();
-                let html = '';
+
+                // Group keys by prefix for readable sections
+                const groups = {};
+                const groupOrder = [];
                 Object.keys(trans).forEach(key => {
-                    const safeVal = (trans[key] || '').replace(/"/g, '&quot;');
-                    html += `<div class="trans-item">
-                        <label style="font-size: 10px;">${key}</label>
-                        <input type="text" value="${safeVal}" onblur="updateTrans('${lang}', '${key}', this.value)">
-                    </div>`;
+                    const prefix = key.split('_')[0];
+                    if (!groups[prefix]) { groups[prefix] = []; groupOrder.push(prefix); }
+                    groups[prefix].push(key);
+                });
+
+                const groupLabels = {
+                    nav: 'Navigation', filter: 'Filters', header: 'Header', marquee: 'Marquee',
+                    sidebar: 'Sidebar', footer: 'Footer', gallery: 'Gallery', index: 'Home Page',
+                    detail: 'Detail View', card: 'Cards', music: 'Music', photo: 'Photography',
+                    street: 'Street', projects: 'Projects', sculpting: 'Sculpting',
+                    admin: 'Admin', edit: 'Edit Page'
+                };
+
+                let html = '';
+                groupOrder.forEach(prefix => {
+                    const label = groupLabels[prefix] || prefix.toUpperCase();
+                    const keys = groups[prefix];
+                    html += `<div class="trans-section">
+                        <div class="trans-section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                            ${label} <span class="trans-count">${keys.length}</span>
+                        </div>
+                        <div class="trans-section-body">`;
+                    keys.forEach(key => {
+                        const safeVal = (trans[key] || '').replace(/"/g, '&quot;');
+                        const shortKey = key.replace(prefix + '_', '');
+                        html += `<div class="trans-row">
+                            <span class="trans-key" title="${key}">${shortKey}</span>
+                            <input type="text" value="${safeVal}" onblur="updateTrans('${lang}', '${key}', this.value)">
+                        </div>`;
+                    });
+                    html += `</div></div>`;
                 });
                 grid.innerHTML = html;
             } catch (err) {
@@ -1362,6 +1392,9 @@
             await initializeLanguages();
             await initializeCategories();
             loadContent();
+            // Apply saved admin language
+            const savedLang = localStorage.getItem('adminLang');
+            if (savedLang) translateAdminUI(savedLang);
         });
 
     </script>

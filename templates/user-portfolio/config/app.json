@@ -25,6 +25,7 @@
   "counter": {
     "apiUrl": "https://api.counterapi.dev/v1/retro-portfolio/visits/up"
   },
+  "marquee": "*** Welcome to my retro portfolio ***",
   "winamp": {
     "title": "My Playlist",
     "bitrate": "192",

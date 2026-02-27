@@ -491,6 +491,7 @@ nav {
     font-family: inherit;
     font-size: 18px;
     line-height: 1;
+    flex: 1;
 }
 
 .filter-btn:hover {
@@ -1426,6 +1427,13 @@ nav {
     line-height: 1;
 }
 
+/* ── Code / Projects category: monospace aesthetic ── */
+.gallery-item[data-category="projects"] h3,
+.gallery-item[data-category="projects"] .gallery-subtitle {
+    font-family: var(--font-mono);
+    letter-spacing: 0.5px;
+}
+
 .gallery-item[data-category="music"] {
     background: var(--container-bg);
     position: relative;
@@ -1495,20 +1503,11 @@ nav {
 }
 
 .gallery-item {
-    transition: transform 70ms steps(2), box-shadow 70ms steps(2);
+    transition: transform 70ms steps(2);
 }
 
 .gallery-item:hover {
-    box-shadow: var(--shadow-md);
     transform: translateY(-3px);
-}
-
-.gallery-link img {
-    transition: filter 80ms steps(2);
-}
-
-.gallery-item:hover .gallery-link img {
-    filter: brightness(1.05);
 }
 
 /* ===== Card Actions ===== */

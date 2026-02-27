@@ -172,33 +172,47 @@ const media = {
      * Connect Web Audio API for real-time spectrum analysis.
      * Must be called from a user gesture (play) to satisfy autoplay policy.
      * Falls back to fake viz if AudioContext unavailable or CORS blocks data.
+     *
+     * IMPORTANT: createMediaElementSource() permanently captures the audio
+     * element's output — all sound must flow through the Web Audio graph.
+     * If any connection step fails after capture, we must recreate the
+     * Audio element to restore direct playback.
      */
     initAudioContext() {
         if (this.audioCtx) return; // already connected
         try {
             const AC = window.AudioContext || window.webkitAudioContext;
             if (!AC) return;
-            this.audioCtx = new AC();
-            this.analyser = this.audioCtx.createAnalyser();
-            this.analyser.fftSize = 64; // 32 bins — we sample 12
-            this.analyser.smoothingTimeConstant = 0.6;
-            this.sourceNode = this.audioCtx.createMediaElementSource(this.audio);
-            this.sourceNode.connect(this.analyser);
-            this.analyser.connect(this.audioCtx.destination);
-            this.freqData = new Uint8Array(this.analyser.frequencyBinCount);
+            const ctx = new AC();
+            const analyser = ctx.createAnalyser();
+            analyser.fftSize = 64; // 32 bins — we sample 12
+            analyser.smoothingTimeConstant = 0.6;
+            const source = ctx.createMediaElementSource(this.audio);
+            source.connect(analyser);
+            analyser.connect(ctx.destination);
+            // All connections succeeded — commit state
+            this.audioCtx = ctx;
+            this.analyser = analyser;
+            this.sourceNode = source;
+            this.freqData = new Uint8Array(analyser.frequencyBinCount);
             this.vizMode = 'real';
             this._corsCheckCount = 0;
         } catch (e) {
             console.warn('AudioContext unavailable, using fake viz:', e.message);
+            this.vizMode = 'fake';
         }
     },
 
-    play() {
-        if (!this.audio.src && this.playlist.length > 0) this.switchTrack(0);
+    async play() {
+        if (!this.audio.src && this.playlist.length > 0) {
+            this.switchTrack(0);
+            return; // switchTrack() calls play() after setting src
+        }
         // Lazy-init AudioContext on first user-triggered play
         this.initAudioContext();
+        // Await resume so the Web Audio graph is active before playback
         if (this.audioCtx && this.audioCtx.state === 'suspended') {
-            this.audioCtx.resume();
+            try { await this.audioCtx.resume(); } catch (_) { /* ignored */ }
         }
         const p = this.audio.play();
         if (p && p.catch) p.catch(e => console.warn('Play blocked:', e));

@@ -253,7 +253,7 @@ async function generateFilterButtons(userDir, outputDir) {
   const displayCategories = contentTypes.slice(0, 7);
 
   let filterButtonsHtml = '<!-- Auto-generated filter buttons from categories.json -->\n';
-  filterButtonsHtml += '                    <button class="filter-btn active" data-filter="all" title="All" data-i18n="filter_all">✱</button>\n';
+  filterButtonsHtml += '                    <button class="filter-btn active" data-filter="all" title="All">✱</button>\n';
 
   displayCategories.forEach(category => {
     // Extract name for tooltip/accessibility
@@ -262,10 +262,10 @@ async function generateFilterButtons(userDir, outputDir) {
       displayName = displayName.en || displayName.fr || Object.values(displayName)[0] || category.id;
     }
 
-    // Use icon (emoji) if available, otherwise fall back to text name
+    // Use icon (emoji) as button text — no data-i18n to preserve emoji display
     const buttonText = category.icon || displayName;
 
-    filterButtonsHtml += `                    <button class="filter-btn" data-filter="${category.id}" title="${displayName}" data-i18n="nav_${category.id}">${buttonText}</button>\n`;
+    filterButtonsHtml += `                    <button class="filter-btn" data-filter="${category.id}" title="${displayName}">${buttonText}</button>\n`;
   });
 
   filterButtonsHtml += '                    <!-- End filter buttons -->\n';
