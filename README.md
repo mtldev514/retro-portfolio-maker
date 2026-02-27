@@ -1,9 +1,9 @@
-# @mtldev514/retro-portfolio-maker
+# @mtldev514/portfolio-maker
 
-[![npm version](https://img.shields.io/npm/v/@mtldev514/retro-portfolio-maker.svg)](https://www.npmjs.com/package/@mtldev514/retro-portfolio-maker)
+[![npm version](https://img.shields.io/npm/v/@mtldev514/portfolio-maker.svg)](https://www.npmjs.com/package/@mtldev514/portfolio-maker)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A portfolio engine for multi-passionate creators with a soft spot for early 2000s aesthetics. Install it as an npm package, keep only your data in your repo, and update the engine without merge conflicts.
+A portfolio engine for multi-passionate creators. Install it as an npm package, keep only your data in your repo, and update the engine without merge conflicts.
 
 ---
 
@@ -18,7 +18,7 @@ Instead of cloning a repo, you **install an npm package** that contains the enti
 - **Simple workflow** — `npm install` then `npm run build`
 - **Admin included** — visual interface to manage content, upload images, edit translations
 - **Multi-language** — built-in i18n with as many languages as you need
-- **4 retro themes** — JR-16, Beton, Ciment, Bubble Gum (customizable)
+- **4 themes** — JR-16, Beton, Ciment, Bubble Gum (customizable)
 - **GitHub Pages ready** — deployment workflow included
 
 ---
@@ -27,7 +27,7 @@ Instead of cloning a repo, you **install an npm package** that contains the enti
 
 ```bash
 # 1. Create a new portfolio
-npx @mtldev514/retro-portfolio-maker init my-portfolio
+npx @mtldev514/portfolio-maker init my-portfolio
 cd my-portfolio
 
 # 2. Install dependencies
@@ -50,7 +50,7 @@ After `init`, your project contains **only your data** — no engine code:
 
 ```
 my-portfolio/
-├── package.json             # dependency: @mtldev514/retro-portfolio-maker
+├── package.json             # dependency: @mtldev514/portfolio-maker
 ├── .env                     # Cloudinary + GitHub credentials
 ├── .env.example             # credential template
 ├── .gitignore
@@ -84,39 +84,39 @@ After `npm run build`, a `dist/` folder is generated with the complete static si
 
 ## CLI Commands
 
-All commands are available via `retro-portfolio <command>` or through npm scripts.
+All commands are available via `portfolio <command>` or through npm scripts.
 
 | Command | npm script | Description |
 |---------|-----------|-------------|
-| `retro-portfolio init [dir]` | — | Create a new portfolio (interactive setup) |
-| `retro-portfolio sync` | `npm run sync` | Update portfolio with latest templates (non-destructive) |
-| `retro-portfolio build` | `npm run build` | Generate static site in `dist/` |
-| `retro-portfolio dev` | `npm run dev` | Start dev server (default: port 8000) |
-| `retro-portfolio admin` | `npm run admin` | Start admin API (default: port 5001) |
-| `retro-portfolio validate` | `npm run validate` | Check all config and data files |
-| `retro-portfolio deploy` | `npm run deploy` | Deploy to GitHub Pages (coming soon) |
-| `retro-portfolio ports` | — | List all active localhost ports |
-| `retro-portfolio kill <port>` | — | Kill process on a specific port |
-| `retro-portfolio localhost` | — | Visual UI to manage localhost servers |
+| `portfolio init [dir]` | — | Create a new portfolio (interactive setup) |
+| `portfolio sync` | `npm run sync` | Update portfolio with latest templates (non-destructive) |
+| `portfolio build` | `npm run build` | Generate static site in `dist/` |
+| `portfolio dev` | `npm run dev` | Start dev server (default: port 8000) |
+| `portfolio admin` | `npm run admin` | Start admin API (default: port 5001) |
+| `portfolio validate` | `npm run validate` | Check all config and data files |
+| `portfolio deploy` | `npm run deploy` | Deploy to GitHub Pages (coming soon) |
+| `portfolio ports` | — | List all active localhost ports |
+| `portfolio kill <port>` | — | Kill process on a specific port |
+| `portfolio localhost` | — | Visual UI to manage localhost servers |
 
 ### Command Options
 
 ```bash
-retro-portfolio init [dir] --force     # overwrite existing files
-retro-portfolio sync --force           # also update workflow files and styles.json
-retro-portfolio build --output public  # custom output directory
-retro-portfolio build --watch          # rebuild on file changes
-retro-portfolio dev --port 3000        # custom port
-retro-portfolio dev --open             # auto-open browser
-retro-portfolio admin --port 5002      # custom API port
-retro-portfolio admin --open           # auto-open browser
+portfolio init [dir] --force     # overwrite existing files
+portfolio sync --force           # also update workflow files and styles.json
+portfolio build --output public  # custom output directory
+portfolio build --watch          # rebuild on file changes
+portfolio dev --port 3000        # custom port
+portfolio dev --open             # auto-open browser
+portfolio admin --port 5002      # custom API port
+portfolio admin --open           # auto-open browser
 ```
 
 ---
 
 ## Configuration Reference
 
-> Full configuration reference with all fields and examples is in **CONFIGURATION.md**, which is included in every generated portfolio and updated automatically when you run `retro-portfolio sync`.
+> Full configuration reference with all fields and examples is in **CONFIGURATION.md**, which is included in every generated portfolio and updated automatically when you run `portfolio sync`.
 
 Here's a summary of each config file:
 
@@ -127,7 +127,7 @@ Top-level site settings:
 ```json
 {
   "app": {
-    "name": "My Retro Portfolio",
+    "name": "My Portfolio",
     "version": "1.0",
     "adminTitle": "PORTFOLIO MANAGER"
   },
@@ -148,7 +148,7 @@ Top-level site settings:
     "uploadCategories": ["music"]
   },
   "counter": {
-    "apiUrl": "https://api.counterapi.dev/v1/retro-portfolio/visits/up"
+    "apiUrl": "https://api.counterapi.dev/v1/portfolio/visits/up"
   },
   "winamp": {
     "title": "My Playlist",
@@ -282,7 +282,7 @@ Each category has a data file (e.g., `data/painting.json`). The format is:
 ### Initial Setup
 
 ```bash
-npx @mtldev514/retro-portfolio-maker init my-portfolio
+npx @mtldev514/portfolio-maker init my-portfolio
 cd my-portfolio
 npm install
 ```
@@ -334,10 +334,10 @@ To get the latest features and fixes:
 
 ```bash
 # Update the engine package
-npm update @mtldev514/retro-portfolio-maker
+npm update @mtldev514/portfolio-maker
 
 # Sync templates (adds missing files, updates docs, never overwrites your data)
-npx retro-portfolio sync
+npx portfolio sync
 
 # Rebuild
 npm run build
@@ -491,17 +491,17 @@ npm install
 ### Port already in use
 ```bash
 # Find what's using the port
-retro-portfolio ports
+portfolio ports
 
 # Kill a specific port
-retro-portfolio kill 8000
+portfolio kill 8000
 ```
 
 ---
 
 ## Contributing
 
-1. Fork [retro-portfolio-maker](https://github.com/mtldev514/retro-portfolio-maker)
+1. Fork [portfolio-maker](https://github.com/mtldev514/portfolio-maker)
 2. Create a feature branch
 3. Run tests: `npm test`
 4. Submit a Pull Request
@@ -516,9 +516,9 @@ MIT
 
 ## Links
 
-- [NPM Package](https://www.npmjs.com/package/@mtldev514/retro-portfolio-maker)
-- [GitHub Repository](https://github.com/mtldev514/retro-portfolio-maker)
-- [Issues](https://github.com/mtldev514/retro-portfolio-maker/issues)
+- [NPM Package](https://www.npmjs.com/package/@mtldev514/portfolio-maker)
+- [GitHub Repository](https://github.com/mtldev514/portfolio-maker)
+- [Issues](https://github.com/mtldev514/portfolio-maker/issues)
 
 ---
 

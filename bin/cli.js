@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Retro Portfolio CLI
+ * Portfolio Maker CLI
  * Main command-line interface for the package
  */
 
@@ -23,8 +23,8 @@ const killPort = require('../scripts/kill-port');
 const localhostUI = require('../scripts/localhost-ui');
 
 program
-  .name('retro-portfolio')
-  .description('Retro Portfolio Site Engine')
+  .name('portfolio')
+  .description('Portfolio Maker — Site Engine')
   .version(require('../package.json').version);
 
 // Init command - Create new portfolio

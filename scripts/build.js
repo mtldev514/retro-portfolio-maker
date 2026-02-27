@@ -152,7 +152,7 @@ async function build(options = {}) {
   const buildInfo = {
     buildDate: new Date().toISOString(),
     engine: {
-      name: '@mtldev514/retro-portfolio-engine',
+      name: '@mtldev514/portfolio-maker',
       version: require('../package.json').version
     },
     site: {

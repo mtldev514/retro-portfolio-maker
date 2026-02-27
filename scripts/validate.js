@@ -14,7 +14,7 @@
  *
  * Usage:
  *   node scripts/validate.js [--project-dir /path/to/project]
- *   npx retro-portfolio validate
+ *   npx portfolio validate
  */
 
 const fs = require('fs-extra');

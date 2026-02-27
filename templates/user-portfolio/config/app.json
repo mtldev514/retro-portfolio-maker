@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Retro Portfolio",
+    "name": "My Portfolio",
     "version": "1.0",
     "adminTitle": "PORTFOLIO MANAGER"
   },
@@ -16,16 +16,16 @@
   },
   "github": {
     "username": "yourusername",
-    "repoName": "retro-portfolio",
+    "repoName": "my-portfolio",
     "mediaReleaseTag": "media",
     "uploadCategories": [
       "music"
     ]
   },
   "counter": {
-    "apiUrl": "https://api.counterapi.dev/v1/retro-portfolio/visits/up"
+    "apiUrl": "https://api.counterapi.dev/v1/portfolio-maker/visits/up"
   },
-  "marquee": "*** Welcome to my retro portfolio ***",
+  "marquee": "*** Welcome to my portfolio ***",
   "winamp": {
     "title": "My Playlist",
     "bitrate": "192",

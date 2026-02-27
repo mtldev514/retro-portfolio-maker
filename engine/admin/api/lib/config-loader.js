@@ -172,7 +172,7 @@ class ConfigLoader {
   getGithubRepo() {
     const gh = this.getGithubConfig();
     if (gh.username && gh.repoName) return `${gh.username}/${gh.repoName}`;
-    return gh.repo || 'yourusername/retro-portfolio';
+    return gh.repo || 'yourusername/portfolio';
   }
 
   /**

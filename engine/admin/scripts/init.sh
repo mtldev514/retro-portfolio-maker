@@ -7,7 +7,7 @@ set -e
 
 echo ""
 echo "═══════════════════════════════════════════════════════════"
-echo "  🎨 Retro Portfolio - Initialization"
+echo "  🎨 Portfolio Maker - Initialization"
 echo "═══════════════════════════════════════════════════════════"
 echo ""
 

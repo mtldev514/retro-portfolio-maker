@@ -1,5 +1,5 @@
 /**
- * @mtldev514/retro-portfolio-engine
+ * @mtldev514/portfolio-maker
  * Main entry point for the package
  */
 

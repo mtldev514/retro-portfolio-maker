@@ -1,6 +1,6 @@
 # Configuration Reference
 
-> This file is maintained by **@mtldev514/retro-portfolio-maker** and is updated automatically when you run `retro-portfolio sync`. Do not rename or move this file.
+> This file is maintained by **@mtldev514/portfolio-maker** and is updated automatically when you run `portfolio sync`. Do not rename or move this file.
 
 ---
 
@@ -23,7 +23,7 @@
 
 ## Overview
 
-Your portfolio is powered by the `@mtldev514/retro-portfolio-maker` engine. You only manage the files in your project root — the engine handles HTML, CSS, JS, and the admin panel.
+Your portfolio is powered by the `@mtldev514/portfolio-maker` engine. You only manage the files in your project root — the engine handles HTML, CSS, JS, and the admin panel.
 
 ```
 my-portfolio/
@@ -58,7 +58,7 @@ Top-level site settings. All sections are optional — missing sections use sens
 ```json
 {
   "app": {
-    "name": "My Retro Portfolio",
+    "name": "My Portfolio",
     "version": "1.0",
     "adminTitle": "PORTFOLIO MANAGER"
   },
@@ -79,7 +79,7 @@ Top-level site settings. All sections are optional — missing sections use sens
     "uploadCategories": ["music"]
   },
   "counter": {
-    "apiUrl": "https://api.counterapi.dev/v1/retro-portfolio/visits/up"
+    "apiUrl": "https://api.counterapi.dev/v1/portfolio/visits/up"
   },
   "winamp": {
     "title": "My Playlist",
@@ -527,29 +527,29 @@ GITHUB_TOKEN=your_github_token_here
 
 | Command | npm script | Description |
 |---------|-----------|-------------|
-| `retro-portfolio init [dir]` | — | Create a new portfolio |
-| `retro-portfolio sync` | `npm run sync` | Update with latest templates (non-destructive) |
-| `retro-portfolio build` | `npm run build` | Build static site to `dist/` |
-| `retro-portfolio dev` | `npm run dev` | Dev server on port 8000 |
-| `retro-portfolio admin` | `npm run admin` | Admin API on port 5001 |
-| `retro-portfolio validate` | `npm run validate` | Validate config and data files |
-| `retro-portfolio deploy` | `npm run deploy` | Deploy to GitHub Pages (coming soon) |
-| `retro-portfolio ports` | — | List active localhost ports |
-| `retro-portfolio kill <port>` | — | Kill process on a port |
+| `portfolio init [dir]` | — | Create a new portfolio |
+| `portfolio sync` | `npm run sync` | Update with latest templates (non-destructive) |
+| `portfolio build` | `npm run build` | Build static site to `dist/` |
+| `portfolio dev` | `npm run dev` | Dev server on port 8000 |
+| `portfolio admin` | `npm run admin` | Admin API on port 5001 |
+| `portfolio validate` | `npm run validate` | Validate config and data files |
+| `portfolio deploy` | `npm run deploy` | Deploy to GitHub Pages (coming soon) |
+| `portfolio ports` | — | List active localhost ports |
+| `portfolio kill <port>` | — | Kill process on a port |
 
 **Combined launch:** `npm start` runs both `dev` and `admin` together.
 
 ### Command Options
 
 ```bash
-retro-portfolio init --force            # overwrite existing files
-retro-portfolio sync --force            # also update workflow files
-retro-portfolio build --output public   # custom output directory
-retro-portfolio build --watch           # auto-rebuild on changes
-retro-portfolio dev --port 3000         # custom dev server port
-retro-portfolio dev --open              # auto-open browser
-retro-portfolio admin --port 5002       # custom admin API port
-retro-portfolio admin --open            # auto-open browser
+portfolio init --force            # overwrite existing files
+portfolio sync --force            # also update workflow files
+portfolio build --output public   # custom output directory
+portfolio build --watch           # auto-rebuild on changes
+portfolio dev --port 3000         # custom dev server port
+portfolio dev --open              # auto-open browser
+portfolio admin --port 5002       # custom admin API port
+portfolio admin --open            # auto-open browser
 ```
 
 ---
@@ -560,10 +560,10 @@ To update the engine and get the latest features:
 
 ```bash
 # 1. Update the npm package
-npm update @mtldev514/retro-portfolio-maker
+npm update @mtldev514/portfolio-maker
 
 # 2. Sync templates (adds missing files, updates this doc)
-npx retro-portfolio sync
+npx portfolio sync
 
 # 3. Rebuild your site
 npm run build
@@ -589,11 +589,11 @@ The `sync` command is non-destructive — it never overwrites your data, config,
 - For local images, place them in `assets/` and use relative paths
 
 ### Port already in use
-- List active ports: `retro-portfolio ports`
-- Kill a port: `retro-portfolio kill 8000`
+- List active ports: `portfolio ports`
+- Kill a port: `portfolio kill 8000`
 
 ### After updating, something looks wrong
-- Run `npx retro-portfolio sync` to get any missing template files
+- Run `npx portfolio sync` to get any missing template files
 - Run `npm run validate` to check for config issues
 - Rebuild: `npm run build`
 
@@ -601,6 +601,6 @@ The `sync` command is non-destructive — it never overwrites your data, config,
 
 ## Links
 
-- [NPM Package](https://www.npmjs.com/package/@mtldev514/retro-portfolio-maker)
-- [GitHub Repository](https://github.com/mtldev514/retro-portfolio-maker)
-- [Issues](https://github.com/mtldev514/retro-portfolio-maker/issues)
+- [NPM Package](https://www.npmjs.com/package/@mtldev514/portfolio-maker)
+- [GitHub Repository](https://github.com/mtldev514/portfolio-maker)
+- [Issues](https://github.com/mtldev514/portfolio-maker/issues)

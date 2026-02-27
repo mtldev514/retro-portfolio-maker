@@ -17,13 +17,13 @@ async function syncPackageJsonScripts(targetPath) {
 
   // Define the latest recommended scripts
   const recommendedScripts = {
-    build: 'retro-portfolio build',
-    dev: 'retro-portfolio dev',
-    admin: 'retro-portfolio admin',
+    build: 'portfolio build',
+    dev: 'portfolio dev',
+    admin: 'portfolio admin',
     start: 'npm run dev & npm run admin',
-    deploy: 'retro-portfolio deploy',
-    validate: 'retro-portfolio validate',
-    sync: 'retro-portfolio sync',
+    deploy: 'portfolio deploy',
+    validate: 'portfolio validate',
+    sync: 'portfolio sync',
   };
 
   // Ensure scripts section exists
@@ -41,6 +41,25 @@ async function syncPackageJsonScripts(targetPath) {
     scriptsRemoved++;
   }
 
+  // Migration: update old retro-portfolio CLI commands to portfolio
+  let scriptsMigrated = 0;
+  for (const [scriptName, scriptValue] of Object.entries(packageJson.scripts)) {
+    if (typeof scriptValue === 'string' && scriptValue.includes('retro-portfolio')) {
+      packageJson.scripts[scriptName] = scriptValue.replace(/retro-portfolio/g, 'portfolio');
+      console.log(chalk.yellow('    ✓ Migrated script:'), chalk.cyan(scriptName), chalk.gray('(retro-portfolio → portfolio)'));
+      scriptsMigrated++;
+    }
+  }
+
+  // Migration: update dependency name if still using old package
+  if (packageJson.dependencies && packageJson.dependencies['@mtldev514/retro-portfolio-maker']) {
+    const oldVersion = packageJson.dependencies['@mtldev514/retro-portfolio-maker'];
+    delete packageJson.dependencies['@mtldev514/retro-portfolio-maker'];
+    packageJson.dependencies['@mtldev514/portfolio-maker'] = oldVersion;
+    console.log(chalk.yellow('    ✓ Migrated dependency:'), chalk.cyan('@mtldev514/retro-portfolio-maker → @mtldev514/portfolio-maker'));
+    scriptsMigrated++;
+  }
+
   // Add missing scripts
   for (const [scriptName, scriptCommand] of Object.entries(recommendedScripts)) {
     if (!packageJson.scripts[scriptName]) {
@@ -53,7 +72,7 @@ async function syncPackageJsonScripts(targetPath) {
   }
 
   // Save updated package.json if changes were made
-  if (scriptsAdded > 0 || scriptsRemoved > 0) {
+  if (scriptsAdded > 0 || scriptsRemoved > 0 || scriptsMigrated > 0) {
     await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
   }
 
@@ -73,8 +92,10 @@ async function sync(options = {}) {
   }
 
   const packageJson = await fs.readJson(packageJsonPath);
-  if (!packageJson.dependencies || !packageJson.dependencies['@mtldev514/retro-portfolio-maker']) {
-    throw new Error('This doesn\'t appear to be a retro-portfolio project.');
+  const hasDep = packageJson.dependencies &&
+    (packageJson.dependencies['@mtldev514/portfolio-maker'] || packageJson.dependencies['@mtldev514/retro-portfolio-maker']);
+  if (!hasDep) {
+    throw new Error('This doesn\'t appear to be a portfolio-maker project.');
   }
 
   console.log(chalk.cyan('📋 Checking for missing files...\n'));

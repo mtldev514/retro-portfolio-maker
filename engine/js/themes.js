@@ -94,7 +94,7 @@ const themes = {
             // Apply using legacy setProperty method
             this._applyLegacyTheme(this.currentTheme);
             this.buildThemeSwitcher();
-            console.info('Using legacy config/themes.json — run "npx retro-portfolio sync" to upgrade to CSS themes.');
+            console.info('Using legacy config/themes.json — run "npx portfolio sync" to upgrade to CSS themes.');
         } catch (e) {
             // No themes available at all
         }

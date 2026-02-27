@@ -209,7 +209,7 @@ function generateHTML(ports) {
         <div class="title-bar">
             <div class="title-text">
                 <span>🖥️</span>
-                <span>Localhost Manager - Retro Portfolio</span>
+                <span>Localhost Manager - Portfolio Maker</span>
             </div>
             <button class="btn-close" onclick="window.close()">×</button>
         </div>
@@ -257,7 +257,7 @@ function generateHTML(ports) {
             ${ports.length === 0 ? '<div class="empty-state">No active ports found. Start some servers!</div>' : ''}
 
             <div class="footer">
-                Retro Portfolio Localhost Manager v1.0 | Running on port ${PORT} | Press Ctrl+C in terminal to stop
+                Portfolio Maker Localhost Manager v1.0 | Running on port ${PORT} | Press Ctrl+C in terminal to stop
             </div>
         </div>
     </div>

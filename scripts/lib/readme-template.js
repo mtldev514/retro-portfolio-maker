@@ -6,7 +6,7 @@
 function generateReadme(projectName) {
   return `# ${projectName}
 
-A retro-styled portfolio powered by [@mtldev514/retro-portfolio-maker](https://www.npmjs.com/package/@mtldev514/retro-portfolio-maker).
+A portfolio powered by [@mtldev514/portfolio-maker](https://www.npmjs.com/package/@mtldev514/portfolio-maker).
 
 ## Quick Start
 
@@ -86,8 +86,8 @@ Sign up at [cloudinary.com](https://cloudinary.com) (free tier available). Optio
 ## Updating the Engine
 
 \`\`\`bash
-npm update @mtldev514/retro-portfolio-maker
-npx retro-portfolio sync    # adds missing files, updates docs (never overwrites your data)
+npm update @mtldev514/portfolio-maker
+npx portfolio sync    # adds missing files, updates docs (never overwrites your data)
 npm run build
 \`\`\`
 
@@ -110,17 +110,17 @@ Build command: \`npm run build\` | Publish directory: \`dist\`
 - **Admin won't start**: Make sure you have Node.js >= 18 installed
 - **Images won't upload**: Check \`.env\` has valid Cloudinary credentials
 - **Build fails**: Run \`npm run validate\` to check config files
-- **Port in use**: \`npx retro-portfolio kill 8000\`
+- **Port in use**: \`npx portfolio kill 8000\`
 
 ## Documentation
 
 - [CONFIGURATION.md](./CONFIGURATION.md) — Full config reference (auto-updated on sync)
-- [NPM Package](https://www.npmjs.com/package/@mtldev514/retro-portfolio-maker)
-- [GitHub](https://github.com/mtldev514/retro-portfolio-maker)
+- [NPM Package](https://www.npmjs.com/package/@mtldev514/portfolio-maker)
+- [GitHub](https://github.com/mtldev514/portfolio-maker)
 
 ---
 
-**Made with love using @mtldev514/retro-portfolio-maker**
+**Made with love using @mtldev514/portfolio-maker**
 `;
 }
 

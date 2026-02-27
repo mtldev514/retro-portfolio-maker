@@ -29,7 +29,7 @@ function prompt(question, defaultValue = '') {
 }
 
 async function init(targetDir, options = {}) {
-  console.log(chalk.blue('🎨 Initializing Retro Portfolio...\n'));
+  console.log(chalk.blue('🎨 Initializing Portfolio...\n'));
 
   const targetPath = path.resolve(process.cwd(), targetDir);
   const templatePath = path.join(__dirname, '../templates/user-portfolio');
@@ -62,14 +62,14 @@ async function init(targetDir, options = {}) {
     version: '1.0.0',
     private: true,
     scripts: {
-      build: 'retro-portfolio build',
-      dev: 'retro-portfolio dev',
-      admin: 'retro-portfolio admin',
+      build: 'portfolio build',
+      dev: 'portfolio dev',
+      admin: 'portfolio admin',
       start: 'npm run dev & npm run admin',
-      deploy: 'retro-portfolio deploy',
+      deploy: 'portfolio deploy',
     },
     dependencies: {
-      '@mtldev514/retro-portfolio-maker': '^1.0.0'
+      '@mtldev514/portfolio-maker': '^1.0.0'
     }
   };
 
@@ -249,7 +249,7 @@ jobs:
   const configFiles = {
     'config/app.json': {
       site: {
-        name: 'My Retro Portfolio',
+        name: 'My Portfolio',
         description: 'A nostalgic web presence',
         author: 'Your Name'
       }

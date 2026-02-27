@@ -2,7 +2,7 @@
  * Sync to Supabase
  * Reads local JSON files and syncs all data to Supabase database.
  *
- * Run after git push via CI, or manually: `retro-portfolio sync-supabase`
+ * Run after git push via CI, or manually: `portfolio sync-supabase`
  *
  * Environment variables:
  *   SUPABASE_URL        — Project URL (e.g. https://xxx.supabase.co)

@@ -1,5 +1,5 @@
 -- ============================================================
--- Supabase Setup for Retro Portfolio
+-- Supabase Setup for Portfolio Maker
 -- ============================================================
 -- Run this in the Supabase SQL Editor to create the required
 -- tables, RLS policies, and storage bucket.

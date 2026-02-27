@@ -2,7 +2,7 @@
 
 ## Problème
 
-Les commandes `retro-portfolio` ne sont pas trouvées dans les scripts npm.
+Les commandes `portfolio` ne sont pas trouvées dans les scripts npm.
 
 ## Solution
 
@@ -11,11 +11,11 @@ Dans votre `package.json` de `alex_a_montreal`, remplacez les scripts par :
 ```json
 {
   "scripts": {
-    "build": "npx retro-portfolio build",
-    "dev": "npx retro-portfolio dev",
-    "admin": "npx retro-portfolio admin",
+    "build": "npx portfolio build",
+    "dev": "npx portfolio dev",
+    "admin": "npx portfolio admin",
     "start": "npm run dev & npm run admin",
-    "deploy": "npx retro-portfolio deploy"
+    "deploy": "npx portfolio deploy"
   }
 }
 ```
@@ -26,7 +26,7 @@ Dans votre `package.json` de `alex_a_montreal`, remplacez les scripts par :
 cd alex_a_montreal
 
 # Ouvrir package.json et changer les scripts
-# Remplacer "retro-portfolio" par "npx retro-portfolio"
+# Remplacer "portfolio" par "npx portfolio"
 ```
 
 ## Test

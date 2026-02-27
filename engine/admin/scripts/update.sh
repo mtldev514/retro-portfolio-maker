@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Retro Portfolio Update Script
+# Portfolio Maker Update Script
 # Safely updates the template while preserving user data
 
 set -e
 
 echo ""
 echo "═══════════════════════════════════════════════════════════"
-echo "  🔄 Retro Portfolio - Update Script"
+echo "  🔄 Portfolio Maker - Update Script"
 echo "═══════════════════════════════════════════════════════════"
 echo ""
 
@@ -26,7 +26,7 @@ if [ -d "template/.git" ]; then
 elif [ -d ".git" ]; then
     # Check if this is the template repo or a user's fork
     REMOTE_URL=$(git remote get-url origin 2>/dev/null || echo "")
-    if [[ "$REMOTE_URL" == *"retro-portfolio"* ]] && [[ "$REMOTE_URL" != *"retro-portfolio-config"* ]]; then
+    if [[ "$REMOTE_URL" == *"portfolio-maker"* ]] && [[ "$REMOTE_URL" != *"portfolio-maker-config"* ]]; then
         SETUP_TYPE="direct"
     else
         SETUP_TYPE="fork"
@@ -162,7 +162,7 @@ update_direct() {
         # Check if upstream exists
         if ! git remote get-url upstream > /dev/null 2>&1; then
             echo -e "${YELLOW}Adding upstream remote...${NC}"
-            git remote add upstream https://github.com/yourusername/retro-portfolio.git
+            git remote add upstream https://github.com/yourusername/portfolio-maker.git
         fi
 
         git fetch upstream

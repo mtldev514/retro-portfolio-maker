@@ -3,7 +3,7 @@
 ## [1.3.0] - 2026-02-11
 
 ### Breaking Changes
-- 📦 **Package renamed** from `@mtldev514/retro-portfolio-engine` to `@mtldev514/retro-portfolio-maker`
+- 📦 **Package renamed** from `@mtldev514/retro-portfolio-engine` to `@mtldev514/retro-portfolio-maker` (now `@mtldev514/portfolio-maker`)
   - Better reflects what the package does - it makes portfolios!
   - Update your dependencies if upgrading from earlier versions
 

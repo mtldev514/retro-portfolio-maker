@@ -2,7 +2,7 @@
 
 ## Repository Structure
 
-This is the **engine** (`@mtldev514/retro-portfolio-maker`), an npm package that powers retro portfolio sites.
+This is the **engine** (`@mtldev514/portfolio-maker`), an npm package that powers portfolio sites.
 Child repositories (e.g. `alex_a_montreal`) consume this engine as a dependency.
 
 - `engine/` — Core frontend files (JS, CSS, HTML) copied to dist/ during build
@@ -44,8 +44,8 @@ gh run watch <run-id>
 ### 5. Update child repositories (e.g. alex_a_montreal)
 ```bash
 cd /path/to/alex_a_montreal
-npm update @mtldev514/retro-portfolio-maker
-npx retro-portfolio sync   # Adds any new template files without overwriting user data
+npm update @mtldev514/portfolio-maker
+npx portfolio sync   # Adds any new template files without overwriting user data
 npm run build               # Rebuild with new engine
 ```
 - Test locally with `npm run dev` if needed.

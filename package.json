@@ -1,10 +1,10 @@
 {
-  "name": "@mtldev514/retro-portfolio-maker",
+  "name": "@mtldev514/portfolio-maker",
   "version": "1.0.54",
-  "description": "A portfolio manager for multi-passionate creators with a soft spot for early 2000s aesthetics. Display your many projects with soul.",
+  "description": "A portfolio engine for multi-passionate creators. Display your many projects with soul.",
   "main": "index.js",
   "bin": {
-    "retro-portfolio": "./bin/cli.js"
+    "portfolio": "./bin/cli.js"
   },
   "scripts": {
     "prepare": "husky",
@@ -15,17 +15,16 @@
   },
   "keywords": [
     "portfolio",
-    "retro",
     "static-site-generator",
     "site-as-a-package",
-    "90s-aesthetic",
-    "personal-website"
+    "personal-website",
+    "portfolio-maker"
   ],
   "author": "Alex",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mtldev514/retro-portfolio-maker"
+    "url": "https://github.com/mtldev514/portfolio-maker"
   },
   "files": [
     "engine/",
