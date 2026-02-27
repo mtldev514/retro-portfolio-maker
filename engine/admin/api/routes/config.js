@@ -1,6 +1,9 @@
 /**
- * Config Routes
- * GET/POST /api/config/:name — Read/write config JSON files
+ * Config Routes (Factory)
+ * GET/POST /api/config/:name — Read/write config JSON files or Supabase config table
+ *
+ * In local mode:    reads/writes config/*.json files (existing behavior)
+ * In supabase mode: reads/writes the `config` table (key → value JSONB)
  */
 
 const express = require('express');
@@ -8,38 +11,84 @@ const path = require('path');
 const fs = require('fs-extra');
 const { config } = require('../lib/config-loader');
 
-const router = express.Router();
+/**
+ * Create config router with mode-aware branching.
+ * @param {object} [opts]
+ * @param {string} [opts.mode='local'] — 'local' or 'supabase'
+ * @param {function} [opts.getSupabase] — lazy getter for Supabase client
+ */
+module.exports = function createConfigRouter(opts = {}) {
+  const router = express.Router();
+  const routeMode = opts.mode || 'local';
 
-router.get('/:name', async (req, res) => {
-  try {
-    const configDir = process.env.CONFIG_DIR || path.join(process.cwd(), 'config');
-    const configFile = path.join(configDir, `${req.params.name}.json`);
+  router.get('/:name', async (req, res) => {
+    try {
+      if (routeMode === 'supabase') {
+        // ─── Supabase: read from config table ───
+        const supabase = opts.getSupabase();
+        const { data, error } = await supabase
+          .from('config')
+          .select('value')
+          .eq('key', req.params.name)
+          .maybeSingle();
 
-    if (!(await fs.pathExists(configFile))) {
-      return res.json({});
+        if (error) throw new Error(error.message);
+        return res.json((data && data.value) || {});
+      }
+
+      // ─── Local: read from config/*.json file ───
+      const configDir = process.env.CONFIG_DIR || path.join(process.cwd(), 'config');
+      const configFile = path.join(configDir, `${req.params.name}.json`);
+
+      if (!(await fs.pathExists(configFile))) {
+        return res.json({});
+      }
+
+      const fileData = await fs.readJson(configFile);
+      res.json(fileData);
+    } catch (e) {
+      res.status(500).json({ error: e.message });
     }
+  });
 
-    const data = await fs.readJson(configFile);
-    res.json(data);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
+  router.post('/:name', async (req, res) => {
+    try {
+      if (routeMode === 'supabase') {
+        // ─── Supabase: upsert into config table ───
+        const supabase = opts.getSupabase();
+        const { error } = await supabase
+          .from('config')
+          .upsert(
+            {
+              key: req.params.name,
+              value: req.body,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'key' }
+          );
 
-router.post('/:name', async (req, res) => {
-  try {
-    const configDir = process.env.CONFIG_DIR || path.join(process.cwd(), 'config');
-    const configFile = path.join(configDir, `${req.params.name}.json`);
+        if (error) throw new Error(error.message);
 
-    await fs.writeFile(configFile, JSON.stringify(req.body, null, 2), 'utf-8');
+        // Reload in-memory config (keeps ConfigLoader in sync)
+        config.loadAll();
 
-    // Reload config after save
-    config.loadAll();
+        return res.json({ success: true });
+      }
 
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
+      // ─── Local: write to config/*.json file ───
+      const configDir = process.env.CONFIG_DIR || path.join(process.cwd(), 'config');
+      const configFile = path.join(configDir, `${req.params.name}.json`);
 
-module.exports = router;
+      await fs.writeFile(configFile, JSON.stringify(req.body, null, 2), 'utf-8');
+
+      // Reload config after save
+      config.loadAll();
+
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  return router;
+};

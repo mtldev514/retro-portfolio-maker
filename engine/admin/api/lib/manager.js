@@ -1,15 +1,23 @@
 /**
  * Content Manager for Admin API
- * Handles Cloudinary uploads, GitHub Releases uploads,
+ * Handles file uploads (Supabase Storage, Cloudinary, GitHub Releases),
  * content creation/deletion, and cloud asset management.
  *
- * Uses DataStore for all JSON data operations.
+ * Uses DataStore for all data operations.
+ * Storage provider is selected by mode:
+ *   - "supabase" → Supabase Storage (default for new setups)
+ *   - "local"    → Cloudinary (legacy)
  */
 
 const fs = require('fs-extra');
 const path = require('path');
 const cloudinary = require('cloudinary').v2;
 const { config } = require('./config-loader');
+const {
+  uploadToSupabaseStorage,
+  deleteFromSupabaseStorage,
+  isSupabaseStorageUrl,
+} = require('./storage-provider');
 
 // Media content types for GitHub Releases
 const MEDIA_CONTENT_TYPES = {
@@ -28,29 +36,37 @@ let GITHUB_REPO = null;
 let RELEASE_TAG = 'media';
 let GITHUB_UPLOAD_CATEGORIES = new Set(['music']);
 let store = null;
+let mode = 'local'; // 'local' (Cloudinary) or 'supabase'
 
 /**
  * Initialize manager with DataStore and env vars.
  * Called after config is loaded and store is created.
- * @param {import('./data-store').JsonFileStore} dataStore
+ * @param {object} dataStore — JsonFileStore or SupabaseStore instance
+ * @param {object} [opts] — options
+ * @param {string} [opts.mode='local'] — 'local' (Cloudinary) or 'supabase' (Supabase Storage)
  */
-function init(dataStore) {
+function init(dataStore, opts = {}) {
   store = dataStore;
+  mode = opts.mode || 'local';
 
-  // Configure Cloudinary from env vars
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-    secure: true,
-  });
+  // Configure Cloudinary only in local mode (legacy)
+  if (mode !== 'supabase') {
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+      secure: true,
+    });
+  }
 
-  // GitHub config
+  // GitHub config (used in both modes for audio/video uploads)
   GITHUB_TOKEN = process.env.GITHUB_TOKEN || null;
   GITHUB_REPO = config.getGithubRepo();
   const ghConfig = config.getGithubConfig();
   RELEASE_TAG = ghConfig.mediaReleaseTag || 'media';
   GITHUB_UPLOAD_CATEGORIES = new Set(ghConfig.uploadCategories || ['music']);
+
+  console.log(`Manager initialized (mode: ${mode})`);
 }
 
 // ─── GitHub Releases ──────────────────────────────────────
@@ -121,6 +137,7 @@ async function uploadToGithubRelease(filePath, filename) {
 // ─── Cloud Upload ─────────────────────────────────────────
 
 async function uploadSingle(filePath, category) {
+  // GitHub Releases for configured categories (works in both modes)
   if (GITHUB_UPLOAD_CATEGORIES.has(category) && GITHUB_TOKEN) {
     console.log(`Uploading ${filePath} to GitHub Releases...`);
     const url = await uploadToGithubRelease(filePath, path.basename(filePath));
@@ -128,6 +145,13 @@ async function uploadSingle(filePath, category) {
     return url;
   }
 
+  // Supabase Storage (supabase mode)
+  if (mode === 'supabase') {
+    console.log(`Uploading ${filePath} to Supabase Storage...`);
+    return uploadToSupabaseStorage(filePath, category);
+  }
+
+  // Cloudinary (local/legacy mode)
   const resourceType = category === 'video' ? 'video' : 'auto';
   console.log(`Uploading ${filePath} to Cloudinary...`);
   const result = await cloudinary.uploader.upload(filePath, {
@@ -261,7 +285,35 @@ async function deleteFromGithubRelease(url) {
 // ─── Cloud Asset Cleanup ──────────────────────────────────
 
 /**
+ * Delete a single cloud asset URL, trying each provider by URL pattern.
+ * @param {string} url — cloud asset URL
+ * @returns {boolean} true if deleted
+ */
+async function deleteSingleCloudAsset(url) {
+  if (!url) return false;
+
+  // Try Supabase Storage first (if URL matches)
+  if (isSupabaseStorageUrl(url)) {
+    return deleteFromSupabaseStorage(url);
+  }
+
+  // Try Cloudinary
+  if (url.includes('cloudinary.com')) {
+    return deleteFromCloudinary(url);
+  }
+
+  // Try GitHub Releases
+  if (url.includes('github.com') || url.includes('githubusercontent.com')) {
+    return deleteFromGithubRelease(url);
+  }
+
+  console.log(`Unknown cloud provider for URL: ${url}`);
+  return false;
+}
+
+/**
  * Delete all cloud assets (URLs) associated with an item.
+ * Detects the provider from each URL pattern.
  * @param {object} item — item with url and optional gallery array
  * @returns {{ deletedUrls: string[], failedUrls: string[] }}
  */
@@ -269,23 +321,19 @@ async function deleteCloudAssets(item) {
   const deletedUrls = [];
   const failedUrls = [];
 
-  // Delete main URL
-  if (item.url) {
-    if (await deleteFromCloudinary(item.url)) {
-      deletedUrls.push(item.url);
-    } else if (await deleteFromGithubRelease(item.url)) {
-      deletedUrls.push(item.url);
-    } else {
-      failedUrls.push(item.url);
-    }
+  // Collect all URLs to delete
+  const urls = [];
+  if (item.url) urls.push(item.url);
+  for (const galleryUrl of (item.gallery || [])) {
+    urls.push(galleryUrl);
   }
 
-  // Delete gallery images
-  for (const galleryUrl of (item.gallery || [])) {
-    if (await deleteFromCloudinary(galleryUrl)) {
-      deletedUrls.push(galleryUrl);
+  // Delete each URL, trying the appropriate provider
+  for (const url of urls) {
+    if (await deleteSingleCloudAsset(url)) {
+      deletedUrls.push(url);
     } else {
-      failedUrls.push(galleryUrl);
+      failedUrls.push(url);
     }
   }
 

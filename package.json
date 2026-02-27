@@ -38,6 +38,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.98.0",
     "chalk": "^4.1.2",
     "cloudinary": "^2.9.0",
     "commander": "^11.0.0",

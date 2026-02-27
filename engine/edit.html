@@ -224,6 +224,9 @@
             log(`Fetching ${category}/${itemId}...`);
 
             try {
+                // Load categories first so mediaType is available for populateForm
+                await loadCategoryOptions(category);
+
                 const res = await fetch(`${API_URL}/api/content/item?category=${encodeURIComponent(category)}&id=${encodeURIComponent(itemId)}`);
                 const data = await res.json();
 
@@ -321,9 +324,6 @@
             document.getElementById('editDescription').value = resolveField(item.description);
 
             log(`Item loaded successfully: "${titleStr}"`, 'cyan');
-
-            // Load category dropdown (async, non-blocking)
-            loadCategoryOptions(cat);
         }
 
         function renderGalleryManager() {

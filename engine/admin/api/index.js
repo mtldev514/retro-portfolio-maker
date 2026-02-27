@@ -1,10 +1,13 @@
 /**
  * Admin API — Express Server
- * Replaces Python Flask admin_api.py
  *
  * Provides REST API for portfolio content management:
  * uploads, content CRUD, config, translations, styles,
  * GitHub sync, and git commit/push.
+ *
+ * Supports two modes (detected from config-source.json):
+ *   - "local"    → JsonFileStore + Cloudinary (legacy)
+ *   - "supabase" → SupabaseStore + Supabase Storage
  */
 
 const express = require('express');
@@ -21,16 +24,47 @@ const manager = require('./lib/manager');
 // Route modules
 const createUploadRouter = require('./routes/upload');
 const createContentRouter = require('./routes/content');
-const configRoutes = require('./routes/config');
-const translationsRoutes = require('./routes/translations');
+const createConfigRouter = require('./routes/config');
+const createTranslationsRouter = require('./routes/translations');
 const stylesRoutes = require('./routes/styles');
 const integrationsRoutes = require('./routes/integrations');
 
 /**
+ * Detect data source mode from config-source.json in the project directory.
+ * Returns "local" (default) or "supabase".
+ * @param {string} projectDir — absolute path to the user's project
+ * @returns {string} mode
+ */
+function detectMode(projectDir) {
+  const possiblePaths = [
+    path.join(projectDir, 'config-source.json'),
+    path.join(projectDir, 'config', 'config-source.json'),
+  ];
+
+  for (const filePath of possiblePaths) {
+    try {
+      if (fs.existsSync(filePath)) {
+        const data = fs.readJsonSync(filePath);
+        if (data.mode === 'supabase') return 'supabase';
+      }
+    } catch {
+      // Ignore read errors, fall through to default
+    }
+  }
+
+  return 'local';
+}
+
+/**
  * Create and configure the Express app
+ * @param {object} [options]
+ * @param {object} [options.store] — DataStore instance (JsonFileStore or SupabaseStore)
+ * @param {string} [options.uploadDir] — temp upload directory
+ * @param {string} [options.mode='local'] — 'local' or 'supabase'
  */
 function createApp(options = {}) {
   const app = express();
+  const appMode = options.mode || 'local';
 
   // Middleware
   app.use(cors());
@@ -45,13 +79,25 @@ function createApp(options = {}) {
   // Create DataStore (from options or config singleton)
   const store = options.store || new JsonFileStore(config);
 
+  // Build route options for mode-aware routers
+  const routeOpts = { mode: appMode };
+
+  if (appMode === 'supabase') {
+    // Lazy getter — only creates the Supabase client when actually called
+    const { getSupabaseClient } = require('./lib/supabase-client');
+    routeOpts.getSupabase = getSupabaseClient;
+  }
+
   // Mount upload routes (factory receives multer instance)
   app.use('/api', createUploadRouter(upload));
 
-  // Mount content routes (factory receives DataStore)
+  // Mount content routes (factory receives DataStore — transparent)
   app.use('/api/content', createContentRouter(store));
-  app.use('/api/config', configRoutes);
-  app.use('/api/translations', translationsRoutes);
+
+  // Mount config + translations routes (factory receives mode opts)
+  app.use('/api/config', createConfigRouter(routeOpts));
+  app.use('/api/translations', createTranslationsRouter(routeOpts));
+
   app.use('/api/styles', stylesRoutes);
   app.use('/api', integrationsRoutes);
 
@@ -89,24 +135,42 @@ function startServer(options = {}) {
   });
   config.loadAll();
 
-  // Create DataStore and initialize manager
-  const store = new JsonFileStore(config);
-  manager.init(store);
+  // ─── Mode Detection ─────────────────────────────────────
+  const sourceMode = detectMode(projectDir);
+
+  // Create the appropriate DataStore
+  let store;
+  if (sourceMode === 'supabase') {
+    const { SupabaseStore } = require('./lib/supabase-store');
+    store = new SupabaseStore(config);
+    console.log('📦 Data store: Supabase DB');
+  } else {
+    store = new JsonFileStore(config);
+    console.log('📦 Data store: Local JSON files');
+  }
+
+  // Initialize manager with store and mode
+  manager.init(store, { mode: sourceMode });
 
   // Create and start server
-  const app = createApp({ store, uploadDir: path.join(projectDir, 'temp_uploads') });
+  const app = createApp({
+    store,
+    uploadDir: path.join(projectDir, 'temp_uploads'),
+    mode: sourceMode,
+  });
 
   const server = app.listen(port, '0.0.0.0', () => {
-    console.log(`\uD83D\uDD27 Admin API starting...`);
+    console.log(`🔧 Admin API starting...`);
+    console.log(`   Mode: ${sourceMode}`);
     console.log(`   Data dir: ${path.resolve(process.env.DATA_DIR || 'data')}`);
     console.log(`   Config dir: ${path.resolve(process.env.CONFIG_DIR || 'config')}`);
     console.log(`   Lang dir: ${path.resolve(process.env.LANG_DIR || 'lang')}`);
     console.log(`   Styles dir: ${path.resolve(process.env.STYLES_DIR || 'styles')}`);
     console.log(`   API Port: ${port}`);
-    console.log(`\n\u2728 Admin API ready at: http://localhost:${port}/api/\n`);
+    console.log(`\n✨ Admin API ready at: http://localhost:${port}/api/\n`);
   });
 
   return server;
 }
 
-module.exports = { createApp, startServer };
+module.exports = { createApp, startServer, detectMode };
