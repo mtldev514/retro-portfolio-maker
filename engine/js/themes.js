@@ -7,11 +7,12 @@
  *   3. buildThemeSwitcher() dynamically populates theme options in settings dropdown
  */
 const themes = {
-    currentTheme: localStorage.getItem('selectedTheme') || 'mineral',
+    currentTheme: localStorage.getItem('selectedTheme') || 'beton',
     definitions: {},
     definitionsArray: [],
     allowUserSwitch: true,
     _loaded: false,
+    _tokenOverrides: {},
 
     /**
      * Synchronous init — inject cached theme CSS instantly to prevent flash.
@@ -24,6 +25,20 @@ const themes = {
             style.id = 'theme-cache';
             style.textContent = cachedCSS;
             document.head.appendChild(style);
+        }
+
+        // Apply cached token overrides synchronously (FOUC prevention)
+        const cachedOverrides = localStorage.getItem('themeOverrides');
+        if (cachedOverrides) {
+            try {
+                const overrides = JSON.parse(cachedOverrides);
+                const root = document.documentElement;
+                Object.entries(overrides).forEach(([key, value]) => {
+                    root.style.setProperty(`--${key}`, value);
+                });
+            } catch (e) {
+                // Corrupted cache — will be refreshed by async load
+            }
         }
     },
 
@@ -56,6 +71,9 @@ const themes = {
 
             // Load the active theme CSS file
             await this.applyTheme(this.currentTheme);
+
+            // Apply design token overrides from theme.json (if any)
+            await this._loadTokenOverrides();
 
             // Build dynamic theme switcher in settings dropdown
             this.buildThemeSwitcher();
@@ -116,6 +134,44 @@ const themes = {
     },
 
     /**
+     * Load design token overrides from styles/theme.json
+     * Applies overrides on top of the base CSS theme using setProperty()
+     */
+    async _loadTokenOverrides() {
+        try {
+            const res = await fetch('styles/theme.json');
+            if (!res.ok) return;
+
+            const data = await res.json();
+            if (!data.overrides || typeof data.overrides !== 'object') return;
+            if (Object.keys(data.overrides).length === 0) return;
+
+            this._tokenOverrides = data.overrides;
+            this._applyTokenOverrides();
+            localStorage.setItem('themeOverrides', JSON.stringify(data.overrides));
+        } catch (e) {
+            console.warn('Could not load theme.json:', e.message);
+        }
+    },
+
+    _applyTokenOverrides() {
+        const root = document.documentElement;
+        Object.entries(this._tokenOverrides).forEach(([key, value]) => {
+            root.style.setProperty(`--${key}`, value);
+        });
+        this._refreshEffects();
+    },
+
+    _clearTokenOverrides() {
+        const root = document.documentElement;
+        Object.keys(this._tokenOverrides).forEach(key => {
+            root.style.removeProperty(`--${key}`);
+        });
+        this._tokenOverrides = {};
+        localStorage.removeItem('themeOverrides');
+    },
+
+    /**
      * Apply a theme by loading its CSS file
      */
     async applyTheme(themeId) {
@@ -127,6 +183,9 @@ const themes = {
             this._applyLegacyTheme(themeId);
             return;
         }
+
+        // Clear existing token overrides before loading new base
+        this._clearTokenOverrides();
 
         const cssUrl = `styles/${theme.file}`;
 
@@ -176,17 +235,8 @@ const themes = {
      * Refresh visual effects after theme change
      */
     _refreshEffects() {
-        // Force h1 chrome gradient to re-render with new --mirror-* values
-        const h1 = document.querySelector('h1');
-        if (h1) {
-            const cs = getComputedStyle(document.documentElement);
-            const shine = cs.getPropertyValue('--mirror-shine').trim();
-            const light = cs.getPropertyValue('--mirror-light').trim();
-            const mid   = cs.getPropertyValue('--mirror-mid').trim();
-            h1.style.background = `linear-gradient(135deg, ${shine} 0%, ${light} 25%, ${mid} 50%, ${light} 75%, ${shine} 100%)`;
-            h1.style.webkitBackgroundClip = 'text';
-            h1.style.backgroundClip = 'text';
-        }
+        // SVG title gradient uses CSS variables via stop-color classes,
+        // so it updates automatically when theme CSS vars change.
 
         // Update sparkle colors
         if (window.sparkle) sparkle.refreshColors();

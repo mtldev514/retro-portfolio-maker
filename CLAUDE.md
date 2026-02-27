@@ -78,6 +78,17 @@ npm run build               # Rebuild with new engine
 - `admin` — launches Express admin API
 - `validate` — checks config/data files for errors (Node.js-based)
 
+## Coding Principles
+
+- **Engine-first**: All changes go through engine files. Never edit child repos directly.
+- **Tests reflect DOM**: When HTML structure changes, update all tests that reference removed/changed elements. Grep tests for selectors and text content of anything you remove.
+- **CSS tokens for everything themeable**: Colors, fonts, and visual properties use `var(--token-name)` so users can override them via `theme.json`.
+- **Simple selectors over DOM-walking**: Prefer direct CSS selectors (`.parent .child`) over sibling-walking or label-finding patterns in both code and tests.
+- **Minimal UI text**: Don't add labels or headings when the UI is self-explanatory (e.g. flags + language names don't need a "Language" heading).
+- **Click over hover for interactions**: More accessible and works on touch devices.
+- **Don't run tests manually before commits**: Pre-push hooks and CI handle test runs. Only run tests explicitly when debugging failures.
+- **Keep it simple**: Don't add abstractions, error handling, or features beyond what's needed for the current task.
+
 ## Common Gotchas
 - Branch may fall behind origin after CI version bump — always `git pull --rebase` before pushing
 - Pre-commit hook runs full test suite — be patient (takes ~10s)

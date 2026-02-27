@@ -312,7 +312,21 @@ jobs:
         filesAdded++;
       }
     } else {
-      console.log(chalk.gray('  ⊘ Skipped:'), 'styles/', chalk.gray('(preserving your themes)'));
+      console.log(chalk.gray('  ⊘ Skipped:'), 'styles/styles.json', chalk.gray('(preserving your themes)'));
+      filesSkipped++;
+    }
+
+    // Ensure theme.json token file is present
+    const themeJsonPath = path.join(stylesDir, 'theme.json');
+    if (!fs.existsSync(themeJsonPath)) {
+      const templateThemeJson = path.join(templateStylesDir, 'theme.json');
+      if (fs.existsSync(templateThemeJson)) {
+        await fs.copy(templateThemeJson, themeJsonPath);
+        console.log(chalk.green('  ✓ Created missing:'), 'styles/theme.json');
+        filesAdded++;
+      }
+    } else {
+      console.log(chalk.gray('  ⊘ Skipped:'), 'styles/theme.json', chalk.gray('(preserving your tokens)'));
       filesSkipped++;
     }
   }

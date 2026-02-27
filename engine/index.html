@@ -7,7 +7,7 @@
     <title data-i18n="header_title">alex a montreal</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Capriola&family=Titan+One&family=Rubik+Dirt&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Capriola&family=Titan+One&family=Rubik+Dirt&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="fonts.css">
 
@@ -26,6 +26,15 @@
 </head>
 
 <body>
+    <div id="loading-screen">
+        <div class="loading-content">
+            <div class="loading-terminal">
+                <span class="loading-prompt">C:\PORTFOLIO&gt;</span>
+                <span class="loading-text">LOADING</span><span class="loading-dots"></span>
+                <span class="loading-cursor">█</span>
+            </div>
+        </div>
+    </div>
     <div id="rotate-overlay">
         <div class="rotate-content">
             <div class="rotate-icon">📺↩️</div>
@@ -44,21 +53,37 @@
             <p class="rotate-blink">*** LANDSCAPE MODE REQUIRED ***</p>
         </div>
     </div>
+    <div class="settings-switcher" id="settings-switcher">
+        <button class="settings-btn" onclick="document.getElementById('settings-switcher').classList.toggle('open')">
+            <span id="lang-btn-flag">🇬🇧</span>
+        </button>
+        <div class="settings-dropdown">
+            <div class="settings-option" onclick="i18n.changeLang('en')"><span class="lang-flag">🇬🇧</span>
+                English</div>
+            <div class="settings-option" onclick="i18n.changeLang('fr')"><span class="lang-flag">🇫🇷</span>
+                French</div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('click', function(e) {
+            var sw = document.getElementById('settings-switcher');
+            if (sw && !sw.contains(e.target)) sw.classList.remove('open');
+        });
+    </script>
     <div class="container">
-        <header>
-            <div class="settings-switcher">
-                <button class="settings-btn"><span id="lang-btn-flag">🇬🇧</span></button>
-                <div class="settings-dropdown">
-                    <div class="settings-section-label">Language</div>
-                    <div class="settings-option" onclick="i18n.changeLang('en')"><span class="lang-flag">🇬🇧</span>
-                        English</div>
-                    <div class="settings-option" onclick="i18n.changeLang('fr')"><span class="lang-flag">🇫🇷</span>
-                        French</div>
-                </div>
-            </div>
-            <canvas id="ambient-header"></canvas>
-            <h1 id="page-title" data-i18n="header_title">alex a montreal</h1>
-        </header>
+        <canvas id="ambient-header"></canvas>
+        <svg id="title-svg" viewBox="0 0 600 70" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="title-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" class="grad-stop-1" />
+                    <stop offset="25%" class="grad-stop-2" />
+                    <stop offset="50%" class="grad-stop-3" />
+                    <stop offset="75%" class="grad-stop-2" />
+                    <stop offset="100%" class="grad-stop-1" />
+                </linearGradient>
+            </defs>
+            <text id="page-title" data-i18n="header_title" x="50%" y="50%" text-anchor="middle" dominant-baseline="central" fill="url(#title-gradient)">alex a montreal</text>
+        </svg>
 
         <div class="marquee-container">
             <div class="marquee-track">
@@ -128,15 +153,7 @@
 
             <main id="app">
                 <div id="filter-nav" class="filter-bar">
-                    <!-- Auto-generated filter buttons from categories.json -->
-                    <button class="filter-btn active" data-filter="all" title="All">✱</button>
-                    <button class="filter-btn" data-filter="painting" title="Painting">🎨</button>
-                    <button class="filter-btn" data-filter="drawing" title="Drawing">✏️</button>
-                    <button class="filter-btn" data-filter="photography" title="Photography">📷</button>
-                    <button class="filter-btn" data-filter="sculpting" title="Sculpting">🗿</button>
-                    <button class="filter-btn" data-filter="music" title="Music">🎵</button>
-                    <button class="filter-btn" data-filter="projects" title="Projects">💻</button>
-                    <!-- End filter buttons -->
+                    <!-- filter buttons injected by build script -->
                 </div>
                 <!-- Gallery grid loaded by render.js -->
             </main>

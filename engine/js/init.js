@@ -48,6 +48,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         ambientViz.init();
     }
 
+    // 10. Dismiss loading screen
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+        loadingScreen.classList.add('fade-out');
+        loadingScreen.addEventListener('transitionend', () => loadingScreen.remove());
+    }
+
     console.log('✅ Application initialized');
 });
 

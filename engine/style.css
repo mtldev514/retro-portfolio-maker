@@ -7,6 +7,47 @@
     fill: currentColor;
 }
 
+/* ── Loading Screen ── */
+#loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--page-bg, #1a1a1e);
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+#loading-screen.fade-out {
+    opacity: 0;
+    visibility: hidden;
+}
+.loading-terminal {
+    font-family: var(--font-mono, 'DM Mono', monospace);
+    font-size: 1.1rem;
+    color: var(--term-green, #c0c0c8);
+    letter-spacing: 0.05em;
+}
+.loading-prompt {
+    color: var(--text-muted, #707078);
+}
+.loading-dots::after {
+    content: '';
+    animation: loading-dots 1.5s steps(1) infinite;
+}
+@keyframes loading-dots {
+    0%   { content: '.'; }
+    33%  { content: '..'; }
+    66%  { content: '...'; }
+}
+.loading-cursor {
+    animation: cursor-blink 0.8s step-end infinite;
+}
+@keyframes cursor-blink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0; }
+}
+
 :root {
     /* ═══ Winter Mineral Palette (Brand Guide) ═══
        Ink:     #1f2230 → #7b839e  (indigo-tinted text scale)
@@ -191,7 +232,7 @@
 
     /* ── Fonts ── */
     --font-primary: 'Capriola', sans-serif;
-    --font-display: 'Titan One', cursive;
+    --font-display: 'Architects Daughter', cursive;
     --font-accent: 'Rubik Dirt', cursive;
     --font-mono: 'DM Mono', 'Courier New', monospace;
     --font-digital: 'DM Mono', monospace;
@@ -328,47 +369,53 @@ body {
 
 /* Settings Switcher (Theme + Language) */
 .settings-switcher {
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    z-index: 1000;
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 10000;
 }
 
 .settings-btn {
-    background: linear-gradient(180deg, var(--btn-bg-start) 0%, var(--btn-bg-mid) 50%, var(--btn-bg-end) 100%);
-    border: 2px outset var(--container-bg);
-    border-radius: 6px;
-    padding: 3px 7px;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, transparent 30%, var(--btn-bg-mid) 70%, var(--btn-bg-end) 100%);
+    border: none;
+    border-bottom-left-radius: 48px;
+    padding: 0;
     cursor: pointer;
     font-size: 18px;
     line-height: 1;
     color: var(--btn-text);
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding-top: 6px;
+    padding-right: 8px;
 }
 
 .settings-btn:hover {
-    background: linear-gradient(180deg, var(--btn-hover-start) 0%, var(--btn-hover-mid) 50%, var(--btn-hover-end) 100%);
+    background: linear-gradient(135deg, transparent 30%, var(--btn-hover-mid) 70%, var(--btn-hover-end) 100%);
     color: var(--btn-text-active);
 }
 
 .settings-btn:active {
-    border-style: inset;
+    background: linear-gradient(135deg, transparent 30%, var(--btn-active-mid) 70%, var(--btn-active-end) 100%);
 }
 
 .settings-dropdown {
     display: none;
     position: absolute;
     right: 0;
-    top: 100%;
+    top: 48px;
     background: linear-gradient(180deg, var(--btn-bg-start) 0%, var(--btn-bg-mid) 50%, var(--btn-bg-end) 100%);
     border: 2px outset var(--container-bg);
-    border-radius: 8px;
+    border-radius: 0 0 8px 8px;
     width: 180px;
     box-shadow: 3px 3px 0px rgba(31, 34, 48, 0.2);
     overflow: hidden;
 }
 
-.settings-switcher:hover .settings-dropdown {
+.settings-switcher.open .settings-dropdown {
     display: block;
 }
 
@@ -414,38 +461,27 @@ body {
 
 /* Admin link styles removed — admin panel now via Ctrl+Shift+A shortcut */
 
-header {
-    background-color: var(--header-bg);
-    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 40%, rgba(0, 0, 0, 0.05) 100%);
-    border: 2px solid;
-    border-color: var(--header-border-light) var(--header-border-dark) var(--header-border-dark) var(--header-border-light);
-    border-radius: 14px;
-    padding: 10px;
-    margin-bottom: 20px;
-    text-align: center;
-    box-shadow: var(--shadow-inset), 0 6px 18px rgba(31, 34, 48, 0.18);
+/* SVG title */
+#title-svg {
+    display: block;
+    width: 100%;
+    height: 56px;
+    margin-bottom: 12px;
     position: relative;
+    z-index: 1;
 }
 
-h1 {
+#title-svg text {
     font-family: var(--font-display);
-    font-size: 3.2em;
+    font-size: 48px;
     font-weight: 400;
-    margin: 0;
     letter-spacing: 0.06em;
     text-transform: lowercase;
-    background: linear-gradient(135deg,
-            var(--mirror-shine) 0%,
-            var(--mirror-light) 25%,
-            var(--mirror-mid) 50%,
-            var(--mirror-light) 75%,
-            var(--mirror-shine) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: var(--header-text);
-    filter: drop-shadow(0 6px 0 var(--shadow-slab));
 }
+
+#title-svg .grad-stop-1 { stop-color: var(--mirror-shine); }
+#title-svg .grad-stop-2 { stop-color: var(--mirror-light); }
+#title-svg .grad-stop-3 { stop-color: var(--mirror-mid); }
 
 nav {
     display: flex;
@@ -525,8 +561,8 @@ nav {
     padding: 5px 0;
     font-family: var(--font-mono);
     margin-bottom: 20px;
-    border: 3px solid;
-    border-color: var(--text-primary) var(--text-secondary) var(--text-secondary) var(--text-primary);
+    border: 1px solid;
+    border-color: var(--border-groove);
     border-radius: 10px;
     overflow: hidden;
     box-shadow: inset 0 0 10px var(--marquee-glow, rgba(200, 152, 80, 0.1)), inset 2px 2px 4px rgba(31, 34, 48, 0.5);
@@ -847,7 +883,7 @@ nav {
         2px 2px 6px rgba(31, 34, 48, 0.5),
         0 0 8px var(--wp-glow-mid, rgba(0, 255, 0, 0.15)),
         0 0 20px var(--wp-glow-soft, rgba(0, 255, 0, 0.08));
-    animation: winamp-glow 2s ease-in-out infinite;
+    animation: winamp-glow 4s ease-in-out infinite;
 }
 
 @keyframes winamp-glow {
@@ -873,7 +909,7 @@ nav {
             rgba(0, 0, 0, 0.12) 1px,
             rgba(0, 0, 0, 0.12) 2px);
     pointer-events: none;
-    animation: winamp-scanline 4s linear infinite;
+    animation: winamp-scanline 8s linear infinite;
 }
 
 @keyframes winamp-scanline {
@@ -888,7 +924,7 @@ nav {
 
 /* Pulsing time display when playing */
 .winamp.playing .winamp-time {
-    animation: winamp-time-pulse 1.2s ease-in-out infinite;
+    animation: winamp-time-pulse 2.4s ease-in-out infinite;
 }
 
 @keyframes winamp-time-pulse {
@@ -911,7 +947,7 @@ nav {
 
 /* Active playlist item pulses gently when playing */
 .winamp.playing .winamp-pl-item.active {
-    animation: winamp-pl-pulse 2.5s ease-in-out infinite;
+    animation: winamp-pl-pulse 5s ease-in-out infinite;
 }
 
 @keyframes winamp-pl-pulse {

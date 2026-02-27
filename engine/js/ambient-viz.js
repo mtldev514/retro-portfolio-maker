@@ -15,8 +15,8 @@ const ambientViz = {
     // Color palette (HSL hues) — WMP-inspired warm/cool mix
     palette: [300, 180, 270, 40, 160, 330],
 
-    // Frequency bins for header circles
-    hdBins: [1, 3, 6, 10, 16, 22],
+    // Frequency bins for circles (spread across the full card)
+    hdBins: [1, 3, 6, 10, 16, 22, 2, 8, 14, 20],
 
     init() {
         this.hdCanvas = document.getElementById('ambient-header');
@@ -43,8 +43,9 @@ const ambientViz = {
 
     _onResize() {
         if (this.hdCanvas) {
-            const header = this.hdCanvas.parentElement;
-            this._sizeCanvas(this.hdCanvas, header.offsetWidth, header.offsetHeight);
+            const parent = this.hdCanvas.parentElement;
+            this._sizeCanvas(this.hdCanvas, parent.offsetWidth, parent.offsetHeight);
+            this._initHdCircles();
         }
     },
 
@@ -55,15 +56,15 @@ const ambientViz = {
         this.hdCircles = this.hdBins.map((bin, i) => ({
             x: (w / (this.hdBins.length + 1)) * (i + 1) + (Math.random() - 0.5) * 30,
             y: h * 0.5 + (Math.random() - 0.5) * h * 0.4,
-            baseRadius: 18 + Math.random() * 30,
+            baseRadius: 30 + Math.random() * 50,
             currentRadius: 8,
             targetRadius: 8,
             hue: this.palette[i % this.palette.length],
-            baseOpacity: 0.25 + Math.random() * 0.20,
+            baseOpacity: 0.12 + Math.random() * 0.10,
             currentOpacity: 0.08,
             targetOpacity: 0.08,
-            driftX: (Math.random() - 0.5) * 0.4,
-            driftY: (Math.random() - 0.5) * 0.25,
+            driftX: (Math.random() - 0.5) * 0.2,
+            driftY: (Math.random() - 0.5) * 0.12,
             freqBin: bin,
             phase: Math.random() * Math.PI * 2,
         }));
@@ -119,17 +120,17 @@ const ambientViz = {
             const freq = this._readFreq(c.freqBin, time);
 
             if (playing) {
-                c.targetRadius = c.baseRadius * (0.5 + freq * 1.2);
-                c.targetOpacity = c.baseOpacity * (0.4 + freq * 1.2);
+                c.targetRadius = c.baseRadius * (0.4 + freq * 0.6);
+                c.targetOpacity = c.baseOpacity * (0.3 + freq * 0.5);
             } else {
-                const breath = Math.sin(time * 0.0008 + c.phase) * 0.12 + 0.88;
+                const breath = Math.sin(time * 0.0004 + c.phase) * 0.12 + 0.88;
                 c.targetRadius = c.baseRadius * 0.3 * breath;
                 c.targetOpacity = c.baseOpacity * 0.25;
             }
 
-            // Smooth lerp
-            c.currentRadius += (c.targetRadius - c.currentRadius) * 0.1;
-            c.currentOpacity += (c.targetOpacity - c.currentOpacity) * 0.1;
+            // Smooth lerp (slow ease)
+            c.currentRadius += (c.targetRadius - c.currentRadius) * 0.04;
+            c.currentOpacity += (c.targetOpacity - c.currentOpacity) * 0.04;
 
             // Drift within header bounds
             c.x += c.driftX;
@@ -141,12 +142,12 @@ const ambientViz = {
             if (c.y < -c.baseRadius) c.y = h + c.baseRadius;
             if (c.y > h + c.baseRadius) c.y = -c.baseRadius;
 
-            const hue = (c.hue + time * 0.01) % 360;
+            const hue = (c.hue + time * 0.005) % 360;
 
             const grad = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, c.currentRadius);
-            grad.addColorStop(0, `hsla(${hue}, 80%, 60%, ${c.currentOpacity})`);
-            grad.addColorStop(0.4, `hsla(${hue}, 70%, 55%, ${c.currentOpacity * 0.6})`);
-            grad.addColorStop(1, `hsla(${hue}, 60%, 50%, 0)`);
+            grad.addColorStop(0, `hsla(${hue}, 50%, 50%, ${c.currentOpacity})`);
+            grad.addColorStop(0.4, `hsla(${hue}, 40%, 45%, ${c.currentOpacity * 0.5})`);
+            grad.addColorStop(1, `hsla(${hue}, 30%, 40%, 0)`);
             ctx.fillStyle = grad;
             ctx.beginPath();
             ctx.arc(c.x, c.y, c.currentRadius, 0, Math.PI * 2);

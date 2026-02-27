@@ -104,4 +104,11 @@
     --mirror-light: #e0e0e8;
     --mirror-mid: #b8b8c0;
     --shadow-slab: #707078;
+    --font-primary: 'Capriola', sans-serif;
+    --font-display: 'Architects Daughter', cursive;
+    --font-accent: 'Rubik Dirt', cursive;
+    --font-mono: 'DM Mono', 'Courier New', monospace;
+    --font-digital: 'DM Mono', monospace;
+    --font-winamp: 'DM Mono', 'Arial', sans-serif;
+    --font-admin: 'Capriola', 'Arial', sans-serif;
 }

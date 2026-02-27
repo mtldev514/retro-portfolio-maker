@@ -33,13 +33,9 @@ test.describe('DOM structure', () => {
     expect(buttons).toBe(7); // "all" + 6 categories
   });
 
-  test('settings dropdown contains Language section only', async ({ page }) => {
-    const sectionLabels = await page.evaluate(() => {
-      return Array.from(document.querySelectorAll('.settings-dropdown .settings-section-label'))
-        .map(el => el.textContent.trim());
-    });
-
-    expect(sectionLabels).toEqual(['Language']);
+  test('settings dropdown contains language options', async ({ page }) => {
+    const optionCount = await page.locator('.settings-dropdown .settings-option').count();
+    expect(optionCount).toBeGreaterThanOrEqual(2);
   });
 
   test('header title is rendered', async ({ page }) => {

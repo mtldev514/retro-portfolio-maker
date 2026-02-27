@@ -41,7 +41,7 @@ const i18n = {
                 if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
                     el.placeholder = this.translations[key];
                 } else {
-                    el.innerText = this.translations[key];
+                    el.textContent = this.translations[key];
                 }
             }
         });
