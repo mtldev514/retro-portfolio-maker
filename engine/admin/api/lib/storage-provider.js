@@ -53,6 +53,11 @@ function getMimeType(filename) {
 /**
  * Ensure the storage bucket exists, creating it as public if needed.
  * Called once before the first upload.
+ *
+ * The bucket is normally created by supabase-setup.sql, so this is
+ * just a safety net.  If listing or creating fails we still proceed —
+ * the upload itself will surface a clear error if the bucket is truly
+ * missing.
  */
 let _bucketReady = false;
 
@@ -60,7 +65,16 @@ async function ensureBucket() {
   if (_bucketReady) return;
 
   const supabase = getSupabaseClient();
-  const { data: buckets } = await supabase.storage.listBuckets();
+
+  // Check if bucket already exists
+  const { data: buckets, error: listErr } = await supabase.storage.listBuckets();
+
+  if (listErr) {
+    // Can't list — assume the bucket exists (SQL migration creates it)
+    console.log(`Could not list buckets (${listErr.message}), assuming '${BUCKET_NAME}' exists.`);
+    _bucketReady = true;
+    return;
+  }
 
   const exists = (buckets || []).some(b => b.name === BUCKET_NAME);
 
@@ -68,16 +82,15 @@ async function ensureBucket() {
     console.log(`Creating Supabase Storage bucket: ${BUCKET_NAME}`);
     const { error } = await supabase.storage.createBucket(BUCKET_NAME, {
       public: true,
-      fileSizeLimit: 100 * 1024 * 1024, // 100 MB
     });
 
     if (error) {
-      // Bucket may have been created by another process / migration
-      if (!error.message.includes('already exists')) {
-        throw new Error(`Failed to create bucket '${BUCKET_NAME}': ${error.message}`);
-      }
+      // Bucket may have been created by another process / migration —
+      // log and continue; the upload will fail clearly if it's truly missing.
+      console.log(`Bucket creation note: ${error.message} (continuing anyway)`);
+    } else {
+      console.log(`Bucket '${BUCKET_NAME}' created (public).`);
     }
-    console.log(`Bucket '${BUCKET_NAME}' created (public).`);
   }
 
   _bucketReady = true;
