@@ -948,77 +948,41 @@ body.admin-page {
 }
 
 .admin-page .config-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 15px;
-    margin-top: 15px;
-}
-
-.admin-page .config-card {
-    background: white;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 10px;
     border: 2px inset var(--admin-win-border-dark);
-    padding: 12px;
-    position: relative;
+    background: white;
 }
 
-.admin-page .config-card-header {
+/* List row layout for media types & content types */
+.admin-page .config-list-row {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #ccc;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.admin-page .config-card-header:hover {
-    background-color: var(--admin-hint-bg);
-    margin: -12px -12px 10px -12px;
-    padding: 12px 12px 8px 12px;
-}
-
-.admin-page .config-card-icon {
-    font-size: 24px;
-}
-
-.admin-page .config-card-title {
-    font-weight: bold;
-    font-size: 12px;
-    flex: 1;
-}
-
-.admin-page .config-card-body {
+    padding: 6px 10px;
     font-size: 11px;
+    border-bottom: 1px solid #ddd;
 }
+.admin-page .config-list-row:last-child { border-bottom: none; }
+.admin-page .config-list-row:hover { background: var(--admin-hint-bg); }
 
-.admin-page .config-field {
-    margin-bottom: 8px;
-    padding: 4px;
-    background: var(--admin-hint-bg);
-    border-radius: 2px;
-}
-
-.admin-page .config-field-label {
-    font-weight: bold;
-    color: var(--admin-win-blue);
-}
+.admin-page .config-list-icon { font-size: 16px; flex-shrink: 0; width: 22px; text-align: center; }
+.admin-page .config-list-name { font-weight: bold; min-width: 80px; }
+.admin-page .config-list-detail { color: var(--admin-muted-text); white-space: nowrap; }
+.admin-page .config-list-detail code { font-family: 'DM Mono', monospace; font-size: 10px; background: var(--admin-hint-bg); padding: 1px 4px; }
+.admin-page .config-list-badges { flex: 1; }
+.admin-page .config-list-actions { display: flex; gap: 4px; margin-left: auto; flex-shrink: 0; }
 
 .admin-page .config-badge {
     display: inline-block;
-    padding: 2px 6px;
+    padding: 1px 5px;
     background: var(--admin-win-blue);
     color: white;
     border-radius: 2px;
-    font-size: 10px;
-    margin-right: 4px;
-}
-
-.admin-page .config-actions {
-    margin-top: 10px;
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
+    font-size: 9px;
+    margin-right: 3px;
 }
 
 .admin-page .btn-small {

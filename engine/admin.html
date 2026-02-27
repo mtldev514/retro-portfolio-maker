@@ -1052,31 +1052,20 @@
         function renderMediaTypes() {
             const grid = document.getElementById('mediaTypesGrid');
             grid.innerHTML = currentMediaTypes.map((mt, index) => `
-                <div class="config-card">
-                    <div class="config-card-header" onclick="viewMediaTypeContent('${mt.id}')" title="Click to view content using this media type">
-                        <span class="config-card-icon">${mt.icon}</span>
-                        <span class="config-card-title">${mt.name}</span>
-                    </div>
-                    <div class="config-card-body">
-                        <div class="config-field">
-                            <span class="config-field-label">ID:</span> ${mt.id}
-                        </div>
-                        <div class="config-field">
-                            <span class="config-field-label">Viewer:</span> ${mt.viewer}
-                        </div>
-                        <div class="config-field">
-                            ${mt.supportsGallery ? '<span class="config-badge">Gallery</span>' : ''}
-                            ${mt.supportsMetadata ? '<span class="config-badge">Metadata</span>' : ''}
-                        </div>
-                        <div class="config-field">
-                            <span class="config-field-label">Formats:</span> ${(mt.acceptedFormats || []).join(', ')}
-                        </div>
-                        <div class="config-actions">
-                            <button class="btn-small btn-primary" onclick="viewMediaTypeContent('${mt.id}')">View Content</button>
-                            <button class="btn-small" onclick="editMediaType(${index})">Edit</button>
-                            <button class="btn-small" onclick="deleteMediaType(${index})">Delete</button>
-                        </div>
-                    </div>
+                <div class="config-list-row">
+                    <span class="config-list-icon">${mt.icon}</span>
+                    <span class="config-list-name">${mt.name}</span>
+                    <span class="config-list-detail"><code>${mt.id}</code></span>
+                    <span class="config-list-detail">${mt.viewer}</span>
+                    <span class="config-list-badges">
+                        ${mt.supportsGallery ? '<span class="config-badge">Gallery</span>' : ''}
+                        ${mt.supportsMetadata ? '<span class="config-badge">Meta</span>' : ''}
+                    </span>
+                    <span class="config-list-actions">
+                        <button class="btn-small btn-primary" onclick="viewMediaTypeContent('${mt.id}')">View</button>
+                        <button class="btn-small" onclick="editMediaType(${index})">Edit</button>
+                        <button class="btn-small" onclick="deleteMediaType(${index})">Del</button>
+                    </span>
                 </div>
             `).join('');
         }
@@ -1087,31 +1076,17 @@
                 const mediaType = currentMediaTypes.find(m => m.id === ct.mediaType);
                 const fieldCount = (ct.fields?.optional || []).length;
                 return `
-                    <div class="config-card">
-                        <div class="config-card-header" onclick="viewContentTypeItems('${ct.id}')" title="Click to view all ${ct.name.toLowerCase()} items">
-                            <span class="config-card-icon">${ct.icon}</span>
-                            <span class="config-card-title">${ct.name}</span>
-                        </div>
-                        <div class="config-card-body">
-                            <div class="config-field">
-                                <span class="config-field-label">ID:</span> ${ct.id}
-                            </div>
-                            <div class="config-field">
-                                <span class="config-field-label">Media Type:</span>
-                                ${mediaType?.icon || ''} ${ct.mediaType}
-                            </div>
-                            <div class="config-field">
-                                <span class="config-field-label">Data File:</span> ${ct.dataFile}
-                            </div>
-                            <div class="config-field">
-                                <span class="config-field-label">Custom Fields:</span> ${fieldCount} field(s)
-                            </div>
-                            <div class="config-actions">
-                                <button class="btn-small btn-primary" onclick="viewContentTypeItems('${ct.id}')">View Items</button>
-                                <button class="btn-small" onclick="editContentType(${index})">Edit</button>
-                                <button class="btn-small" onclick="deleteContentType(${index})">Delete</button>
-                            </div>
-                        </div>
+                    <div class="config-list-row">
+                        <span class="config-list-icon">${ct.icon}</span>
+                        <span class="config-list-name">${ct.name}</span>
+                        <span class="config-list-detail"><code>${ct.id}</code></span>
+                        <span class="config-list-detail">${mediaType?.icon || ''} ${ct.mediaType}</span>
+                        <span class="config-list-detail">${fieldCount} field(s)</span>
+                        <span class="config-list-actions">
+                            <button class="btn-small btn-primary" onclick="viewContentTypeItems('${ct.id}')">View</button>
+                            <button class="btn-small" onclick="editContentType(${index})">Edit</button>
+                            <button class="btn-small" onclick="deleteContentType(${index})">Del</button>
+                        </span>
                     </div>
                 `;
             }).join('');
