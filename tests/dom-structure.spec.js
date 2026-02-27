@@ -33,15 +33,13 @@ test.describe('DOM structure', () => {
     expect(buttons).toBe(7); // "all" + 6 categories
   });
 
-  test('settings dropdown contains all sections', async ({ page }) => {
+  test('settings dropdown contains Language section only', async ({ page }) => {
     const sectionLabels = await page.evaluate(() => {
       return Array.from(document.querySelectorAll('.settings-dropdown .settings-section-label'))
         .map(el => el.textContent.trim());
     });
 
-    expect(sectionLabels).toContain('Effects');
-    expect(sectionLabels).toContain('Theme');
-    expect(sectionLabels).toContain('Language');
+    expect(sectionLabels).toEqual(['Language']);
   });
 
   test('header title is rendered', async ({ page }) => {

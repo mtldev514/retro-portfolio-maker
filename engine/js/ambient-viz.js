@@ -1,22 +1,13 @@
 /**
- * Ambient Music-Reactive Visualizer
+ * Ambient Music-Reactive Visualizer — Header Glow
  *
- * Two layers:
- *   1. Bottom Waves (#ambient-waves) — CSS clip-path: shape() waves at viewport
- *      bottom, always animating via CSS. JS drives --wave-lift for audio-reactive
- *      vertical rise and --wave-hue-shift for color modulation.
- *   2. Header Glow (#ambient-header) — Canvas with radial-gradient circles
- *      that pulse with audio frequency data (unchanged from original).
+ * Canvas with radial-gradient circles inside #ambient-header that pulse
+ * with audio frequency data from the media player.
  */
 const ambientViz = {
-    // Header glow (canvas)
     hdCanvas: null,
     hdCtx: null,
     hdCircles: [],
-
-    // Bottom waves (CSS)
-    _waveContainer: null,
-    _liftLerp: 0,
 
     raf: null,
     _started: false,
@@ -28,17 +19,13 @@ const ambientViz = {
     hdBins: [1, 3, 6, 10, 16, 22],
 
     init() {
-        this._waveContainer = document.getElementById('ambient-waves');
         this.hdCanvas = document.getElementById('ambient-header');
+        if (!this.hdCanvas) return;
 
-        if (!this._waveContainer && !this.hdCanvas) return;
-
-        if (this.hdCanvas) {
-            this.hdCtx = this.hdCanvas.getContext('2d');
-            const header = this.hdCanvas.parentElement;
-            this._sizeCanvas(this.hdCanvas, header.offsetWidth, header.offsetHeight);
-            this._initHdCircles();
-        }
+        this.hdCtx = this.hdCanvas.getContext('2d');
+        const header = this.hdCanvas.parentElement;
+        this._sizeCanvas(this.hdCanvas, header.offsetWidth, header.offsetHeight);
+        this._initHdCircles();
 
         window.addEventListener('resize', () => this._onResize());
         this._startLoop();
@@ -107,35 +94,9 @@ const ambientViz = {
         this._started = true;
         const animate = (timestamp) => {
             this.raf = requestAnimationFrame(animate);
-            this._updateWaves(timestamp);
             this._drawHd(timestamp);
         };
         this.raf = requestAnimationFrame(animate);
-    },
-
-    // ─── Bottom Waves (CSS animation always runs; JS adds vertical lift) ────
-
-    _updateWaves(time) {
-        if (!this._waveContainer) return;
-        if (!this._isPlaying()) {
-            // When not playing, lerp lift back to 0
-            if (Math.abs(this._liftLerp) > 0.1) {
-                this._liftLerp += (0 - this._liftLerp) * 0.04;
-                this._waveContainer.style.setProperty('--wave-lift', this._liftLerp.toFixed(1) + 'px');
-                this._waveContainer.style.setProperty('--wave-hue-shift', '0deg');
-            }
-            return;
-        }
-
-        // Read bass frequency for vertical lift (waves rise on bass hits)
-        const bass = this._readFreq(1, time);
-        const target = bass * -30; // negative = upward, up to 30px rise
-
-        // Smooth lerp
-        this._liftLerp += (target - this._liftLerp) * 0.08;
-
-        this._waveContainer.style.setProperty('--wave-lift', this._liftLerp.toFixed(1) + 'px');
-        this._waveContainer.style.setProperty('--wave-hue-shift', (bass * 25).toFixed(1) + 'deg');
     },
 
     // ─── Header Glow (Canvas) ────────────────────────────

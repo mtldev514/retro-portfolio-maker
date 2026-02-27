@@ -26,7 +26,6 @@
 </head>
 
 <body>
-    <div id="ambient-waves"></div>
     <div id="rotate-overlay">
         <div class="rotate-content">
             <div class="rotate-icon">📺↩️</div>
@@ -48,20 +47,12 @@
     <div class="container">
         <header>
             <div class="settings-switcher">
-                <button class="settings-btn">⚙</button>
+                <button class="settings-btn"><span id="lang-btn-flag">🇬🇧</span></button>
                 <div class="settings-dropdown">
-                    <div class="settings-section-label">Effects</div>
-                    <div class="settings-option" onclick="togglePartyMode()">
-                        <span id="party-mode-indicator">✨</span> Party Mode
-                    </div>
-                    <div class="settings-divider"></div>
-                    <div class="settings-section-label">Theme</div>
-                    <!-- Theme options populated dynamically by themes.js -->
-                    <div class="settings-divider"></div>
                     <div class="settings-section-label">Language</div>
-                    <div class="settings-option" onclick="i18n.changeLang('en')"><span class="lang-flag">🇬🇧🇨🇦</span>
+                    <div class="settings-option" onclick="i18n.changeLang('en')"><span class="lang-flag">🇬🇧</span>
                         English</div>
-                    <div class="settings-option" onclick="i18n.changeLang('fr')"><span class="lang-flag">⚜️🇨🇦</span>
+                    <div class="settings-option" onclick="i18n.changeLang('fr')"><span class="lang-flag">🇫🇷</span>
                         French</div>
                 </div>
             </div>

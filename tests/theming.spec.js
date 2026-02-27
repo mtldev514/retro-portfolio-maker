@@ -14,32 +14,17 @@ test.describe('Theming system', () => {
     await page.waitForSelector('.gallery-item', { timeout: 10000 });
   });
 
-  test('styles.json loads and populates theme switcher', async ({ page }) => {
+  test('styles.json loads and themes are available internally', async ({ page }) => {
     // Wait for theme definitions to load
     await page.waitForTimeout(1000);
 
-    // Check that theme options are in the settings dropdown
-    const themeOptions = await page.evaluate(() => {
-      const dropdown = document.querySelector('.settings-dropdown');
-      if (!dropdown) return [];
-      const labels = dropdown.querySelectorAll('.settings-section-label');
-      let themeSection = null;
-      labels.forEach(l => { if (l.textContent.trim() === 'Theme') themeSection = l; });
-      if (!themeSection) return [];
-
-      const options = [];
-      let sibling = themeSection.nextElementSibling;
-      while (sibling && !sibling.classList.contains('settings-divider') && !sibling.classList.contains('settings-section-label')) {
-        if (sibling.classList.contains('settings-option')) {
-          options.push(sibling.textContent.trim());
-        }
-        sibling = sibling.nextElementSibling;
-      }
-      return options;
+    // Theme switcher is hidden (allowUserSwitch: false) but definitions still loaded
+    const themeCount = await page.evaluate(() => {
+      return window.themes?._loaded ? window.themes.definitionsArray.length : 0;
     });
 
-    // Should have at least 2 themes (we ship 4 by default)
-    expect(themeOptions.length).toBeGreaterThanOrEqual(2);
+    // Should have at least 2 themes loaded internally (we ship 4 by default)
+    expect(themeCount).toBeGreaterThanOrEqual(2);
   });
 
   test('switching theme changes CSS variables on :root', async ({ page }) => {

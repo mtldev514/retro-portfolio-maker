@@ -48,7 +48,11 @@ const i18n = {
     },
 
     updateSwitcherUI() {
-        // Gear button is static — no UI update needed
+        const flag = document.getElementById('lang-btn-flag');
+        if (!flag) return;
+        const langs = window.AppConfig?.languages?.supportedLanguages || [];
+        const current = langs.find(l => l.code === this.currentLang);
+        if (current) flag.textContent = current.flag;
     },
 
     async changeLang(lang) {

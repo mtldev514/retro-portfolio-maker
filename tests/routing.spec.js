@@ -19,9 +19,10 @@ test.describe('SPA routing', () => {
     expect(page.url()).toContain('detail.html');
   });
 
-  test('admin link href points to admin.html', async ({ page }) => {
-    const href = await page.locator('.admin-link').getAttribute('href');
-    expect(href).toBe('admin.html');
+  test('Ctrl+Shift+A navigates to admin.html', async ({ page }) => {
+    await page.keyboard.press('Control+Shift+A');
+    await page.waitForURL('**/admin.html', { timeout: 5000 });
+    expect(page.url()).toContain('admin.html');
   });
 
   test('gallery links include from parameter', async ({ page }) => {

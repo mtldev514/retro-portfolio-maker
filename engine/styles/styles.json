@@ -1,6 +1,6 @@
 {
-    "defaultTheme": "mineral",
-    "allowUserSwitch": true,
+    "defaultTheme": "beton",
+    "allowUserSwitch": false,
     "themes": [
         { "id": "mineral",   "name": "Mineral",     "emoji": "❄️", "file": "mineral.css" },
         { "id": "jr16",      "name": "JR-16",       "emoji": "🌿", "file": "jr16.css" },

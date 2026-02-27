@@ -23,12 +23,35 @@ const effects = {
             this.enablePartyMode();
         }
 
-        this.updateIndicators();
-        this.injectAdminButton();
+        this._initKonami();
+        this._initAdminShortcut();
     },
 
-    injectAdminButton() {
-        // Only show admin button on localhost
+    /** Konami Code (↑↑↓↓←→←→BA) toggles party mode */
+    _initKonami() {
+        const sequence = [
+            'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
+            'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
+            'b', 'a'
+        ];
+        let index = 0;
+
+        document.addEventListener('keydown', (e) => {
+            const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+            if (key === sequence[index]) {
+                index++;
+                if (index === sequence.length) {
+                    index = 0;
+                    window.togglePartyMode();
+                }
+            } else {
+                index = key === sequence[0] ? 1 : 0;
+            }
+        });
+    },
+
+    /** Ctrl+Shift+A opens admin panel (localhost only) */
+    _initAdminShortcut() {
         const hostname = window.location.hostname;
         const isLocalhost = hostname === 'localhost' ||
                            hostname === '127.0.0.1' ||
@@ -40,29 +63,12 @@ const effects = {
 
         if (!isLocalhost) return;
 
-        // Find the settings dropdown
-        const settingsDropdown = document.querySelector('.settings-dropdown');
-        if (!settingsDropdown) return;
-
-        // Create admin button section (append children directly, not wrapped in a div)
-        const fragment = document.createDocumentFragment();
-        const divider = document.createElement('div');
-        divider.className = 'settings-divider';
-        const label = document.createElement('div');
-        label.className = 'settings-section-label';
-        label.textContent = 'Development';
-        const link = document.createElement('a');
-        link.href = 'admin.html';
-        link.target = '_self';
-        link.className = 'settings-option admin-link';
-        link.style.cssText = 'text-decoration: none; color: inherit;';
-        link.innerHTML = '<span class="admin-icon">🛠️</span> Admin Panel';
-        fragment.appendChild(divider);
-        fragment.appendChild(label);
-        fragment.appendChild(link);
-
-        // Append directly to settings dropdown (no wrapper div)
-        settingsDropdown.appendChild(fragment);
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
+                e.preventDefault();
+                window.location.href = 'admin.html';
+            }
+        });
     },
 
     enablePartyMode() {
@@ -155,12 +161,6 @@ const effects = {
         this.gifElements = [];
     },
 
-    updateIndicators() {
-        const indicator = document.getElementById('party-mode-indicator');
-        if (indicator) {
-            indicator.textContent = this.partyModeEnabled ? '✨' : '○';
-        }
-    }
 };
 
 // Global toggle function
@@ -173,7 +173,6 @@ window.togglePartyMode = function () {
     } else {
         effects.disablePartyMode();
     }
-    effects.updateIndicators();
 };
 
 // Initialize when DOM is ready
