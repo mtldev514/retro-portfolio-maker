@@ -190,7 +190,7 @@
             try {
                 const catRes = await fetch(`${API_URL}/api/config/categories`);
                 const catConfig = await catRes.json();
-                const allCats = catConfig.contentTypes || catConfig.categories || [];
+                const allCats = catConfig.categories || [];
                 allCategories = allCats; // Cache for mediaType lookups
 
                 const current = allCats.find(c => c.id === currentCategory);

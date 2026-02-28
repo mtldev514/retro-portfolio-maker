@@ -1,5 +1,5 @@
 {
-  "contentTypes": [
+  "categories": [
     {
       "id": "painting",
       "name": { "en": "Painting", "fr": "Peinture", "mx": "Pintura", "ht": "Penti" },

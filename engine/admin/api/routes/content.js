@@ -17,10 +17,15 @@ const { config } = require('../lib/config-loader');
 module.exports = function createContentRouter(store) {
   const router = express.Router();
 
-  // ─── GET /api/content — All content from all categories ───
+  // ─── GET /api/content — All content (or single category with ?category=) ───
 
   router.get('/', async (req, res) => {
     try {
+      if (req.query.category) {
+        // Single category — lighter response for large portfolios
+        const items = await store.getCategoryItems(req.query.category);
+        return res.json({ [req.query.category]: items });
+      }
       const allContent = await store.getAllCategorizedItems();
       res.json(allContent);
     } catch (e) {
@@ -94,6 +99,14 @@ module.exports = function createContentRouter(store) {
       const { id, fromCategory, toCategory } = req.body;
       if (!id || !fromCategory || !toCategory) {
         return res.status(400).json({ error: 'id, fromCategory, and toCategory are required' });
+      }
+
+      // Validate both categories exist in config
+      if (!config.getCategory(fromCategory)) {
+        return res.status(400).json({ error: `Unknown category: '${fromCategory}'` });
+      }
+      if (!config.getCategory(toCategory)) {
+        return res.status(400).json({ error: `Unknown category: '${toCategory}'` });
       }
 
       const result = await store.changeCategory(id, fromCategory, toCategory);

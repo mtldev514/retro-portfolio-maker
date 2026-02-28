@@ -6,7 +6,9 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs-extra');
-const { execSync } = require('child_process');
+const { execFile } = require('child_process');
+const util = require('util');
+const execFileAsync = util.promisify(execFile);
 
 const router = express.Router();
 
@@ -23,27 +25,28 @@ router.post('/git/commit-push', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Project directory is not a git repository' });
     }
 
-    const execOpts = { cwd: projectDir, encoding: 'utf-8', stdio: 'pipe' };
+    const execOpts = { cwd: projectDir, encoding: 'utf-8' };
 
     // Stage data, config, lang, and styles directories
-    execSync('git add data/ config/ lang/ styles/', execOpts);
+    await execFileAsync('git', ['add', 'data/', 'config/', 'lang/', 'styles/'], execOpts);
 
     // Check if there are staged changes
     try {
-      execSync('git diff --cached --quiet', execOpts);
+      await execFileAsync('git', ['diff', '--cached', '--quiet'], execOpts);
       // If no error, no changes to commit
       return res.json({ success: true, message: 'No changes to commit' });
     } catch {
       // Non-zero exit means there ARE staged changes — continue
     }
 
-    // Commit and push
-    execSync(`git commit -m "${message.replace(/"/g, '\\"')}"`, execOpts);
-    execSync('git push', execOpts);
+    // Commit and push — execFileAsync passes message as a literal argv
+    // element, so shell metacharacters are never interpreted
+    await execFileAsync('git', ['commit', '-m', message], execOpts);
+    await execFileAsync('git', ['push'], execOpts);
 
     res.json({ success: true, message: 'Changes committed and pushed' });
   } catch (e) {
-    const errorMsg = e.stderr ? e.stderr.trim() : e.message;
+    const errorMsg = (e.stderr && e.stderr.trim()) || e.message;
     res.status(500).json({ success: false, error: `Git error: ${errorMsg}` });
   }
 });

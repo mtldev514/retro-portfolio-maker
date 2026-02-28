@@ -74,15 +74,15 @@ class ConfigLoader {
   }
 
   /**
-   * Get all content type definitions (categories)
+   * Get all category definitions
    */
-  getContentTypes() {
+  getCategories() {
     if (!this.categoriesConfig) return [];
-    return this.categoriesConfig.contentTypes || this.categoriesConfig.categories || [];
+    return this.categoriesConfig.categories || [];
   }
 
-  getContentType(id) {
-    return this.getContentTypes().find(ct => ct.id === id) || null;
+  getCategory(id) {
+    return this.getCategories().find(ct => ct.id === id) || null;
   }
 
   /**
@@ -112,7 +112,7 @@ class ConfigLoader {
    * e.g. "painting" → { id: "image", name: "Image", ... }
    */
   getMediaTypeForCategory(categoryId) {
-    const ct = this.getContentType(categoryId);
+    const ct = this.getCategory(categoryId);
     if (!ct) return null;
     return this.getMediaType(ct.mediaType);
   }
@@ -122,7 +122,7 @@ class ConfigLoader {
    * e.g. "image" → [{id: "painting"}, {id: "drawing"}, ...]
    */
   getCategoriesForMediaType(mediaTypeId) {
-    return this.getContentTypes().filter(ct => ct.mediaType === mediaTypeId);
+    return this.getCategories().filter(ct => ct.mediaType === mediaTypeId);
   }
 
   /**
@@ -130,7 +130,7 @@ class ConfigLoader {
    */
   getCategoryMap() {
     const map = {};
-    for (const ct of this.getContentTypes()) {
+    for (const ct of this.getCategories()) {
       map[ct.id] = this.getCategoryRefFile(ct.id);
     }
     return map;

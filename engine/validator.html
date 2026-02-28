@@ -163,7 +163,7 @@
 
             const validations = [
                 { name: 'Media Types', fn: validateMediaTypes },
-                { name: 'Content Types', fn: validateContentTypes },
+                { name: 'Categories', fn: validateCategories },
                 { name: 'Languages', fn: validateLanguages },
                 { name: 'App Config', fn: validateAppConfig },
                 { name: 'Data Files', fn: validateDataFiles },
@@ -217,39 +217,39 @@
             }
         }
 
-        async function validateContentTypes() {
-            const section = createSection('📁 Content Types');
+        async function validateCategories() {
+            const section = createSection('📁 Categories');
 
             try {
-                const contentTypes = AppConfig.getAllContentTypes();
+                const categories = AppConfig.getAllCategories();
 
-                if (!contentTypes || contentTypes.length === 0) {
-                    addError(section, 'No content types found');
+                if (!categories || categories.length === 0) {
+                    addError(section, 'No categories found');
                     return;
                 }
 
                 const requiredFields = ['id', 'name', 'icon', 'mediaType', 'dataFile'];
 
-                contentTypes.forEach((ct, i) => {
+                categories.forEach((ct, i) => {
                     requiredFields.forEach(field => {
                         if (!ct[field]) {
-                            addError(section, `Content type '${ct.id || `#${i}`}' missing required field: ${field}`);
+                            addError(section, `Category '${ct.id || `#${i}`}' missing required field: ${field}`);
                         }
                     });
 
                     if (ct.fields) {
                         if (!ct.fields.required) {
-                            addWarning(section, `Content type '${ct.id}': missing 'fields.required' array`);
+                            addWarning(section, `Category '${ct.id}': missing 'fields.required' array`);
                         }
                         if (!ct.fields.optional) {
-                            addWarning(section, `Content type '${ct.id}': missing 'fields.optional' array`);
+                            addWarning(section, `Category '${ct.id}': missing 'fields.optional' array`);
                         }
                     }
                 });
 
-                addSuccess(section, `Found ${contentTypes.length} content types`);
+                addSuccess(section, `Found ${categories.length} categories`);
             } catch (err) {
-                addError(section, `Failed to validate content types: ${err.message}`);
+                addError(section, `Failed to validate categories: ${err.message}`);
             }
         }
 
@@ -300,9 +300,9 @@
                 const res = await fetch(`${API_URL}/api/content`);
                 const allContent = await res.json();
 
-                const contentTypes = AppConfig.getAllContentTypes();
+                const categories = AppConfig.getAllCategories();
 
-                for (const ct of contentTypes) {
+                for (const ct of categories) {
                     const items = allContent[ct.id] || [];
                     const requiredFields = ct.fields?.required || ['title', 'url'];
 
@@ -335,14 +335,14 @@
             const section = createSection('🔗 Cross-References');
 
             try {
-                const contentTypes = AppConfig.getAllContentTypes();
+                const categories = AppConfig.getAllCategories();
                 const mediaTypes = AppConfig.getAllMediaTypes();
 
                 const mediaTypeIds = new Set(mediaTypes.map(mt => mt.id));
 
-                contentTypes.forEach(ct => {
+                categories.forEach(ct => {
                     if (!mediaTypeIds.has(ct.mediaType)) {
-                        addError(section, `Content type '${ct.id}' references unknown media type: ${ct.mediaType}`);
+                        addError(section, `Category '${ct.id}' references unknown media type: ${ct.mediaType}`);
                     }
                 });
 

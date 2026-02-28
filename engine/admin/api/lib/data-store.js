@@ -78,7 +78,7 @@ class JsonFileStore {
    * e.g. "painting" → "image"
    */
   _mediaTypeForCategory(categoryId) {
-    const ct = this.config.getContentType(categoryId);
+    const ct = this.config.getCategory(categoryId);
     return ct ? ct.mediaType : null;
   }
 
@@ -89,7 +89,7 @@ class JsonFileStore {
   _siblingCategories(categoryId) {
     const mediaType = this._mediaTypeForCategory(categoryId);
     if (!mediaType) return [];
-    return this.config.getContentTypes()
+    return this.config.getCategories()
       .filter(ct => ct.mediaType === mediaType)
       .map(ct => ct.id);
   }
@@ -240,7 +240,12 @@ class JsonFileStore {
     const allItems = await this.getAllItems(mediaType);
     const itemMap = new Map(allItems.map(i => [i.id, i]));
 
-    // Resolve in ref order, skip missing
+    // Resolve in ref order, warn about missing refs
+    const missing = refs.filter(id => !itemMap.has(id));
+    if (missing.length > 0) {
+      console.warn(`[DataStore] Category '${category}' has ${missing.length} orphaned ref(s): ${missing.join(', ')}`);
+    }
+
     return refs
       .map(id => itemMap.get(id))
       .filter(Boolean);
@@ -252,7 +257,7 @@ class JsonFileStore {
    */
   async getAllCategorizedItems() {
     const result = {};
-    for (const ct of this.config.getContentTypes()) {
+    for (const ct of this.config.getCategories()) {
       result[ct.id] = await this.getCategoryItems(ct.id);
     }
     return result;
@@ -360,7 +365,7 @@ class JsonFileStore {
    * @returns {string|null} category ID or null
    */
   async findCategoryForItem(id) {
-    for (const ct of this.config.getContentTypes()) {
+    for (const ct of this.config.getCategories()) {
       const refs = await this.getCategoryRefs(ct.id);
       if (refs.includes(id)) return ct.id;
     }

@@ -20,6 +20,17 @@ module.exports = function createTranslationsRouter(opts = {}) {
   const router = express.Router();
   const routeMode = opts.mode || 'local';
 
+  /**
+   * Resolve a safe file path inside the lang directory.
+   * Rejects any param that would escape the directory (path traversal).
+   */
+  function safeLangPath(lang) {
+    const langDir = path.resolve(process.env.LANG_DIR || path.join(process.cwd(), 'lang'));
+    const filePath = path.resolve(langDir, `${lang}.json`);
+    if (!filePath.startsWith(langDir + path.sep)) return null;
+    return filePath;
+  }
+
   router.get('/:lang', async (req, res) => {
     try {
       if (routeMode === 'supabase') {
@@ -36,8 +47,8 @@ module.exports = function createTranslationsRouter(opts = {}) {
       }
 
       // ─── Local: read from lang/*.json file ───
-      const langDir = process.env.LANG_DIR || path.join(process.cwd(), 'lang');
-      const langFile = path.join(langDir, `${req.params.lang}.json`);
+      const langFile = safeLangPath(req.params.lang);
+      if (!langFile) return res.status(400).json({ error: 'Invalid language code' });
 
       if (!(await fs.pathExists(langFile))) {
         return res.json({});
@@ -71,8 +82,8 @@ module.exports = function createTranslationsRouter(opts = {}) {
       }
 
       // ─── Local: write to lang/*.json file ───
-      const langDir = process.env.LANG_DIR || path.join(process.cwd(), 'lang');
-      const langFile = path.join(langDir, `${req.params.lang}.json`);
+      const langFile = safeLangPath(req.params.lang);
+      if (!langFile) return res.status(400).json({ error: 'Invalid language code' });
 
       await fs.writeFile(langFile, JSON.stringify(req.body, null, 2), 'utf-8');
       res.json({ success: true });

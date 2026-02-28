@@ -83,27 +83,27 @@ class ConfigValidator {
     const { valid, data } = this.validateJsonFile(path.join(this.configDir, 'categories.json'));
     if (!valid) return false;
 
-    const contentTypes = data.contentTypes || data.categories || [];
-    if (contentTypes.length === 0) {
-      this.addError('categories.json missing content types array');
+    const categories = data.categories || [];
+    if (categories.length === 0) {
+      this.addError('categories.json missing categories array');
       return false;
     }
 
     const requiredFields = ['id', 'name', 'icon', 'mediaType'];
-    for (const ct of contentTypes) {
-      const ctId = ct.id || '(unknown)';
+    for (const cat of categories) {
+      const catId = cat.id || '(unknown)';
       for (const field of requiredFields) {
-        if (!(field in ct)) {
-          this.addError(`Content type '${ctId}' missing required field: ${field}`);
+        if (!(field in cat)) {
+          this.addError(`Category '${catId}' missing required field: ${field}`);
         }
       }
-      if (ct.fields) {
-        if (!ct.fields.required) this.addWarning(`Content type '${ctId}': missing 'fields.required' array`);
-        if (!ct.fields.optional) this.addWarning(`Content type '${ctId}': missing 'fields.optional' array`);
+      if (cat.fields) {
+        if (!cat.fields.required) this.addWarning(`Category '${catId}': missing 'fields.required' array`);
+        if (!cat.fields.optional) this.addWarning(`Category '${catId}': missing 'fields.optional' array`);
       }
     }
 
-    console.log(chalk.green(`\u2713 Found ${contentTypes.length} content types`));
+    console.log(chalk.green(`\u2713 Found ${categories.length} categories`));
     return true;
   }
 
@@ -157,7 +157,7 @@ class ConfigValidator {
     }
 
     const mediaTypes = this.configLoader.getMediaTypes();
-    const contentTypes = this.configLoader.getContentTypes();
+    const categories = this.configLoader.getCategories();
 
     // ─── Validate media-type data files ────────────────
     const allItemsById = new Map(); // uuid → { item, mediaType }
@@ -198,7 +198,7 @@ class ConfigValidator {
     // ─── Validate category reference files ─────────────
     const referencedIds = new Set();
 
-    for (const ct of contentTypes) {
+    for (const ct of categories) {
       const refFile = path.join(this.dataDir, `${ct.id}.json`);
 
       if (!fs.existsSync(refFile)) {
@@ -295,13 +295,13 @@ class ConfigValidator {
   validateCrossReferences() {
     console.log(chalk.magenta('\n\uD83D\uDD17 Validating Cross-References...'));
 
-    const contentTypes = this.configLoader.getContentTypes();
+    const categories = this.configLoader.getCategories();
     const mediaTypes = this.configLoader.getMediaTypes();
     const mediaTypeIds = new Set(mediaTypes.map(mt => mt.id));
 
-    for (const ct of contentTypes) {
+    for (const ct of categories) {
       if (ct.mediaType && !mediaTypeIds.has(ct.mediaType)) {
-        this.addError(`Content type '${ct.id}' references unknown media type: ${ct.mediaType}`);
+        this.addError(`Category '${ct.id}' references unknown media type: ${ct.mediaType}`);
       }
     }
 

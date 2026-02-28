@@ -21,6 +21,17 @@ module.exports = function createConfigRouter(opts = {}) {
   const router = express.Router();
   const routeMode = opts.mode || 'local';
 
+  /**
+   * Resolve a safe file path inside a base directory.
+   * Rejects any param that would escape the directory (path traversal).
+   */
+  function safeConfigPath(name) {
+    const configDir = path.resolve(process.env.CONFIG_DIR || path.join(process.cwd(), 'config'));
+    const filePath = path.resolve(configDir, `${name}.json`);
+    if (!filePath.startsWith(configDir + path.sep)) return null;
+    return filePath;
+  }
+
   router.get('/:name', async (req, res) => {
     try {
       if (routeMode === 'supabase') {
@@ -37,8 +48,8 @@ module.exports = function createConfigRouter(opts = {}) {
       }
 
       // ─── Local: read from config/*.json file ───
-      const configDir = process.env.CONFIG_DIR || path.join(process.cwd(), 'config');
-      const configFile = path.join(configDir, `${req.params.name}.json`);
+      const configFile = safeConfigPath(req.params.name);
+      if (!configFile) return res.status(400).json({ error: 'Invalid config name' });
 
       if (!(await fs.pathExists(configFile))) {
         return res.json({});
@@ -76,8 +87,8 @@ module.exports = function createConfigRouter(opts = {}) {
       }
 
       // ─── Local: write to config/*.json file ───
-      const configDir = process.env.CONFIG_DIR || path.join(process.cwd(), 'config');
-      const configFile = path.join(configDir, `${req.params.name}.json`);
+      const configFile = safeConfigPath(req.params.name);
+      if (!configFile) return res.status(400).json({ error: 'Invalid config name' });
 
       await fs.writeFile(configFile, JSON.stringify(req.body, null, 2), 'utf-8');
 

@@ -214,7 +214,7 @@ async function syncSupabase(options = {}) {
   const categoriesConfig = await fs.readJson(path.join(configDir, 'categories.json'));
   const mediaTypesConfig = await fs.readJson(path.join(configDir, 'media-types.json'));
 
-  const contentTypes = categoriesConfig.contentTypes || categoriesConfig.categories || [];
+  const categories = categoriesConfig.categories || [];
   const mediaTypes = mediaTypesConfig.mediaTypes || [];
 
   const allItems = [];
@@ -254,7 +254,7 @@ async function syncSupabase(options = {}) {
 
   const categoryRefRows = [];
 
-  for (const ct of contentTypes) {
+  for (const ct of categories) {
     const filePath = path.join(dataDir, `${ct.id}.json`);
     if (!(await fs.pathExists(filePath))) continue;
 

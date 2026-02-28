@@ -1,6 +1,6 @@
 {
   "_comment": "Define your custom categories here (max 7 recommended). Each category needs: id, name, icon, mediaType, dataFile, and matching translations in lang/*.json files",
-  "contentTypes": [
+  "categories": [
     {
       "id": "painting",
       "name": "Painting",

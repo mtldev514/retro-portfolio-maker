@@ -169,12 +169,12 @@ async function uploadAndSave(filePath, title, category, opts = {}) {
   const { medium, genre, description, created } = opts;
   console.log(`--- Processing: ${title} (${category}) ---`);
 
-  const mediaUrl = await uploadSingle(filePath, category);
-
-  // Determine media type for this category
-  const ct = config.getContentType(category);
+  // Validate category before uploading (fail fast)
+  const ct = config.getCategory(category);
   if (!ct) throw new Error(`Category '${category}' is invalid.`);
   const mediaType = ct.mediaType;
+
+  const mediaUrl = await uploadSingle(filePath, category);
 
   const makeMultilingual = (val) => val ? config.createMultilingualObject(val) : undefined;
   const now = new Date();
@@ -190,14 +190,19 @@ async function uploadAndSave(filePath, title, category, opts = {}) {
   if (genre) newEntry.genre = makeMultilingual(genre);
   if (description) newEntry.description = makeMultilingual(description);
 
-  // Create item in media-type data file (generates UUID)
-  const item = await store.createItem(mediaType, newEntry);
-
-  // Add to category reference file
-  await store.addToCategory(item.id, category);
-
-  updateSiteTimestamp();
-  return item;
+  // Save to DataStore — roll back cloud upload on failure
+  try {
+    const item = await store.createItem(mediaType, newEntry);
+    await store.addToCategory(item.id, category);
+    updateSiteTimestamp();
+    return item;
+  } catch (saveError) {
+    console.error(`DataStore save failed, rolling back cloud upload: ${mediaUrl}`);
+    await deleteSingleCloudAsset(mediaUrl).catch(e =>
+      console.error(`Rollback cleanup failed: ${e.message}`)
+    );
+    throw saveError;
+  }
 }
 
 // ─── Cloud Deletion ───────────────────────────────────────
@@ -386,27 +391,23 @@ function updateSiteTimestamp() {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const formatted = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
 
-  const possibleFiles = [
-    'index.html',
-    path.join(config.contentRoot || '.', 'index.html'),
-  ];
+  // Use PROJECT_DIR (set by admin.js) as the canonical root
+  const projectDir = process.env.PROJECT_DIR || process.cwd();
+  const filePath = path.join(projectDir, 'index.html');
 
-  for (const filePath of possibleFiles) {
-    try {
-      if (fs.existsSync(filePath)) {
-        let content = fs.readFileSync(filePath, 'utf-8');
-        if (content.includes('Last Updated:</span>')) {
-          content = content.replace(
-            /Last Updated:<\/span> \d{1,2} \w{3} \d{4}/,
-            `Last Updated:</span> ${formatted}`
-          );
-          fs.writeFileSync(filePath, content, 'utf-8');
-          console.log(`Updated timestamp in ${filePath}`);
-        }
-      }
-    } catch (e) {
-      console.error(`Failed to update timestamp in ${filePath}: ${e.message}`);
+  try {
+    if (!fs.existsSync(filePath)) return;
+
+    let content = fs.readFileSync(filePath, 'utf-8');
+    const pattern = /Last Updated:<\/span> \d{1,2} \w{3} \d{4}/;
+    if (pattern.test(content)) {
+      content = content.replace(pattern, `Last Updated:</span> ${formatted}`);
+      fs.writeFileSync(filePath, content, 'utf-8');
+      console.log(`Updated timestamp in ${filePath}`);
     }
+  } catch (e) {
+    // Non-critical — log and continue
+    console.warn(`Could not update timestamp: ${e.message}`);
   }
 }
 

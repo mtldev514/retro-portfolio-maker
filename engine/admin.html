@@ -123,15 +123,15 @@
                 </div>
             </div>
 
-            <!-- Content Types Section -->
+            <!-- Categories Section -->
             <div class="config-section">
                 <div class="config-section-header">CONTENT TYPES (What you create)</div>
                 <p style="font-size: 11px; margin: 10px 0; color: var(--admin-muted-text);">
                     Content types define categories of work and their custom fields
                 </p>
-                <div id="contentTypesGrid" class="config-grid"></div>
+                <div id="categoriesGrid" class="config-grid"></div>
                 <div class="add-new-section">
-                    <button onclick="openContentTypeModal()">+ Add New Content Type</button>
+                    <button onclick="openCategoryModal()">+ Add New Category</button>
                 </div>
             </div>
 
@@ -223,14 +223,14 @@
     <!-- ═══════════════════════════════════════════════
          CONTENT TYPE MODAL (from config-manager.html)
          ═══════════════════════════════════════════════ -->
-    <div id="contentTypeModal" class="config-modal">
+    <div id="categoryModal" class="config-modal">
         <div class="config-modal-content">
             <div class="config-modal-header">
-                <span id="contentTypeModalTitle">Add Content Type</span>
-                <button onclick="closeContentTypeModal()">X</button>
+                <span id="categoryModalTitle">Add Category</span>
+                <button onclick="closeCategoryModal()">X</button>
             </div>
             <div class="config-modal-body">
-                <form id="contentTypeForm">
+                <form id="categoryForm">
                     <div class="form-row">
                         <label>ID (unique identifier):</label>
                         <input type="text" id="ctId" required placeholder="e.g., painting, photography">
@@ -261,8 +261,8 @@
                         <button type="button" onclick="addField()" style="margin-top: 5px;">+ Add Field</button>
                     </div>
                     <div class="form-row" style="text-align: right;">
-                        <button type="button" onclick="closeContentTypeModal()">Cancel</button>
-                        <button type="submit">Save Content Type</button>
+                        <button type="button" onclick="closeCategoryModal()">Cancel</button>
+                        <button type="submit">Save Category</button>
                     </div>
                 </form>
             </div>
@@ -419,8 +419,8 @@
             },
 
             getApiUrl() { return API_URL; },
-            getAllContentTypes() { return this.categories?.contentTypes || this.categories?.categories || []; },
-            getContentType(id) { return this.getAllContentTypes().find(c => c.id === id); },
+            getAllCategories() { return this.categories?.categories || []; },
+            getCategory(id) { return this.getAllCategories().find(c => c.id === id); },
             getAllMediaTypes() { return this.mediaTypes?.mediaTypes || []; },
             getMediaType(id) { return this.getAllMediaTypes().find(m => m.id === id); }
         };
@@ -430,13 +430,13 @@
             if (categoriesLoaded) return;
             try {
                 await AppConfig.load();
-                const contentTypes = AppConfig.getAllContentTypes();
+                const categories = AppConfig.getAllCategories();
                 const select = document.getElementById('manageCategory');
                 if (!select) return;
                 const firstOption = select.options[0];
                 select.innerHTML = '';
                 if (firstOption) select.appendChild(firstOption);
-                contentTypes.forEach(ct => {
+                categories.forEach(ct => {
                     const option = document.createElement('option');
                     option.value = ct.id;
                     option.textContent = `${ct.icon} ${ct.name}`;
@@ -472,12 +472,12 @@
 
         function getDefaultCategory(isAudio) {
             if (!AppConfig.loaded) return isAudio ? 'music' : 'painting';
-            const contentTypes = AppConfig.getAllContentTypes();
+            const categories = AppConfig.getAllCategories();
             if (isAudio) {
-                const audioType = contentTypes.find(ct => ct.mediaType === 'audio');
+                const audioType = categories.find(ct => ct.mediaType === 'audio');
                 return audioType ? audioType.id : 'music';
             } else {
-                const imageType = contentTypes.find(ct => ct.mediaType === 'image');
+                const imageType = categories.find(ct => ct.mediaType === 'image');
                 return imageType ? imageType.id : 'painting';
             }
         }
@@ -525,10 +525,10 @@
                     : `<img src="${URL.createObjectURL(entry.file)}">`;
 
                 let catOptions = '';
-                const contentTypes = AppConfig.loaded ? AppConfig.getAllContentTypes() : [];
+                const categories = AppConfig.loaded ? AppConfig.getAllCategories() : [];
                 const relevantTypes = entry.isAudio
-                    ? contentTypes.filter(ct => ct.mediaType === 'audio')
-                    : contentTypes.filter(ct => ct.mediaType === 'image');
+                    ? categories.filter(ct => ct.mediaType === 'audio')
+                    : categories.filter(ct => ct.mediaType === 'image');
                 catOptions = relevantTypes.map(ct =>
                     `<option value="${ct.id}"${ct.id === entry.category ? ' selected' : ''}>${ct.icon} ${ct.name}</option>`
                 ).join('');
@@ -613,7 +613,7 @@
         let loadedContent = {};
 
         function isImageCategory(categoryId) {
-            const ct = AppConfig.getContentType(categoryId);
+            const ct = AppConfig.getCategory(categoryId);
             return ct && ct.mediaType === 'image';
         }
 
@@ -633,7 +633,7 @@
                     if (cat !== 'all' && cat !== category) return;
                     if (!items || items.length === 0) return;
 
-                    const categoryInfo = AppConfig.getContentType(category);
+                    const categoryInfo = AppConfig.getCategory(category);
                     const isImage = isImageCategory(category);
 
                     items.forEach(item => {
@@ -904,7 +904,7 @@
             const selected = getSelectedItems();
             if (selected.length === 0) return;
 
-            const allCats = AppConfig.getAllContentTypes();
+            const allCats = AppConfig.getAllCategories();
             const options = allCats.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
 
             const modal = document.createElement('div');
@@ -1043,9 +1043,9 @@
         // ══════════════════════════════════════════════
 
         let currentMediaTypes = [];
-        let currentContentTypes = [];
+        let currentCategories = [];
         let editingMediaTypeIndex = null;
-        let editingContentTypeIndex = null;
+        let editingCategoryIndex = null;
         let currentFields = [];
         let settingsLoaded = false;
 
@@ -1059,9 +1059,9 @@
                 const mtData = await mtRes.json();
                 const ctData = await ctRes.json();
                 currentMediaTypes = mtData.mediaTypes || [];
-                currentContentTypes = ctData.contentTypes || ctData.categories || [];
+                currentCategories = ctData.categories || [];
                 renderMediaTypes();
-                renderContentTypes();
+                renderCategories();
                 populateMediaTypeSelect();
                 settingsLoaded = true;
             } catch (error) {
@@ -1090,9 +1090,9 @@
             `).join('');
         }
 
-        function renderContentTypes() {
-            const grid = document.getElementById('contentTypesGrid');
-            grid.innerHTML = currentContentTypes.map((ct, index) => {
+        function renderCategories() {
+            const grid = document.getElementById('categoriesGrid');
+            grid.innerHTML = currentCategories.map((ct, index) => {
                 const mediaType = currentMediaTypes.find(m => m.id === ct.mediaType);
                 const fieldCount = (ct.fields?.optional || []).length;
                 return `
@@ -1103,9 +1103,9 @@
                         <span class="config-list-detail">${mediaType?.icon || ''} ${ct.mediaType}</span>
                         <span class="config-list-detail">${fieldCount} field(s)</span>
                         <span class="config-list-actions">
-                            <button class="btn-small btn-primary" onclick="viewContentTypeItems('${ct.id}')">View</button>
-                            <button class="btn-small" onclick="editContentType(${index})">Edit</button>
-                            <button class="btn-small" onclick="deleteContentType(${index})">Del</button>
+                            <button class="btn-small btn-primary" onclick="viewCategoryItems('${ct.id}')">View</button>
+                            <button class="btn-small" onclick="editCategory(${index})">Edit</button>
+                            <button class="btn-small" onclick="deleteCategory(${index})">Del</button>
                         </span>
                     </div>
                 `;
@@ -1152,14 +1152,14 @@
             editingMediaTypeIndex = null;
         }
 
-        function openContentTypeModal(index) {
-            editingContentTypeIndex = index !== undefined ? index : null;
-            const modal = document.getElementById('contentTypeModal');
-            const form = document.getElementById('contentTypeForm');
+        function openCategoryModal(index) {
+            editingCategoryIndex = index !== undefined ? index : null;
+            const modal = document.getElementById('categoryModal');
+            const form = document.getElementById('categoryForm');
 
-            if (editingContentTypeIndex !== null) {
-                const ct = currentContentTypes[editingContentTypeIndex];
-                document.getElementById('contentTypeModalTitle').textContent = 'Edit Content Type';
+            if (editingCategoryIndex !== null) {
+                const ct = currentCategories[editingCategoryIndex];
+                document.getElementById('categoryModalTitle').textContent = 'Edit Category';
                 document.getElementById('ctId').value = ct.id;
                 document.getElementById('ctName').value = ct.name;
                 document.getElementById('ctIcon').value = ct.icon;
@@ -1169,7 +1169,7 @@
                 currentFields = (ct.fields?.optional || []).map(f => ({...f}));
                 document.getElementById('ctId').disabled = true;
             } else {
-                document.getElementById('contentTypeModalTitle').textContent = 'Add Content Type';
+                document.getElementById('categoryModalTitle').textContent = 'Add Category';
                 form.reset();
                 currentFields = [];
                 document.getElementById('ctId').disabled = false;
@@ -1178,9 +1178,9 @@
             modal.classList.add('active');
         }
 
-        function closeContentTypeModal() {
-            document.getElementById('contentTypeModal').classList.remove('active');
-            editingContentTypeIndex = null;
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').classList.remove('active');
+            editingCategoryIndex = null;
             currentFields = [];
         }
 
@@ -1244,9 +1244,9 @@
             conLog('> Media type saved (click Save All to persist)', 'con-info');
         };
 
-        document.getElementById('contentTypeForm').onsubmit = (e) => {
+        document.getElementById('categoryForm').onsubmit = (e) => {
             e.preventDefault();
-            const contentType = {
+            const category = {
                 id: document.getElementById('ctId').value,
                 name: document.getElementById('ctName').value,
                 icon: document.getElementById('ctIcon').value,
@@ -1258,14 +1258,14 @@
                     optional: currentFields
                 }
             };
-            if (editingContentTypeIndex !== null) {
-                currentContentTypes[editingContentTypeIndex] = contentType;
+            if (editingCategoryIndex !== null) {
+                currentCategories[editingCategoryIndex] = category;
             } else {
-                currentContentTypes.push(contentType);
+                currentCategories.push(category);
             }
-            renderContentTypes();
-            closeContentTypeModal();
-            conLog('> Content type saved (click Save All to persist)', 'con-info');
+            renderCategories();
+            closeCategoryModal();
+            conLog('> Category saved (click Save All to persist)', 'con-info');
         };
 
         // CRUD
@@ -1278,11 +1278,11 @@
             }
         }
 
-        function editContentType(index) { openContentTypeModal(index); }
-        function deleteContentType(index) {
-            if (confirm(`Delete content type "${currentContentTypes[index].name}"?`)) {
-                currentContentTypes.splice(index, 1);
-                renderContentTypes();
+        function editCategory(index) { openCategoryModal(index); }
+        function deleteCategory(index) {
+            if (confirm(`Delete category "${currentCategories[index].name}"?`)) {
+                currentCategories.splice(index, 1);
+                renderCategories();
                 conLog('> Content type deleted (click Save All to persist)', 'con-warn');
             }
         }
@@ -1300,7 +1300,7 @@
                     fetch(`${API_URL}/api/config/categories`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contentTypes: currentContentTypes })
+                        body: JSON.stringify({ categories: currentCategories })
                     })
                 ]);
 
@@ -1325,7 +1325,7 @@
         function exportConfigurations() {
             const config = {
                 mediaTypes: { mediaTypes: currentMediaTypes },
-                contentTypes: { contentTypes: currentContentTypes }
+                categories: { categories: currentCategories }
             };
             const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -1338,9 +1338,9 @@
 
         // Navigation from config cards (stay on same page)
         function viewMediaTypeContent(mediaTypeId) {
-            const related = currentContentTypes.filter(ct => ct.mediaType === mediaTypeId);
+            const related = currentCategories.filter(ct => ct.mediaType === mediaTypeId);
             if (related.length === 0) {
-                alert(`No content types use the "${mediaTypeId}" media type yet.`);
+                alert(`No categories use the "${mediaTypeId}" media type yet.`);
                 return;
             }
             if (related.length === 1) {
@@ -1351,8 +1351,8 @@
             showTab('content', document.querySelectorAll('.tab')[0]);
         }
 
-        function viewContentTypeItems(contentTypeId) {
-            document.getElementById('manageCategory').value = contentTypeId;
+        function viewCategoryItems(categoryId) {
+            document.getElementById('manageCategory').value = categoryId;
             showTab('content', document.querySelectorAll('.tab')[0]);
         }
 

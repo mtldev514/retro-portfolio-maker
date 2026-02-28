@@ -241,16 +241,16 @@ async function generateFilterButtons(userDir, outputDir) {
   const categories = await fs.readJson(categoriesPath);
 
   // Build filter buttons HTML
-  const contentTypes = categories.contentTypes || categories.categories || [];
+  const allCategories = categories.categories || [];
 
   // Validate category count (max 7 for optimal UI)
-  if (contentTypes.length > 7) {
-    console.warn(chalk.yellow(`  ⚠ Warning: You have ${contentTypes.length} categories. For best UI experience, limit to 7 or fewer.`));
+  if (allCategories.length > 7) {
+    console.warn(chalk.yellow(`  ⚠ Warning: You have ${allCategories.length} categories. For best UI experience, limit to 7 or fewer.`));
     console.warn(chalk.yellow('  ⚠ Only the first 7 categories will be shown in the filter bar.'));
   }
 
   // Take only first 7 categories
-  const displayCategories = contentTypes.slice(0, 7);
+  const displayCategories = allCategories.slice(0, 7);
 
   let filterButtonsHtml = '<!-- Auto-generated filter buttons from categories.json -->\n';
   filterButtonsHtml += '                    <button class="filter-btn active" data-filter="all" title="All">✱</button>\n';

@@ -67,7 +67,7 @@ async function validate(projectDir) {
   const categoriesConfig = await fs.readJson(path.join(configDir, 'categories.json'));
   const mediaTypesConfig = await fs.readJson(path.join(configDir, 'media-types.json'));
 
-  const categories = categoriesConfig.contentTypes || categoriesConfig.categories || [];
+  const categories = categoriesConfig.categories || [];
   const mediaTypes = mediaTypesConfig.mediaTypes || [];
 
   if (categories.length === 0) {

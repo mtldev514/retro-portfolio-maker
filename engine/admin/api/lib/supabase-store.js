@@ -125,7 +125,7 @@ class SupabaseStore {
    * e.g. "painting" → "image"
    */
   _mediaTypeForCategory(categoryId) {
-    const ct = this.config.getContentType(categoryId);
+    const ct = this.config.getCategory(categoryId);
     return ct ? ct.mediaType : null;
   }
 
@@ -302,7 +302,7 @@ class SupabaseStore {
    */
   async getAllCategorizedItems() {
     const result = {};
-    for (const ct of this.config.getContentTypes()) {
+    for (const ct of this.config.getCategories()) {
       result[ct.id] = await this.getCategoryItems(ct.id);
     }
     return result;

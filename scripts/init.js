@@ -362,7 +362,7 @@ jobs:
       ]
     },
     'config/categories.json': {
-      contentTypes: [
+      categories: [
         {
           id: 'painting',
           name: { en: 'Painting', fr: 'Peinture' },

@@ -314,31 +314,17 @@ const AppConfig = {
     },
 
     /**
-     * Get all content types
-     */
-    getAllContentTypes() {
-        return this.categories?.contentTypes || this.categories?.categories || [];
-    },
-
-    /**
-     * Get content type configuration by ID
-     */
-    getContentType(contentTypeId) {
-        return this.getAllContentTypes().find(c => c.id === contentTypeId);
-    },
-
-    /**
-     * Get category configuration by ID (legacy, returns content type)
-     */
-    getCategory(categoryId) {
-        return this.getContentType(categoryId);
-    },
-
-    /**
-     * Get all categories (legacy, returns content types)
+     * Get all categories
      */
     getAllCategories() {
-        return this.getAllContentTypes();
+        return this.categories?.categories || [];
+    },
+
+    /**
+     * Get category configuration by ID
+     */
+    getCategory(categoryId) {
+        return this.getAllCategories().find(c => c.id === categoryId);
     },
 
     /**
@@ -356,10 +342,10 @@ const AppConfig = {
     },
 
     /**
-     * Get content types by media type
+     * Get categories by media type
      */
-    getContentTypesByMedia(mediaTypeId) {
-        return this.getAllContentTypes().filter(ct => ct.mediaType === mediaTypeId);
+    getCategoriesByMediaType(mediaTypeId) {
+        return this.getAllCategories().filter(ct => ct.mediaType === mediaTypeId);
     },
 
     /**
@@ -367,10 +353,10 @@ const AppConfig = {
      */
     getGalleryCategories() {
         const galleryTypes = [];
-        for (const ct of this.getAllContentTypes()) {
-            const mediaType = this.getMediaType(ct.mediaType);
+        for (const cat of this.getAllCategories()) {
+            const mediaType = this.getMediaType(cat.mediaType);
             if (mediaType && mediaType.supportsGallery) {
-                galleryTypes.push(ct.id);
+                galleryTypes.push(cat.id);
             }
         }
         return galleryTypes;
@@ -412,7 +398,7 @@ const AppConfig = {
      * e.g. "image" → [{id: "painting"}, {id: "drawing"}, ...]
      */
     getCategoriesForMediaType(mediaTypeId) {
-        return this.getAllContentTypes().filter(ct => ct.mediaType === mediaTypeId);
+        return this.getAllCategories().filter(ct => ct.mediaType === mediaTypeId);
     },
 
     /**

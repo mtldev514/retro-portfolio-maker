@@ -237,17 +237,17 @@
                 </div>
             </div>
 
-            <!-- Content Types Section -->
+            <!-- Categories Section -->
             <div class="config-section">
                 <div class="config-section-header">
-                    📂 CONTENT TYPES (What you create)
+                    📂 CATEGORIES (What you create)
                 </div>
                 <p style="font-size: 11px; margin: 10px 0; color: #666;">
-                    Content types define categories of work (painting, photography, music, etc.) and their custom fields
+                    Categories define types of work (painting, photography, music, etc.) and their custom fields
                 </p>
-                <div id="contentTypesGrid" class="config-grid"></div>
+                <div id="categoriesGrid" class="config-grid"></div>
                 <div class="add-new-section">
-                    <button onclick="openContentTypeModal()">➕ Add New Content Type</button>
+                    <button onclick="openCategoryModal()">➕ Add New Category</button>
                 </div>
             </div>
 
@@ -317,15 +317,15 @@
         </div>
     </div>
 
-    <!-- Content Type Modal -->
-    <div id="contentTypeModal" class="modal">
+    <!-- Category Modal -->
+    <div id="categoryModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <span id="contentTypeModalTitle">Add Content Type</span>
-                <button onclick="closeContentTypeModal()">×</button>
+                <span id="categoryModalTitle">Add Category</span>
+                <button onclick="closeCategoryModal()">×</button>
             </div>
             <div class="modal-body">
-                <form id="contentTypeForm">
+                <form id="categoryForm">
                     <div class="form-row">
                         <label>ID (unique identifier):</label>
                         <input type="text" id="ctId" required placeholder="e.g., painting, photography">
@@ -358,8 +358,8 @@
                     </div>
 
                     <div class="form-row" style="text-align: right;">
-                        <button type="button" onclick="closeContentTypeModal()">Cancel</button>
-                        <button type="submit">Save Content Type</button>
+                        <button type="button" onclick="closeCategoryModal()">Cancel</button>
+                        <button type="submit">Save Category</button>
                     </div>
                 </form>
             </div>
@@ -376,9 +376,9 @@
             return `Admin server is not running on ${API_URL}. Start it with: npm run admin`;
         }
         let currentMediaTypes = [];
-        let currentContentTypes = [];
+        let currentCategories = [];
         let editingMediaTypeIndex = null;
-        let editingContentTypeIndex = null;
+        let editingCategoryIndex = null;
         let currentFields = [];
 
         // Load configuration on page load
@@ -387,7 +387,7 @@
             API_URL = AppConfig.getApiUrl();
             await loadConfigurations();
             renderMediaTypes();
-            renderContentTypes();
+            renderCategories();
             populateMediaTypeSelect();
         }
 
@@ -401,7 +401,7 @@
                 // Load categories.json
                 const categoriesResponse = await fetch(`${API_URL}/api/config/categories`);
                 const categoriesData = await categoriesResponse.json();
-                currentContentTypes = categoriesData.contentTypes || categoriesData.categories || [];
+                currentCategories = categoriesData.categories || [];
 
                 document.getElementById('statusText').textContent = 'Configuration loaded';
             } catch (error) {
@@ -444,15 +444,15 @@
             `).join('');
         }
 
-        function renderContentTypes() {
-            const grid = document.getElementById('contentTypesGrid');
-            grid.innerHTML = currentContentTypes.map((ct, index) => {
+        function renderCategories() {
+            const grid = document.getElementById('categoriesGrid');
+            grid.innerHTML = currentCategories.map((ct, index) => {
                 const mediaType = AppConfig.getMediaType(ct.mediaType);
                 const fieldCount = (ct.fields?.optional || []).length;
 
                 return `
                     <div class="config-card">
-                        <div class="config-card-header" onclick="viewContentTypeItems('${ct.id}')" title="Click to view all ${ct.name.toLowerCase()} items">
+                        <div class="config-card-header" onclick="viewCategoryItems('${ct.id}')" title="Click to view all ${ct.name.toLowerCase()} items">
                             <span class="config-card-icon">${ct.icon}</span>
                             <span class="config-card-title">${ct.name}</span>
                         </div>
@@ -471,9 +471,9 @@
                                 <span class="config-field-label">Custom Fields:</span> ${fieldCount} field(s)
                             </div>
                             <div class="config-actions">
-                                <button class="btn-small" onclick="viewContentTypeItems('${ct.id}')" style="background: #0080ff; color: white;">View Items</button>
-                                <button class="btn-small" onclick="editContentType(${index})">Edit</button>
-                                <button class="btn-small" onclick="deleteContentType(${index})">Delete</button>
+                                <button class="btn-small" onclick="viewCategoryItems('${ct.id}')" style="background: #0080ff; color: white;">View Items</button>
+                                <button class="btn-small" onclick="editCategory(${index})">Edit</button>
+                                <button class="btn-small" onclick="deleteCategory(${index})">Delete</button>
                             </div>
                         </div>
                     </div>
@@ -521,14 +521,14 @@
             editingMediaTypeIndex = null;
         }
 
-        function openContentTypeModal(index = null) {
-            editingContentTypeIndex = index;
-            const modal = document.getElementById('contentTypeModal');
-            const form = document.getElementById('contentTypeForm');
+        function openCategoryModal(index = null) {
+            editingCategoryIndex = index;
+            const modal = document.getElementById('categoryModal');
+            const form = document.getElementById('categoryForm');
 
             if (index !== null) {
-                const ct = currentContentTypes[index];
-                document.getElementById('contentTypeModalTitle').textContent = 'Edit Content Type';
+                const ct = currentCategories[index];
+                document.getElementById('categoryModalTitle').textContent = 'Edit Category';
                 document.getElementById('ctId').value = ct.id;
                 document.getElementById('ctName').value = ct.name;
                 document.getElementById('ctIcon').value = ct.icon;
@@ -538,7 +538,7 @@
                 currentFields = ct.fields?.optional || [];
                 document.getElementById('ctId').disabled = true;
             } else {
-                document.getElementById('contentTypeModalTitle').textContent = 'Add Content Type';
+                document.getElementById('categoryModalTitle').textContent = 'Add Category';
                 form.reset();
                 currentFields = [];
                 document.getElementById('ctId').disabled = false;
@@ -548,9 +548,9 @@
             modal.classList.add('active');
         }
 
-        function closeContentTypeModal() {
-            document.getElementById('contentTypeModal').classList.remove('active');
-            editingContentTypeIndex = null;
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').classList.remove('active');
+            editingCategoryIndex = null;
             currentFields = [];
         }
 
@@ -622,10 +622,19 @@
             document.getElementById('statusText').textContent = 'Media type saved (click Save All to persist)';
         };
 
-        document.getElementById('contentTypeForm').onsubmit = (e) => {
+        document.getElementById('categoryForm').onsubmit = (e) => {
             e.preventDefault();
 
-            const contentType = {
+            // Validate field names: must be lowercase alphanumeric (used as JSON keys)
+            const fieldNamePattern = /^[a-z][a-z0-9_]*$/;
+            for (const field of currentFields) {
+                if (!field.name || !fieldNamePattern.test(field.name)) {
+                    alert(`Invalid field name "${field.name}". Use lowercase letters, numbers, and underscores (must start with a letter).`);
+                    return;
+                }
+            }
+
+            const category = {
                 id: document.getElementById('ctId').value,
                 name: document.getElementById('ctName').value,
                 icon: document.getElementById('ctIcon').value,
@@ -638,15 +647,15 @@
                 }
             };
 
-            if (editingContentTypeIndex !== null) {
-                currentContentTypes[editingContentTypeIndex] = contentType;
+            if (editingCategoryIndex !== null) {
+                currentCategories[editingCategoryIndex] = category;
             } else {
-                currentContentTypes.push(contentType);
+                currentCategories.push(category);
             }
 
-            renderContentTypes();
-            closeContentTypeModal();
-            document.getElementById('statusText').textContent = 'Content type saved (click Save All to persist)';
+            renderCategories();
+            closeCategoryModal();
+            document.getElementById('statusText').textContent = 'Category saved (click Save All to persist)';
         };
 
         // CRUD operations
@@ -662,15 +671,15 @@
             }
         }
 
-        function editContentType(index) {
-            openContentTypeModal(index);
+        function editCategory(index) {
+            openCategoryModal(index);
         }
 
-        function deleteContentType(index) {
-            if (confirm(`Delete content type "${currentContentTypes[index].name}"?`)) {
-                currentContentTypes.splice(index, 1);
-                renderContentTypes();
-                document.getElementById('statusText').textContent = 'Content type deleted (click Save All to persist)';
+        function deleteCategory(index) {
+            if (confirm(`Delete category "${currentCategories[index].name}"?`)) {
+                currentCategories.splice(index, 1);
+                renderCategories();
+                document.getElementById('statusText').textContent = 'Category deleted (click Save All to persist)';
             }
         }
 
@@ -690,7 +699,7 @@
                 const ctResponse = await fetch(`${API_URL}/api/config/categories`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contentTypes: currentContentTypes })
+                    body: JSON.stringify({ categories: currentCategories })
                 });
 
                 if (mtResponse.ok && ctResponse.ok) {
@@ -728,7 +737,7 @@
         function exportConfigurations() {
             const config = {
                 mediaTypes: { mediaTypes: currentMediaTypes },
-                contentTypes: { contentTypes: currentContentTypes }
+                categories: { categories: currentCategories }
             };
 
             const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
@@ -742,30 +751,30 @@
 
         // Navigation functions
         function viewMediaTypeContent(mediaTypeId) {
-            // Find all content types that use this media type
-            const relatedContentTypes = currentContentTypes.filter(ct => ct.mediaType === mediaTypeId);
+            // Find all categories that use this media type
+            const relatedCategories = currentCategories.filter(ct => ct.mediaType === mediaTypeId);
 
-            if (relatedContentTypes.length === 0) {
-                alert(`No content types use the "${mediaTypeId}" media type yet.`);
+            if (relatedCategories.length === 0) {
+                alert(`No categories use the "${mediaTypeId}" media type yet.`);
                 return;
             }
 
-            // If only one content type, navigate directly to it
-            if (relatedContentTypes.length === 1) {
-                window.location.href = `admin.html?category=${relatedContentTypes[0].id}#manage`;
+            // If only one category, navigate directly to it
+            if (relatedCategories.length === 1) {
+                window.location.href = `admin.html?category=${relatedCategories[0].id}#manage`;
                 return;
             }
 
             // If multiple, show a choice
-            const choices = relatedContentTypes.map(ct => `${ct.icon} ${ct.name} (${ct.id})`).join('\n');
-            const message = `Multiple content types use "${mediaTypeId}":\n\n${choices}\n\nOpening admin panel...`;
+            const choices = relatedCategories.map(ct => `${ct.icon} ${ct.name} (${ct.id})`).join('\n');
+            const message = `Multiple categories use "${mediaTypeId}":\n\n${choices}\n\nOpening admin panel...`;
             alert(message);
             window.location.href = 'admin.html#manage';
         }
 
-        function viewContentTypeItems(contentTypeId) {
+        function viewCategoryItems(categoryId) {
             // Navigate to admin panel with this category pre-selected
-            window.location.href = `admin.html?category=${contentTypeId}#manage`;
+            window.location.href = `admin.html?category=${categoryId}#manage`;
         }
 
         // Initialize on page load
