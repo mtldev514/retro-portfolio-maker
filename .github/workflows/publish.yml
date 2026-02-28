@@ -1,0 +1,103 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build test portfolio
+        run: npm run test:build
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+  publish:
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Bump version
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          VERSION_TYPE="${{ github.event.inputs.version }}"
+
+          # Calculate next version
+          CURRENT=$(node -p "require('./package.json').version")
+          case $VERSION_TYPE in
+            major) NEXT=$(echo $CURRENT | awk -F. '{print ($1+1)".0.0"}') ;;
+            minor) NEXT=$(echo $CURRENT | awk -F. '{print $1"."($2+1)".0"}') ;;
+            patch) NEXT=$(echo $CURRENT | awk -F. '{print $1"."$2"."($3+1)}') ;;
+          esac
+
+          # Delete stale tag if exists but not published
+          if git rev-parse "v$NEXT" >/dev/null 2>&1; then
+            if ! npm view @mtldev514/retro-portfolio-maker@$NEXT version >/dev/null 2>&1; then
+              echo "Deleting stale tag v$NEXT..."
+              git tag -d "v$NEXT" || true
+              git push origin --delete "v$NEXT" || true
+            fi
+          fi
+
+          HUSKY=0 npm version $VERSION_TYPE -m "chore: release v%s"
+          git push --follow-tags
+
+      - name: Publish to NPM
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Summary
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "### Published @mtldev514/retro-portfolio-maker@$VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Install: \`npm install @mtldev514/retro-portfolio-maker@$VERSION\`" >> $GITHUB_STEP_SUMMARY
