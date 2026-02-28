@@ -86,35 +86,17 @@ async function init(targetDir, options = {}) {
       description: 'Data files live in your repo. Build bundles them into dist/.'
     },
     {
-      label: 'Supabase',
-      description: 'Data stored in a Supabase database, fetched at runtime.'
-    },
-    {
       label: 'Remote',
       description: 'Data fetched from a GitHub repo at runtime.'
     }
   ], 0);
 
-  const dataSource = ['local', 'supabase', 'remote'][dataSourceIndex];
+  const dataSource = ['local', 'remote'][dataSourceIndex];
 
   // Collect data-source-specific config
-  let supabaseUrl = '';
-  let supabaseKey = '';
   let remoteUsername = '';
   let remoteRepo = '';
   let remoteBranch = 'main';
-
-  if (dataSource === 'supabase') {
-    console.log('');
-    console.log(chalk.cyan('┌─ ') + chalk.bold('Supabase Configuration'));
-    console.log(chalk.cyan('│'));
-    console.log(chalk.cyan('│  ') + chalk.gray('Create a project at: ') + chalk.blue.underline('https://supabase.com'));
-    console.log(chalk.cyan('│  ') + chalk.gray('Find credentials in: Settings > API'));
-    console.log(chalk.cyan('└─'));
-    console.log('');
-    supabaseUrl = await prompt(chalk.cyan('  🔗 ') + chalk.white('Supabase URL'));
-    supabaseKey = await prompt(chalk.cyan('  🔑 ') + chalk.white('Publishable Key'));
-  }
 
   if (dataSource === 'remote') {
     console.log('');
@@ -130,15 +112,7 @@ async function init(targetDir, options = {}) {
 
   // Generate config-source.json
   let configSource;
-  if (dataSource === 'supabase') {
-    configSource = {
-      mode: 'supabase',
-      supabase: {
-        url: supabaseUrl || 'https://your-project.supabase.co',
-        publishableKey: supabaseKey || 'your-publishable-key'
-      }
-    };
-  } else if (dataSource === 'remote') {
+  if (dataSource === 'remote') {
     const user = remoteUsername || 'yourusername';
     const repo = remoteRepo || 'your-portfolio';
     const branch = remoteBranch || 'main';
@@ -178,6 +152,7 @@ async function init(targetDir, options = {}) {
       start: 'npm run dev & npm run admin',
       validate: 'retro-portfolio validate',
       sync: 'retro-portfolio sync',
+      update: 'npm install @mtldev514/retro-portfolio-maker@latest',
       deploy: 'retro-portfolio deploy',
     },
     dependencies: {
@@ -264,14 +239,6 @@ CLOUDINARY_API_SECRET=your_api_secret_here
 GITHUB_TOKEN=your_github_token_here
 `;
 
-  if (dataSource === 'supabase') {
-    envExample += `
-# Supabase Configuration
-SUPABASE_URL=your_supabase_url_here
-SUPABASE_SECRET_KEY=your_service_role_key_here
-`;
-  }
-
   await fs.writeFile(path.join(targetPath, '.env.example'), envExample);
   console.log(chalk.green('\n  ✓'), '.env.example');
 
@@ -294,16 +261,6 @@ ${githubToken && githubToken !== 'skip' ? `GITHUB_TOKEN=${githubToken}` : '# GIT
     envContent = envExample;
     console.log(chalk.yellow('  ⚠'), '.env ' + chalk.gray('(created with placeholders)'));
     console.log(chalk.yellow('  ⚠'), 'Remember to edit .env before using the admin interface!');
-  }
-
-  // Add Supabase env vars to .env if chosen
-  if (dataSource === 'supabase') {
-    const supaEnv = `
-# Supabase Configuration
-SUPABASE_URL=${supabaseUrl || 'your_supabase_url_here'}
-SUPABASE_SECRET_KEY=your_service_role_key_here
-`;
-    envContent += supaEnv;
   }
 
   await fs.writeFile(path.join(targetPath, '.env'), envContent);
@@ -493,15 +450,6 @@ jobs:
     console.log(chalk.green('  ✓'), 'CONFIGURATION.md', chalk.gray('(full config reference)'));
   }
 
-  // Copy supabase-setup.sql if Supabase mode
-  if (dataSource === 'supabase') {
-    const sqlSource = path.join(templatePath, 'supabase-setup.sql');
-    if (fs.existsSync(sqlSource)) {
-      await fs.copy(sqlSource, path.join(targetPath, 'supabase-setup.sql'));
-      console.log(chalk.green('  ✓'), 'supabase-setup.sql', chalk.gray('(run in Supabase SQL editor)'));
-    }
-  }
-
   // Success message
   console.log(chalk.green('\n✨ Portfolio initialized successfully!\n'));
 
@@ -519,12 +467,7 @@ jobs:
   console.log(`  cd ${targetDir}`);
   console.log('  npm install');
 
-  if (dataSource === 'supabase') {
-    console.log(chalk.yellow('\n  Supabase setup:'));
-    console.log('  1. Run the SQL in supabase-setup.sql in your Supabase dashboard');
-    console.log('  2. Add your service role key to .env (SUPABASE_SECRET_KEY)');
-    console.log('  3. Run: retro-portfolio sync-supabase');
-  } else if (dataSource === 'remote') {
+  if (dataSource === 'remote') {
     console.log(chalk.yellow('\n  Remote setup:'));
     console.log('  1. Push your data/ config/ and lang/ files to the remote repo first');
     console.log('  2. Make sure the repo is public (or use a token for private repos)');

@@ -296,6 +296,9 @@ const renderer = {
             // Filter buttons
             const btn = e.target.closest('.filter-btn:not(.filter-btn-back)');
             if (btn) {
+                // End page-load reveal immediately so new grid doesn't replay it
+                if (window.page && window.page.state !== 'ready') page._enterReady();
+
                 nav.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 this.activeFilter = btn.dataset.filter;
