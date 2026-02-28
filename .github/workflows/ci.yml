@@ -161,6 +161,16 @@ jobs:
           HUSKY=0 npm version $VERSION_TYPE -m "chore: release v%s"
           git push --follow-tags
 
+      - name: Debug auth
+        run: |
+          echo "Checking .npmrc files..."
+          cat ~/.npmrc 2>/dev/null || echo "No ~/.npmrc"
+          cat .npmrc 2>/dev/null || echo "No ./.npmrc"
+          echo "NODE_AUTH_TOKEN is set: ${{ secrets.NPM_TOKEN != '' }}"
+          npm whoami 2>&1 || echo "npm whoami failed (expected if token issue)"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Publish to NPM
         run: npm publish --access public
         env:
