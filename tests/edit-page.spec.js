@@ -32,7 +32,7 @@ test.describe('Edit page', () => {
     await expect(page.locator('#editId')).toBeAttached();
     await expect(page.locator('#editDate')).toBeAttached();
     await expect(page.locator('#editTitle')).toBeAttached();
-    await expect(page.locator('#editDescription')).toBeAttached();
+    await expect(page.locator('#dynamicFields')).toBeAttached();
     await expect(page.locator('#editUrl')).toBeAttached();
   });
 

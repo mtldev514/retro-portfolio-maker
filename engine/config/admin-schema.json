@@ -1,0 +1,64 @@
+{
+  "_comment": "Admin form schema: defines editable fields per category for the admin panel. Users can override by placing their own admin-schema.json in config/.",
+  "categories": {
+    "painting": {
+      "required": ["title", "url"],
+      "optional": [
+        { "name": "medium", "type": "text", "label": "Medium", "placeholder": "e.g., Oil on canvas, Acrylic, Watercolor" },
+        { "name": "dimensions", "type": "text", "label": "Dimensions", "placeholder": "e.g., 24x36 inches" },
+        { "name": "year", "type": "text", "label": "Year", "placeholder": "e.g., 2024" },
+        { "name": "description", "type": "textarea", "label": "Description" },
+        { "name": "date", "type": "text", "label": "Date" }
+      ]
+    },
+    "drawing": {
+      "required": ["title", "url"],
+      "optional": [
+        { "name": "medium", "type": "text", "label": "Medium", "placeholder": "e.g., Pencil, Charcoal, Ink" },
+        { "name": "dimensions", "type": "text", "label": "Dimensions" },
+        { "name": "description", "type": "textarea", "label": "Description" },
+        { "name": "date", "type": "text", "label": "Date" }
+      ]
+    },
+    "photography": {
+      "required": ["title", "url"],
+      "optional": [
+        { "name": "camera", "type": "text", "label": "Camera", "placeholder": "e.g., Canon EOS R5" },
+        { "name": "lens", "type": "text", "label": "Lens", "placeholder": "e.g., 50mm f/1.8" },
+        { "name": "settings", "type": "text", "label": "Camera Settings", "placeholder": "e.g., ISO 400, f/2.8, 1/250s" },
+        { "name": "description", "type": "textarea", "label": "Description" },
+        { "name": "date", "type": "text", "label": "Date" }
+      ]
+    },
+    "sculpting": {
+      "required": ["title"],
+      "optional": [
+        { "name": "material", "type": "text", "label": "Material", "placeholder": "e.g., Bronze, Clay, Marble" },
+        { "name": "dimensions", "type": "text", "label": "Dimensions", "placeholder": "e.g., 12x8x6 inches" },
+        { "name": "weight", "type": "text", "label": "Weight" },
+        { "name": "description", "type": "textarea", "label": "Description" },
+        { "name": "url", "type": "text", "label": "Image URL" }
+      ]
+    },
+    "music": {
+      "required": ["title", "url"],
+      "optional": [
+        { "name": "genre", "type": "text", "label": "Genre", "placeholder": "e.g., Jazz, Rock, Classical" },
+        { "name": "duration", "type": "text", "label": "Duration", "placeholder": "e.g., 3:45" },
+        { "name": "lyrics", "type": "textarea", "label": "Lyrics" },
+        { "name": "description", "type": "textarea", "label": "Description" }
+      ]
+    },
+    "projects": {
+      "required": ["title"],
+      "optional": [
+        { "name": "techStack", "type": "text", "label": "Tech Stack", "placeholder": "e.g., React, Node.js, PostgreSQL" },
+        { "name": "repo", "type": "text", "label": "GitHub Repository", "placeholder": "e.g., username/repo-name" },
+        { "name": "liveUrl", "type": "text", "label": "Live URL", "placeholder": "https://example.com" },
+        { "name": "description", "type": "textarea", "label": "Description" },
+        { "name": "url", "type": "text", "label": "URL" },
+        { "name": "visibility", "type": "text", "label": "Visibility" }
+      ]
+    }
+  }
+}

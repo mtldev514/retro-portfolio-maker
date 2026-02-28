@@ -1,0 +1,148 @@
+{
+  "_comment": "Display schema: controls how items render in gallery cards and detail views. Users can override by placing their own display.json in config/.",
+  "categories": {
+    "painting": {
+      "icon": "🎨",
+      "card": {
+        "visual": "image",
+        "subtitle": { "field": "medium", "format": "parenthesized" }
+      },
+      "detail": {
+        "hero": "image-gallery",
+        "meta": [
+          { "field": "medium", "icon": "🎨", "labelKey": "detail_medium" },
+          { "field": "created", "icon": "📅", "labelKey": "gallery_created_on" },
+          { "field": "date", "icon": "📁", "labelKey": "gallery_added_on" }
+        ],
+        "sections": [
+          { "field": "description", "renderer": "text-block", "labelKey": "detail_description" }
+        ]
+      }
+    },
+    "drawing": {
+      "icon": "✏️",
+      "card": {
+        "visual": "image",
+        "subtitle": { "field": "medium", "format": "parenthesized" }
+      },
+      "detail": {
+        "hero": "image-gallery",
+        "meta": [
+          { "field": "medium", "icon": "🎨", "labelKey": "detail_medium" },
+          { "field": "created", "icon": "📅", "labelKey": "gallery_created_on" },
+          { "field": "date", "icon": "📁", "labelKey": "gallery_added_on" }
+        ],
+        "sections": [
+          { "field": "description", "renderer": "text-block", "labelKey": "detail_description" }
+        ]
+      }
+    },
+    "photography": {
+      "icon": "📷",
+      "card": {
+        "visual": "image",
+        "subtitle": { "field": "medium", "format": "parenthesized" }
+      },
+      "detail": {
+        "hero": "image-gallery",
+        "meta": [
+          { "field": "medium", "icon": "🎨", "labelKey": "detail_medium" },
+          { "field": "created", "icon": "📅", "labelKey": "gallery_created_on" },
+          { "field": "date", "icon": "📁", "labelKey": "gallery_added_on" }
+        ],
+        "sections": [
+          { "field": "description", "renderer": "text-block", "labelKey": "detail_description" }
+        ]
+      }
+    },
+    "sculpting": {
+      "icon": "🗿",
+      "card": {
+        "visual": "image",
+        "subtitle": { "field": "medium", "format": "parenthesized" }
+      },
+      "detail": {
+        "hero": "image-gallery",
+        "meta": [
+          { "field": "medium", "icon": "🎨", "labelKey": "detail_medium" },
+          { "field": "created", "icon": "📅", "labelKey": "gallery_created_on" },
+          { "field": "date", "icon": "📁", "labelKey": "gallery_added_on" }
+        ],
+        "sections": [
+          { "field": "description", "renderer": "text-block", "labelKey": "detail_description" }
+        ]
+      }
+    },
+    "music": {
+      "icon": "🎵",
+      "card": {
+        "visual": "play-button",
+        "subtitle": { "field": "genre" }
+      },
+      "detail": {
+        "hero": "play-inline",
+        "meta": [
+          { "field": "genre", "icon": "🎵", "labelKey": "detail_genre" },
+          { "field": "created", "icon": "📅", "labelKey": "gallery_created_on" },
+          { "field": "date", "icon": "📁", "labelKey": "gallery_added_on" }
+        ],
+        "sections": [
+          { "field": "description", "renderer": "text-block", "labelKey": "detail_description" },
+          { "field": "lyrics", "renderer": "preformatted", "labelKey": "detail_lyrics" }
+        ]
+      }
+    },
+    "projects": {
+      "icon": "💻",
+      "card": {
+        "visual": "icon",
+        "subtitle": { "field": "description" },
+        "badges": [
+          { "field": "visibility", "map": { "private": "🔒", "public": "🌍" } }
+        ],
+        "actions": [
+          {
+            "condition": { "field": "visibility", "equals": "public" },
+            "links": [
+              { "field": "website", "labelKey": "card_website", "icon": "external-link" },
+              { "field": "url", "labelKey": "card_github", "icon": "github", "fallback": true }
+            ]
+          }
+        ]
+      },
+      "detail": {
+        "hero": "none",
+        "titleBadge": {
+          "field": "visibility",
+          "map": {
+            "private": { "emoji": "🔒", "labelKey": "detail_private", "class": "detail-badge-private" },
+            "public": { "emoji": "🌍", "labelKey": "detail_public", "class": "detail-badge-public" }
+          }
+        },
+        "meta": [
+          { "field": "created", "icon": "📅", "labelKey": "gallery_created_on" },
+          { "field": "date", "icon": "📁", "labelKey": "gallery_added_on" }
+        ],
+        "sections": [
+          { "field": "description", "renderer": "text-block", "labelKey": "detail_description" }
+        ],
+        "actions": [
+          {
+            "condition": { "field": "visibility", "equals": "public" },
+            "links": [
+              { "field": "website", "labelKey": "card_website", "icon": "external-link" },
+              { "field": "url", "labelKey": "projects_view_code", "icon": "github" }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "mediaTypes": {
+    "image": { "viewer": "ImageViewer", "supportsGallery": true },
+    "audio": { "viewer": "AudioPlayer", "supportsGallery": false, "sidebarPlayer": { "categoryId": "music" } },
+    "video": { "viewer": "VideoPlayer", "supportsGallery": false },
+    "text": { "viewer": "TextRenderer", "supportsGallery": false },
+    "link": { "viewer": "LinkCard", "supportsGallery": false }
+  }
+}

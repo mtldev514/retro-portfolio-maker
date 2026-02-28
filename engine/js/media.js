@@ -48,7 +48,11 @@ const media = {
         try {
             // Use AppConfig helpers (works with both local files and Supabase)
             const allAudio = await window.AppConfig.fetchMediaTypeItems('audio');
-            const refs = await window.AppConfig.fetchCategoryRefs('music');
+
+            // Read sidebar player category from display schema (default: 'music')
+            const audioDisplay = window.AppConfig.getMediaTypeDisplay?.('audio');
+            const sidebarCategoryId = audioDisplay?.sidebarPlayer?.categoryId || 'music';
+            const refs = await window.AppConfig.fetchCategoryRefs(sidebarCategoryId);
 
             // Resolve refs → audio items in playlist order
             const itemMap = new Map(allAudio.map(i => [i.id, i]));

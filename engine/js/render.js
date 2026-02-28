@@ -1,7 +1,15 @@
 /**
- * Unified Render Engine for Alex's Portfolio
- * Loads ALL categories, renders a single grid, supports filter buttons
+ * Unified Render Engine
+ * Schema-driven: reads display.json to decide how each category renders.
+ * No hardcoded category names — new categories work out-of-the-box.
  */
+
+// SVG icon registry — maps icon names used in display.json to SVG markup
+const _svgIcons = {
+    'github': '<svg class="icon" viewBox="0 0 24 24"><path d="M12 .3a12 12 0 00-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.8.1-.7.1-.7 1.2.1 1.9 1.3 1.9 1.3 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 016 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.7.3 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0012 .3z"/></svg>',
+    'external-link': '<svg class="icon" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>'
+};
+
 const renderer = {
     categories: {},
     categoryIcons: {},
@@ -29,7 +37,9 @@ const renderer = {
             this.categories[cat.id] = {
                 mediaType: cat.mediaType
             };
-            this.categoryIcons[cat.id] = cat.icon;
+            // Display schema icons take precedence, fall back to categories.json
+            const displaySchema = window.AppConfig?.getDisplaySchema(cat.id);
+            this.categoryIcons[cat.id] = displaySchema?.icon || cat.icon || '';
         });
 
         // Update PAGE_SIZE from config
@@ -196,6 +206,80 @@ const renderer = {
         }
     },
 
+    // ─── Schema-driven sub-renderers ─────────────────────────
+
+    _evalCondition(condition, item) {
+        if (!condition) return true;
+        return item[condition.field] === condition.equals;
+    },
+
+    _renderCardVisual(visualType, item, schema) {
+        const icon = schema?.icon || this.categoryIcons[item._category] || '';
+        switch (visualType) {
+            case 'image': {
+                if (!item.url) return `<div class="card-icon">${icon}</div>`;
+                const pileCount = (item.gallery && item.gallery.length) ? item.gallery.length + 1 : 0;
+                const pileBadge = pileCount > 1 ? `<span class="pile-badge">📷 ${pileCount}</span>` : '';
+                return `<div class="gallery-img-wrap"><img src="${item.url}" alt="${this.t(item.title)}" loading="lazy">${pileBadge}</div>`;
+            }
+            case 'play-button': {
+                if (item.url) {
+                    const playLabel = (window.i18n && i18n.translations.music_play_me) || 'Play Me';
+                    return `<button class="music-card-play" data-track-url="${item.url.replace(/"/g, '&quot;')}" title="${playLabel}">&#9654;</button>`;
+                }
+                return `<div class="card-icon">${icon || '&#127925;'}</div>`;
+            }
+            case 'icon':
+            default:
+                return `<div class="card-icon">${icon}</div>`;
+        }
+    },
+
+    _renderCardSubtitle(subtitleSchema, item) {
+        if (!subtitleSchema) return '';
+        const value = this.t(item[subtitleSchema.field]);
+        if (!value) return '';
+        const text = subtitleSchema.format === 'parenthesized' ? `(${value})` : value;
+        return `<p align="center" class="gallery-subtitle">${text}</p>`;
+    },
+
+    _renderBadges(badges, item) {
+        if (!badges || badges.length === 0) return '';
+        return badges
+            .filter(b => item[b.field])
+            .map(b => b.map?.[item[b.field]] || '')
+            .join(' ');
+    },
+
+    _renderCardActions(actions, item) {
+        if (!actions || actions.length === 0) return '';
+        const parts = [];
+        for (const action of actions) {
+            if (!this._evalCondition(action.condition, item)) continue;
+            if (!action.links) continue;
+            // Find first matching link, or fallback link
+            const link = action.links.find(l => item[l.field]) ||
+                         action.links.find(l => l.fallback && item[l.field]);
+            if (!link || !item[link.field]) continue;
+            const label = (window.i18n && i18n.translations[link.labelKey]) || link.labelKey;
+            const svg = _svgIcons[link.icon] || '';
+            parts.push(`<div class="card-actions">
+                <a href="${item[link.field]}" target="_blank" class="card-action-btn" onclick="event.stopPropagation()">
+                    ${svg} ${label}
+                </a>
+            </div>`);
+        }
+        return parts.join('');
+    },
+
+    _renderPileLabel(item) {
+        const pileCount = (item.gallery && item.gallery.length) ? item.gallery.length + 1 : 0;
+        if (pileCount <= 1) return '';
+        return `<p align="center" class="gallery-subtitle pile-label">📷 ${pileCount} photos</p>`;
+    },
+
+    // ─── Main gallery item builder ────────────────────────────
+
     createGalleryItem(item) {
         const div = document.createElement('div');
         div.className = 'gallery-item';
@@ -208,21 +292,33 @@ const renderer = {
         const itemId = item.id || (typeof item.title === 'string' ? item.title : (item.title && item.title.en) || '');
         const from = item._from || 'gallery';
         const detailHref = `detail.html?id=${encodeURIComponent(itemId)}&from=${from}`;
-        const icon = this.categoryIcons[item._category] || '';
 
-        if (item._category === 'music') {
-            const genre = this.t(item.genre);
-            const playMeLabel = (window.i18n && i18n.translations.music_play_me) || 'Play Me';
-            div.innerHTML = `
-                <a href="${detailHref}" class="gallery-link">
-                    ${item.url ? `<button class="music-card-play" data-track-url="${item.url.replace(/"/g, '&quot;')}" title="${playMeLabel}">&#9654;</button>` : `<div class="card-icon">&#127925;</div>`}
-                    <h3 align="center">${title}</h3>
-                    ${genre ? `<p align="center" class="gallery-subtitle">${genre}</p>` : ''}
-                    <p align="center" class="item-date">
-                        <span data-i18n="${dateLabel}">${dateFallback}</span> ${dateStr}
-                    </p>
-                </a>
-            `;
+        // Load display schema for this category
+        const schema = window.AppConfig?.getDisplaySchema(item._category);
+        const card = schema?.card || {};
+        const visualType = card.visual || 'icon';
+
+        const visualHtml = this._renderCardVisual(visualType, item, schema);
+        const subtitleHtml = this._renderCardSubtitle(card.subtitle, item);
+        const badgeHtml = this._renderBadges(card.badges, item);
+        const pileHtml = this._renderPileLabel(item);
+        const actionsHtml = this._renderCardActions(card.actions, item);
+
+        div.innerHTML = `
+            <a href="${detailHref}" class="gallery-link">
+                ${visualHtml}
+                <h3 align="center">${title} ${badgeHtml}</h3>
+                ${subtitleHtml}
+                ${pileHtml}
+                <p align="center" class="item-date">
+                    <span data-i18n="${dateLabel}">${dateFallback}</span> ${dateStr}
+                </p>
+            </a>
+            ${actionsHtml}
+        `;
+
+        // Wire up play button behavior for audio visual type
+        if (visualType === 'play-button') {
             const playBtn = div.querySelector('.music-card-play');
             if (playBtn) {
                 playBtn.addEventListener('click', (e) => {
@@ -235,55 +331,8 @@ const renderer = {
                     }
                 });
             }
-        } else {
-            const medium = this.t(item.medium);
-            const description = this.t(item.description);
-            let visibilityEmoji = '';
-            const isProject = item.category === 'projects' || item._category === 'projects';
-            if (isProject) {
-                visibilityEmoji = item.visibility === 'private' ? '🔒' : '🌍';
-            }
-            const subTitle = isProject ? description : (medium ? `(${medium})` : '');
-
-            const hasImage = item.url && !isProject;
-            const githubLabel = (window.i18n && i18n.translations.card_github) || 'GitHub';
-            const websiteLabel = (window.i18n && i18n.translations.card_website) || 'Website';
-            const isPublic = isProject && item.visibility === 'public';
-
-            let cardActionHtml = '';
-            if (isPublic) {
-                if (item.website) {
-                    cardActionHtml = `<div class="card-actions">
-                        <a href="${item.website}" target="_blank" class="card-action-btn" onclick="event.stopPropagation()">
-                            <svg class="icon" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg> ${websiteLabel}
-                        </a>
-                    </div>`;
-                } else if (item.url) {
-                    cardActionHtml = `<div class="card-actions">
-                        <a href="${item.url}" target="_blank" class="card-action-btn" onclick="event.stopPropagation()">
-                            <svg class="icon" viewBox="0 0 24 24"><path d="M12 .3a12 12 0 00-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.8.1-.7.1-.7 1.2.1 1.9 1.3 1.9 1.3 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 016 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.7.3 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0012 .3z"/></svg> ${githubLabel}
-                        </a>
-                    </div>`;
-                }
-            }
-
-            const pileCount = (item.gallery && item.gallery.length) ? item.gallery.length + 1 : 0;
-            const pileBadge = pileCount > 1 ? `<span class="pile-badge">📷 ${pileCount}</span>` : '';
-            const pileLabel = pileCount > 1 ? `<p align="center" class="gallery-subtitle pile-label">📷 ${pileCount} photos</p>` : '';
-
-            div.innerHTML = `
-                <a href="${detailHref}" class="gallery-link">
-                    ${hasImage ? `<div class="gallery-img-wrap"><img src="${item.url}" alt="${title}" loading="lazy">${pileBadge}</div>` : `<div class="card-icon">${icon}</div>`}
-                    <h3 align="center">${title}</h3>
-                    ${subTitle ? `<p align="center" class="gallery-subtitle">${subTitle}</p>` : ''}
-                    ${pileLabel}
-                    <p align="center" class="item-date">
-                        <span data-i18n="${dateLabel}">${dateFallback}</span> ${dateStr}
-                    </p>
-                </a>
-                ${cardActionHtml}
-            `;
         }
+
         return div;
     },
 

@@ -18,6 +18,8 @@ class ConfigLoader {
     this.languagesConfig = null;
     this.categoriesConfig = null;
     this.mediaTypesConfig = null;
+    this.displayConfig = null;
+    this.adminSchemaConfig = null;
   }
 
   /**
@@ -43,6 +45,8 @@ class ConfigLoader {
       this.languagesConfig = fs.readJsonSync(path.join(this.configDir, 'languages.json'));
       this.categoriesConfig = fs.readJsonSync(path.join(this.configDir, 'categories.json'));
       this.mediaTypesConfig = fs.readJsonSync(path.join(this.configDir, 'media-types.json'));
+      try { this.displayConfig = fs.readJsonSync(path.join(this.configDir, 'display.json')); } catch { /* optional */ }
+      try { this.adminSchemaConfig = fs.readJsonSync(path.join(this.configDir, 'admin-schema.json')); } catch { /* optional */ }
 
       console.log(`\u2705 Configuration loaded from ${this.contentRoot}`);
       return true;
@@ -185,6 +189,20 @@ class ConfigLoader {
       obj[code] = value;
     }
     return obj;
+  }
+
+  /**
+   * Get display schema for a category from display.json
+   */
+  getDisplaySchema(categoryId) {
+    return this.displayConfig?.categories?.[categoryId] || null;
+  }
+
+  /**
+   * Get admin form schema for a category from admin-schema.json
+   */
+  getAdminSchema(categoryId) {
+    return this.adminSchemaConfig?.categories?.[categoryId] || null;
   }
 
   /**

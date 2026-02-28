@@ -72,11 +72,13 @@ const ConfigLoader = {
         const langDir = this.source?.local?.langDir || 'lang';
 
         try {
-            const [app, languages, categories, mediaTypes] = await Promise.all([
+            const [app, languages, categories, mediaTypes, display, adminSchema] = await Promise.all([
                 fetch(`${configDir}/app.json`).then(r => r.json()),
                 fetch(`${configDir}/languages.json`).then(r => r.json()),
                 fetch(`${configDir}/categories.json`).then(r => r.json()),
-                fetch(`${configDir}/media-types.json`).then(r => r.json())
+                fetch(`${configDir}/media-types.json`).then(r => r.json()),
+                fetch(`${configDir}/display.json`).then(r => r.json()).catch(() => null),
+                fetch(`${configDir}/admin-schema.json`).then(r => r.json()).catch(() => null)
             ]);
 
             return {
@@ -84,6 +86,8 @@ const ConfigLoader = {
                 languages,
                 categories,
                 mediaTypes,
+                display,
+                adminSchema,
                 source: 'local',
                 paths: { configDir, dataDir, langDir }
             };
@@ -130,6 +134,8 @@ const ConfigLoader = {
                 languages: configMap.languages || {},
                 categories: configMap.categories || {},
                 mediaTypes: configMap['media-types'] || {},
+                display: configMap.display || null,
+                adminSchema: configMap['admin-schema'] || null,
                 source: 'supabase',
                 supabase: sb,
                 paths: { configDir: 'config', dataDir: 'data', langDir: 'lang' }
@@ -170,11 +176,13 @@ const ConfigLoader = {
         }
 
         try {
-            const [app, languages, categories, mediaTypes] = await Promise.all([
+            const [app, languages, categories, mediaTypes, display, adminSchema] = await Promise.all([
                 this.fetchRemote(`${baseUrl}config/app.json`),
                 this.fetchRemote(`${baseUrl}config/languages.json`),
                 this.fetchRemote(`${baseUrl}config/categories.json`),
-                this.fetchRemote(`${baseUrl}config/media-types.json`)
+                this.fetchRemote(`${baseUrl}config/media-types.json`),
+                this.fetchRemote(`${baseUrl}config/display.json`).catch(() => null),
+                this.fetchRemote(`${baseUrl}config/admin-schema.json`).catch(() => null)
             ]);
 
             const data = {
@@ -182,6 +190,8 @@ const ConfigLoader = {
                 languages,
                 categories,
                 mediaTypes,
+                display,
+                adminSchema,
                 source: 'remote',
                 paths: {
                     configDir: baseUrl + 'config',
@@ -264,6 +274,8 @@ const AppConfig = {
     languages: null,
     categories: null,
     mediaTypes: null,
+    display: null,
+    adminSchema: null,
     loaded: false,
     source: 'local',
     paths: null,
@@ -279,6 +291,8 @@ const AppConfig = {
             this.languages = config.languages;
             this.categories = config.categories;
             this.mediaTypes = config.mediaTypes;
+            this.display = config.display;
+            this.adminSchema = config.adminSchema;
             this.source = config.source;
             this.paths = config.paths;
             this.supabaseConfig = config.supabase || null;
@@ -349,17 +363,64 @@ const AppConfig = {
     },
 
     /**
-     * Get categories that support galleries (based on media type)
+     * Get categories that support galleries (based on display schema or media type config)
      */
     getGalleryCategories() {
         const galleryTypes = [];
         for (const cat of this.getAllCategories()) {
-            const mediaType = this.getMediaType(cat.mediaType);
-            if (mediaType && mediaType.supportsGallery) {
-                galleryTypes.push(cat.id);
-            }
+            const displayMt = this.display?.mediaTypes?.[cat.mediaType];
+            const configMt = this.getMediaType(cat.mediaType);
+            // Display schema takes precedence, then fall back to media-types.json
+            const supportsGallery = displayMt?.supportsGallery ?? configMt?.supportsGallery ?? false;
+            if (supportsGallery) galleryTypes.push(cat.id);
         }
         return galleryTypes;
+    },
+
+    /**
+     * Get display schema for a category.
+     * Falls back to auto-generated defaults based on mediaType.
+     */
+    getDisplaySchema(categoryId) {
+        // Check display.json first
+        const schema = this.display?.categories?.[categoryId];
+        if (schema) return schema;
+
+        // Fall back to legacy: icon from categories.json
+        const cat = this.getCategory(categoryId);
+        const legacyIcon = cat?.icon || '';
+
+        // Auto-generate a reasonable default from mediaType
+        const mtId = cat?.mediaType;
+        const visualMap = { image: 'image', audio: 'play-button', video: 'icon', text: 'icon', link: 'icon' };
+        const heroMap = { image: 'image-gallery', audio: 'play-inline', video: 'none', text: 'none', link: 'none' };
+
+        return {
+            icon: legacyIcon,
+            card: {
+                visual: visualMap[mtId] || 'icon',
+                subtitle: null,
+                badges: [],
+                actions: []
+            },
+            detail: {
+                hero: heroMap[mtId] || 'none',
+                meta: [
+                    { field: 'created', icon: '📅', labelKey: 'gallery_created_on' },
+                    { field: 'date', icon: '📁', labelKey: 'gallery_added_on' }
+                ],
+                sections: [
+                    { field: 'description', renderer: 'text-block', labelKey: 'detail_description' }
+                ]
+            }
+        };
+    },
+
+    /**
+     * Get display schema for a media type
+     */
+    getMediaTypeDisplay(mediaTypeId) {
+        return this.display?.mediaTypes?.[mediaTypeId] || null;
     },
 
     /**
@@ -402,9 +463,14 @@ const AppConfig = {
     },
 
     /**
-     * Get optional fields for a category
+     * Get optional fields for a category.
+     * Prefers admin-schema.json, falls back to categories.json fields.
      */
     getCategoryFields(categoryId) {
+        // Admin schema takes precedence
+        const adminFields = this.adminSchema?.categories?.[categoryId];
+        if (adminFields) return adminFields.optional || [];
+        // Fall back to legacy fields in categories.json
         const category = this.getCategory(categoryId);
         return category?.fields?.optional || [];
     },

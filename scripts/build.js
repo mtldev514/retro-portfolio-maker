@@ -240,6 +240,12 @@ async function generateFilterButtons(userDir, outputDir) {
   const categoriesPath = path.join(userDir, 'config', 'categories.json');
   const categories = await fs.readJson(categoriesPath);
 
+  // Read display schema for icons (display.json takes precedence over categories.json)
+  let displaySchema = null;
+  try {
+    displaySchema = await fs.readJson(path.join(userDir, 'config', 'display.json'));
+  } catch { /* no display.json — fall back to categories.json icons */ }
+
   // Build filter buttons HTML
   const allCategories = categories.categories || [];
 
@@ -262,8 +268,9 @@ async function generateFilterButtons(userDir, outputDir) {
       displayName = displayName.en || displayName.fr || Object.values(displayName)[0] || category.id;
     }
 
-    // Use icon (emoji) as button text — no data-i18n to preserve emoji display
-    const buttonText = category.icon || displayName;
+    // Use icon (emoji) as button text — display.json takes precedence over categories.json
+    const displayIcon = displaySchema?.categories?.[category.id]?.icon;
+    const buttonText = displayIcon || category.icon || displayName;
 
     filterButtonsHtml += `                    <button class="filter-btn" data-filter="${category.id}" title="${displayName}">${buttonText}</button>\n`;
   });

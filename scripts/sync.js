@@ -245,7 +245,9 @@ jobs:
     'config/app.json',
     'config/languages.json',
     'config/categories.json',
-    'config/media-types.json'
+    'config/media-types.json',
+    'config/display.json',
+    'config/admin-schema.json'
   ];
 
   for (const configFile of configChecks) {

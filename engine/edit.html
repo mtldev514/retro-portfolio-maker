@@ -59,25 +59,8 @@
                     <input type="text" id="editTitle" required>
                 </div>
 
-                <div class="form-group" id="mediumGroup" style="display: none;">
-                    <label>Medium:</label>
-                    <input type="text" id="editMedium">
-                </div>
-
-                <div class="form-group" id="genreGroup" style="display: none;">
-                    <label>Genre / Style:</label>
-                    <input type="text" id="editGenre">
-                </div>
-
-                <div class="form-group" id="descriptionGroup">
-                    <label>Description:</label>
-                    <textarea id="editDescription"></textarea>
-                </div>
-
-                <div class="form-group" id="lyricsGroup" style="display: none;">
-                    <label>Lyrics:</label>
-                    <textarea id="editLyrics" rows="8" style="white-space: pre-wrap; font-family: inherit; font-size: 12px;"></textarea>
-                </div>
+                <!-- Dynamic fields generated from admin-schema.json -->
+                <div id="dynamicFields"></div>
 
                 <div class="form-group" id="urlGroup">
                     <label>URL / Source:</label>
@@ -202,9 +185,18 @@
                     const selectEl = document.getElementById('editCategorySelect');
                     const inputEl = document.getElementById('editCategory');
 
-                    selectEl.innerHTML = siblings.map(s =>
-                        `<option value="${s.id}" ${s.id === currentCategory ? 'selected' : ''}>${s.icon || ''} ${s.name || s.id.toUpperCase()}</option>`
-                    ).join('');
+                    // Fetch display schema icons (falls back to categories.json icon)
+                    let displayIcons = {};
+                    try {
+                        const dispRes = await fetch(`${API_URL}/api/config/display`);
+                        const dispData = await dispRes.json();
+                        displayIcons = dispData?.categories || {};
+                    } catch { /* use fallback icons */ }
+
+                    selectEl.innerHTML = siblings.map(s => {
+                        const icon = displayIcons[s.id]?.icon || s.icon || '';
+                        return `<option value="${s.id}" ${s.id === currentCategory ? 'selected' : ''}>${icon} ${s.name || s.id.toUpperCase()}</option>`;
+                    }).join('');
 
                     inputEl.style.display = 'none';
                     selectEl.style.display = 'block';
@@ -227,6 +219,14 @@
                 // Load categories first so mediaType is available for populateForm
                 await loadCategoryOptions(category);
 
+                // Load admin schema for dynamic form fields
+                let adminSchema = null;
+                try {
+                    const schemaRes = await fetch(`${API_URL}/api/config/admin-schema`);
+                    const schemaData = await schemaRes.json();
+                    adminSchema = schemaData?.categories?.[category] || null;
+                } catch { /* no admin-schema — use fallback fields */ }
+
                 const res = await fetch(`${API_URL}/api/content/item?category=${encodeURIComponent(category)}&id=${encodeURIComponent(itemId)}`);
                 const data = await res.json();
 
@@ -235,7 +235,7 @@
                     return;
                 }
 
-                populateForm(data.item, data.category);
+                populateForm(data.item, data.category, adminSchema);
             } catch (err) {
                 if (isServerDown(err)) {
                     showError(serverDownMsg());
@@ -272,7 +272,7 @@
             return ct ? ct.mediaType : null;
         }
 
-        function populateForm(item, cat) {
+        function populateForm(item, cat, adminSchema) {
             currentItem = item;
             document.getElementById('loading').style.display = 'none';
             document.getElementById('editForm').style.display = 'block';
@@ -289,13 +289,50 @@
             document.getElementById('windowTitle').innerText = `EDITING: ${titleStr}`;
             document.getElementById('statusText').innerText = `Editing ${cat}/${idStr}`;
 
-            // Dynamic field visibility based on mediaType (not hardcoded category names)
+            // ─── Generate dynamic fields from admin-schema ─────
+            const container = document.getElementById('dynamicFields');
+            container.innerHTML = '';
+
+            const fields = adminSchema?.optional || [
+                // Fallback: description-only if no schema available
+                { name: 'description', type: 'textarea', label: 'Description' }
+            ];
+
+            fields.forEach(field => {
+                const group = document.createElement('div');
+                group.className = 'form-group';
+
+                const label = document.createElement('label');
+                label.textContent = `${field.label}:`;
+                group.appendChild(label);
+
+                let input;
+                if (field.type === 'textarea') {
+                    input = document.createElement('textarea');
+                    if (field.name === 'lyrics') {
+                        input.rows = 8;
+                        input.style.whiteSpace = 'pre-wrap';
+                        input.style.fontFamily = 'inherit';
+                        input.style.fontSize = '12px';
+                    }
+                } else {
+                    input = document.createElement('input');
+                    input.type = 'text';
+                }
+
+                input.id = `edit-${field.name}`;
+                input.dataset.fieldName = field.name;
+                if (field.placeholder) input.placeholder = field.placeholder;
+                input.value = resolveField(item[field.name]) || '';
+
+                group.appendChild(input);
+                container.appendChild(group);
+            });
+
+            // ─── Media-type previews (not schema-driven) ─────
             const mediaType = getMediaTypeForCategory(cat);
 
-            // Image media type → show medium, image preview, gallery
             if (mediaType === 'image') {
-                document.getElementById('mediumGroup').style.display = 'block';
-                document.getElementById('editMedium').value = resolveField(item.medium);
                 if (item.url) {
                     document.getElementById('previewGroup').style.display = 'block';
                     document.getElementById('previewImg').src = item.url;
@@ -308,20 +345,10 @@
                 }
             }
 
-            // Audio media type → show genre, lyrics, audio preview
-            if (mediaType === 'audio') {
-                document.getElementById('genreGroup').style.display = 'block';
-                document.getElementById('editGenre').value = resolveField(item.genre);
-                document.getElementById('lyricsGroup').style.display = 'block';
-                document.getElementById('editLyrics').value = resolveField(item.lyrics);
-                if (item.url) {
-                    document.getElementById('audioPreviewGroup').style.display = 'block';
-                    document.getElementById('audioPreview').src = item.url;
-                }
+            if (mediaType === 'audio' && item.url) {
+                document.getElementById('audioPreviewGroup').style.display = 'block';
+                document.getElementById('audioPreview').src = item.url;
             }
-
-            // Always populate description
-            document.getElementById('editDescription').value = resolveField(item.description);
 
             log(`Item loaded successfully: "${titleStr}"`, 'cyan');
         }
@@ -721,26 +748,11 @@
                 title: makeMultilingualUpdate(currentItem.title, document.getElementById('editTitle').value)
             };
 
-            // Include medium if visible
-            const mediumGroup = document.getElementById('mediumGroup');
-            if (mediumGroup.style.display !== 'none') {
-                updates.medium = makeMultilingualUpdate(currentItem.medium, document.getElementById('editMedium').value);
-            }
-
-            // Include genre if visible
-            const genreGroup = document.getElementById('genreGroup');
-            if (genreGroup.style.display !== 'none') {
-                updates.genre = makeMultilingualUpdate(currentItem.genre, document.getElementById('editGenre').value);
-            }
-
-            // Include lyrics if visible
-            const lyricsGroup = document.getElementById('lyricsGroup');
-            if (lyricsGroup.style.display !== 'none') {
-                updates.lyrics = makeMultilingualUpdate(currentItem.lyrics, document.getElementById('editLyrics').value);
-            }
-
-            // Always include description
-            updates.description = makeMultilingualUpdate(currentItem.description, document.getElementById('editDescription').value);
+            // Collect all dynamic field values from admin-schema-generated inputs
+            document.querySelectorAll('#dynamicFields [data-field-name]').forEach(input => {
+                const fieldName = input.dataset.fieldName;
+                updates[fieldName] = makeMultilingualUpdate(currentItem[fieldName], input.value);
+            });
 
             // Include gallery changes if gallery manager was visible
             if (document.getElementById('galleryManagerGroup').style.display !== 'none') {
