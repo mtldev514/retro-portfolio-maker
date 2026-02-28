@@ -44,10 +44,12 @@ const router = {
     /** CRT channel-switch transition: blink out → swap → blink in */
     async _transition(fn) {
         const app = document.getElementById('app');
-        if (!app || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        if (!app || (window.page && window.page.reducedMotion)) {
             await fn();
             return;
         }
+
+        if (window.page) page.state = 'navigating';
 
         // Phase 1: blink out (80ms)
         app.classList.add('page-exit');
@@ -61,6 +63,8 @@ const router = {
         app.classList.add('page-enter');
         await new Promise(r => setTimeout(r, 80));
         app.classList.remove('page-enter');
+
+        if (window.page) page.state = 'ready';
     },
 
     async loadPage(url) {

@@ -153,7 +153,7 @@ const renderer = {
         }
 
         // Staggered entrance animation
-        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        if (!(window.page && window.page.reducedMotion)) {
             let index = 0;
             frag.querySelectorAll('.gallery-item').forEach(item => {
                 item.classList.add('entering');
@@ -165,7 +165,7 @@ const renderer = {
         this.visibleCount += batch.length;
 
         // Clean up entrance animation classes
-        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        if (!(window.page && window.page.reducedMotion)) {
             const itemCount = batch.length;
             const maxDelay = itemCount * 35 + 120;
             setTimeout(() => {
@@ -302,7 +302,7 @@ const renderer = {
 
                 // Animate exit, then re-render with entrance animation
                 const grid = document.getElementById('gallery-container');
-                if (grid && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                if (grid && !(window.page && window.page.reducedMotion)) {
                     grid.querySelectorAll('.gallery-item').forEach(item => item.classList.add('exiting'));
                     setTimeout(() => {
                         this.renderGrid();

@@ -175,12 +175,7 @@ window.togglePartyMode = function () {
     }
 };
 
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => effects.init());
-} else {
-    effects.init();
-}
+// effects.init() is called by page.onReady() in init.js — no self-init needed
 
 // Re-apply glitter to new gallery items when they're rendered
 const observer = new MutationObserver(() => {
