@@ -136,6 +136,24 @@ jobs:
             VERSION_TYPE="patch"
           fi
 
+          # Calculate next version
+          CURRENT=$(node -p "require('./package.json').version")
+          case $VERSION_TYPE in
+            major) NEXT=$(echo $CURRENT | awk -F. '{print ($1+1)".0.0"}') ;;
+            minor) NEXT=$(echo $CURRENT | awk -F. '{print $1"."($2+1)".0"}') ;;
+            patch) NEXT=$(echo $CURRENT | awk -F. '{print $1"."$2"."($3+1)}') ;;
+          esac
+
+          # Check if tag exists but version not published
+          if git rev-parse "v$NEXT" >/dev/null 2>&1; then
+            echo "Tag v$NEXT exists, checking if published on npm..."
+            if ! npm view @mtldev514/retro-portfolio-maker@$NEXT version >/dev/null 2>&1; then
+              echo "Version $NEXT not on npm, deleting stale tag..."
+              git tag -d "v$NEXT" || true
+              git push origin --delete "v$NEXT" || true
+            fi
+          fi
+
           HUSKY=0 npm version $VERSION_TYPE -m "chore: release v%s"
           git push --follow-tags
 
