@@ -38,3 +38,27 @@ jobs:
           name: test-results
           path: test-results/
           retention-days: 14
+
+  trigger-publish:
+    needs: [test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for publishable changes
+        id: check
+        run: |
+          # Get changed files from the push event
+          CHANGED='${{ toJson(github.event.commits.*.modified) }} ${{ toJson(github.event.commits.*.added) }}'
+
+          if echo "$CHANGED" | grep -qE '"(engine/|scripts/|bin/|templates/|index\.js|package\.json|README\.md|LICENSE)"'; then
+            echo "should_publish=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_publish=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Trigger publish workflow
+        if: steps.check.outputs.should_publish == 'true'
+        run: |
+          gh workflow run publish.yml --field version=patch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
