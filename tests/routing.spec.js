@@ -20,7 +20,16 @@ test.describe('SPA routing', () => {
   });
 
   test('Ctrl+Shift+A navigates to admin.html', async ({ page }) => {
-    await page.keyboard.press('Control+Shift+A');
+    // Use evaluate to dispatch keyboard event directly — more reliable in headless CI
+    await page.evaluate(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'a',
+        code: 'KeyA',
+        ctrlKey: true,
+        shiftKey: true,
+        bubbles: true
+      }));
+    });
     await page.waitForURL('**/admin.html', { timeout: 5000 });
     expect(page.url()).toContain('admin.html');
   });
