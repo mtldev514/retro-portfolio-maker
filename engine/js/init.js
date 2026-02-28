@@ -48,11 +48,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         ambientViz.init();
     }
 
-    // 10. Dismiss loading screen
+    // 10. Dismiss loading screen (if present), then trigger page-reveal sequence
     const loadingScreen = document.getElementById('loading-screen');
     if (loadingScreen) {
         loadingScreen.classList.add('fade-out');
-        loadingScreen.addEventListener('transitionend', () => loadingScreen.remove());
+        loadingScreen.addEventListener('transitionend', () => {
+            loadingScreen.remove();
+            document.body.classList.add('loaded');
+        }, { once: true });
+    } else {
+        document.body.classList.add('loaded');
     }
 
     console.log('✅ Application initialized');

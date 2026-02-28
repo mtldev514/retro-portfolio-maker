@@ -2146,8 +2146,8 @@ nav {
 }
 
 .gallery-item.entering {
-    animation: gallery-item-pop 120ms steps(4) both;
-    animation-delay: calc(var(--item-index, 0) * 35ms);
+    animation: gallery-item-pop 60ms steps(3) both;
+    animation-delay: calc(var(--item-index, 0) * 8ms);
 }
 
 /* Gallery item exit: snap-out on filter switch */
@@ -2158,6 +2158,81 @@ nav {
 
 .gallery-item.exiting {
     animation: gallery-item-exit 80ms steps(2) forwards;
+}
+
+/* ── Page-load reveal: elements start hidden, fade in after loading screen ── */
+/* Order: petal rain (immediate) → container → title → radio → marquee → gallery → nav */
+
+/* Keep hidden until body.loaded */
+.container,
+#title-svg,
+.marquee-container,
+.sidebar,
+#gallery-container,
+.footer-terminal,
+#filter-nav {
+    opacity: 0;
+}
+
+@keyframes page-reveal {
+    from {
+        opacity: 0;
+        transform: perspective(1400px) translateZ(-50px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: perspective(1400px) translateZ(0) scale(1);
+    }
+}
+
+/* 1. Container (stage) */
+body.loaded .container {
+    animation: page-reveal 1.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: 0ms;
+}
+/* 2. Name */
+body.loaded #title-svg {
+    animation: page-reveal 2.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: 600ms;
+}
+/* 3. Radio */
+body.loaded .sidebar {
+    animation: page-reveal 2.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: 1100ms;
+}
+/* 4. Marquee */
+body.loaded .marquee-container {
+    animation: page-reveal 2.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: 1600ms;
+}
+/* 5. Gallery */
+body.loaded #gallery-container {
+    animation: page-reveal 2.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: 2100ms;
+}
+/* 5b. Footer (alongside gallery) */
+body.loaded .footer-terminal {
+    animation: page-reveal 2.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: 2100ms;
+}
+/* 6. Navigation (last) */
+body.loaded #filter-nav {
+    animation: page-reveal 2.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: 2600ms;
+}
+
+/* Skip reveal on return navigation (sessionStorage flag set after first reveal) */
+html.skip-reveal #loading-screen { display: none !important; }
+html.skip-reveal .container,
+html.skip-reveal #title-svg,
+html.skip-reveal .marquee-container,
+html.skip-reveal .sidebar,
+html.skip-reveal #gallery-container,
+html.skip-reveal .footer-terminal,
+html.skip-reveal #filter-nav {
+    opacity: 1 !important;
+    animation: none !important;
+    transform: none !important;
 }
 
 /* Accessibility: respect reduced motion */
@@ -2180,6 +2255,18 @@ nav {
         animation: none !important;
         opacity: 1 !important;
         transform: none !important;
+    }
+
+    /* Skip reveal animation — show everything immediately */
+    .container,
+    #title-svg,
+    .marquee-container,
+    .sidebar,
+    #filter-nav,
+    #gallery-container,
+    .footer-terminal {
+        opacity: 1 !important;
+        animation: none !important;
     }
 }
 
