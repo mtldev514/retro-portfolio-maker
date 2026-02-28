@@ -2,20 +2,18 @@
  * Ambient Music-Reactive Visualizer — Header Glow
  *
  * Canvas with radial-gradient circles inside #ambient-header that pulse
- * with audio frequency data from the media player.
+ * with audio frequency data from the shared audioPlayer engine module.
+ *
+ * No AudioContext here — frequency reading is handled by audioPlayer.readFrequency().
  */
 const ambientViz = {
     hdCanvas: null,
     hdCtx: null,
     hdCircles: [],
-
     raf: null,
     _started: false,
 
-    // Color palette (HSL hues) — WMP-inspired warm/cool mix
     palette: [300, 180, 270, 40, 160, 330],
-
-    // Frequency bins for circles (spread across the full card)
     hdBins: [1, 3, 6, 10, 16, 22, 2, 8, 14, 20],
 
     init() {
@@ -70,26 +68,6 @@ const ambientViz = {
         }));
     },
 
-    /** Read a frequency bin value (0–1) from the media player, or sine fallback */
-    _readFreq(bin, time) {
-        const m = window.media;
-        if (m && m.analyser && m.freqData && m.vizMode === 'real' && !m.audio.paused) {
-            m.analyser.getByteFrequencyData(m.freqData);
-            const val = bin < m.freqData.length ? m.freqData[bin] : 0;
-            return val / 255;
-        }
-        // Fake mode: smooth sine oscillation when playing
-        if (m && !m.audio.paused && m.audio.src) {
-            return Math.sin(time * 0.001 * (1 + bin * 0.3) + bin) * 0.5 + 0.5;
-        }
-        return 0; // idle
-    },
-
-    _isPlaying() {
-        const m = window.media;
-        return m && !m.audio.paused && m.audio.src;
-    },
-
     _startLoop() {
         if (this._started) return;
         this._started = true;
@@ -100,24 +78,20 @@ const ambientViz = {
         this.raf = requestAnimationFrame(animate);
     },
 
-    // ─── Header Glow (Canvas) ────────────────────────────
-
     _drawHd(time) {
         if (!this.hdCtx) return;
         const ctx = this.hdCtx;
         const header = this.hdCanvas.parentElement;
         const w = header.offsetWidth;
         const h = header.offsetHeight;
-        const playing = this._isPlaying();
+        const player = window.audioPlayer;
+        const playing = player && player.isPlaying();
 
-        // Full clear each frame (small area, no trails needed)
         ctx.clearRect(0, 0, w * 2, h * 2);
-
-        // Additive blending for overlapping glow
         ctx.globalCompositeOperation = 'lighter';
 
         for (const c of this.hdCircles) {
-            const freq = this._readFreq(c.freqBin, time);
+            const freq = player ? player.readFrequency(c.freqBin, time) : 0;
 
             if (playing) {
                 c.targetRadius = c.baseRadius * (0.4 + freq * 0.6);
@@ -128,22 +102,17 @@ const ambientViz = {
                 c.targetOpacity = c.baseOpacity * 0.25;
             }
 
-            // Smooth lerp (slow ease)
             c.currentRadius += (c.targetRadius - c.currentRadius) * 0.04;
             c.currentOpacity += (c.targetOpacity - c.currentOpacity) * 0.04;
 
-            // Drift within header bounds
             c.x += c.driftX;
             c.y += c.driftY;
-
-            // Soft bounce off header edges
             if (c.x < -c.baseRadius) c.x = w + c.baseRadius;
             if (c.x > w + c.baseRadius) c.x = -c.baseRadius;
             if (c.y < -c.baseRadius) c.y = h + c.baseRadius;
             if (c.y > h + c.baseRadius) c.y = -c.baseRadius;
 
             const hue = (c.hue + time * 0.005) % 360;
-
             const grad = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, c.currentRadius);
             grad.addColorStop(0, `hsla(${hue}, 50%, 50%, ${c.currentOpacity})`);
             grad.addColorStop(0.4, `hsla(${hue}, 40%, 45%, ${c.currentOpacity * 0.5})`);

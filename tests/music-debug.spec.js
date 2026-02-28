@@ -10,16 +10,17 @@ test.describe('Music player diagnostic', () => {
     await page.goto('/');
     await page.waitForSelector('.gallery-item', { timeout: 10000 });
 
-    // Wait a bit for media.init() to complete
+    // Wait a bit for audioPlayer.init() to complete
     await page.waitForTimeout(1000);
 
-    // Check media player state
+    // Check shared audio player state
     const state = await page.evaluate(() => {
+      const player = window.audioPlayer;
       return {
+        audioPlayerExists: typeof player !== 'undefined',
         mediaExists: typeof window.media !== 'undefined',
-        playlistLength: window.media ? window.media.playlist.length : -1,
-        rawTracksLength: window.media ? window.media.rawTracks.length : -1,
-        audioSrc: window.media ? window.media.audio.src : 'none',
+        playlistLength: player ? player.playlist.length : -1,
+        audioSrc: player ? player.audio.src : 'none',
         musicCardsCount: document.querySelectorAll('.gallery-item[data-category="music"]').length,
         playButtonsCount: document.querySelectorAll('.music-card-play').length,
         tracklistItems: document.querySelectorAll('#radio-tracklist .winamp-pl-item:not(.winamp-pl-empty)').length,
@@ -46,12 +47,13 @@ test.describe('Music player diagnostic', () => {
     musicLogs.forEach(l => console.log(l));
 
     // Basic assertions
+    expect(state.audioPlayerExists).toBe(true);
     expect(state.mediaExists).toBe(true);
     expect(state.winampExists).toBe(true);
     expect(state.playPauseBtnExists).toBe(true);
 
     // Check if playlist loaded
-    console.log(`Playlist: ${state.playlistLength} tracks, Raw: ${state.rawTracksLength} tracks`);
+    console.log(`Playlist: ${state.playlistLength} tracks`);
     console.log(`Music cards in gallery: ${state.musicCardsCount}`);
     console.log(`Play buttons: ${state.playButtonsCount}`);
     console.log(`Tracklist items in sidebar: ${state.tracklistItems}`);
@@ -68,11 +70,12 @@ test.describe('Music player diagnostic', () => {
       await page.waitForTimeout(500);
 
       const afterClick = await page.evaluate(() => {
+        const player = window.audioPlayer;
         return {
-          audioSrc: window.media.audio.src,
-          audioPaused: window.media.audio.paused,
-          currentTrackIndex: window.media.currentTrackIndex,
-          currentTrackName: window.media.playlist[window.media.currentTrackIndex]?.name || 'none',
+          audioSrc: player.audio.src,
+          audioPaused: player.audio.paused,
+          currentTrackIndex: player.currentTrackIndex,
+          currentTrackName: player.playlist[player.currentTrackIndex]?.name || 'none',
         };
       });
       console.log('=== AFTER PLAY CLICK ===');
@@ -85,10 +88,11 @@ test.describe('Music player diagnostic', () => {
     await page.waitForTimeout(500);
 
     const afterSidebarClick = await page.evaluate(() => {
+      const player = window.audioPlayer;
       return {
-        audioSrc: window.media.audio.src,
-        audioPaused: window.media.audio.paused,
-        currentTrackIndex: window.media.currentTrackIndex,
+        audioSrc: player.audio.src,
+        audioPaused: player.audio.paused,
+        currentTrackIndex: player.currentTrackIndex,
       };
     });
     console.log('=== AFTER SIDEBAR PLAY CLICK ===');

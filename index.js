@@ -13,7 +13,7 @@ module.exports = {
   viewsPath: path.join(__dirname, 'views'),
 
   // Core JS files available to all views (injected into dist/js/ by build)
-  coreJsFiles: ['config-loader.js', 'i18n.js', 'page.js'],
+  coreJsFiles: ['config-loader.js', 'i18n.js', 'page.js', 'audio-player.js'],
 
   // Package version
   version: require('./package.json').version,

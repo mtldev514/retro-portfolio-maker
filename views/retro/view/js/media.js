@@ -1,266 +1,90 @@
 /**
- * Winamp-style Media Controller for Alex's Portfolio
- * Manages audio playlist with seek, time display, and mini visualizer
- * Loads tracks dynamically from data/music.json
+ * Winamp-style Media Controller — Retro View
+ *
+ * Thin UI wrapper over the shared audioPlayer engine module.
+ * Manages the Winamp DOM (seek bar, time display, playlist, transport buttons)
+ * while delegating all audio operations to window.audioPlayer.
+ *
+ * No AudioContext or createMediaElementSource here — that's the engine's job.
  */
 const media = {
-    audio: Object.assign(new Audio(), { crossOrigin: 'anonymous' }),
-    currentTrackIndex: 0,
-    playlist: [],
-    rawTracks: [],
-
-    // Web Audio API state (for real visualizer)
-    audioCtx: null,
-    analyser: null,
-    sourceNode: null,
-    freqData: null,
-    vizMode: 'fake', // 'real' once AudioContext connected, 'fake' as fallback
-
-    tf(field) {
-        if (!field) return '';
-        if (typeof field === 'object' && !Array.isArray(field)) {
-            const lang = (window.i18n && i18n.currentLang) || 'en';
-            return field[lang] || field.en || '';
-        }
-        return field;
-    },
-
     async init() {
-        await this.loadPlaylist();
-        this.setupEventListeners();
+        const player = window.audioPlayer;
+        if (!player) { console.warn('audioPlayer not available'); return; }
+
+        // Wire callbacks before init so we catch the first playlist load
+        player.onPlaylistLoaded = () => {
+            this.populateTrackSelector();
+            this.updateTrackDisplay();
+        };
+        player.onTrackChange = () => {
+            this.updateTrackDisplay();
+            this.highlightActiveTrack();
+        };
+        player.onPlayStateChange = (playing) => {
+            this.setPlayingState(playing);
+            this.updatePlayPauseIcon(playing);
+        };
+        player.onTimeUpdate = (currentTime, duration) => {
+            this.updateTime(currentTime, duration);
+        };
+
+        await player.init();
+        this.setupUI();
         this.updateTrackDisplay();
-        this.populateTrackSelector();
-        console.log(`Winamp initialized with ${this.playlist.length} tracks`);
+        console.log(`Winamp initialized with ${player.playlist.length} tracks`);
     },
 
-    buildPlaylist() {
-        this.playlist = this.rawTracks.map(t => {
-            const title = this.tf(t.title);
-            const genre = this.tf(t.genre);
-            return {
-                name: title + (genre ? ` [${genre}]` : ''),
-                src: t.url
-            };
-        });
-    },
-
-    async loadPlaylist() {
-        try {
-            // Use AppConfig helpers (works with both local files and Supabase)
-            const allAudio = await window.AppConfig.fetchMediaTypeItems('audio');
-
-            // Read sidebar player category from display schema (default: 'music')
-            const audioDisplay = window.AppConfig.getMediaTypeDisplay?.('audio');
-            const sidebarCategoryId = audioDisplay?.sidebarPlayer?.categoryId || 'music';
-            const refs = await window.AppConfig.fetchCategoryRefs(sidebarCategoryId);
-
-            // Resolve refs → audio items in playlist order
-            const itemMap = new Map(allAudio.map(i => [i.id, i]));
-            const tracks = refs
-                .map(uuid => itemMap.get(uuid))
-                .filter(Boolean);
-
-            if (tracks.length > 0) {
-                this.rawTracks = tracks;
-                this.buildPlaylist();
-            }
-        } catch (e) {
-            console.warn('Could not load audio playlist:', e.message || e);
-        }
-    },
-
-    populateTrackSelector() {
-        const list = document.getElementById('radio-tracklist');
-        if (!list) return;
-        list.innerHTML = '';
-        if (this.playlist.length === 0) {
-            const empty = document.createElement('div');
-            empty.className = 'winamp-pl-item winamp-pl-empty';
-            empty.textContent = (window.i18n && i18n.translations.sidebar_radio_no_tracks) || 'No tracks available';
-            list.appendChild(empty);
-            return;
-        }
-        this.playlist.forEach((track, i) => {
-            const item = document.createElement('div');
-            item.className = 'winamp-pl-item';
-            if (i === this.currentTrackIndex) item.classList.add('active');
-            item.dataset.index = i;
-            item.innerHTML = `<span class="winamp-pl-num">${i + 1}.</span> ${track.name}`;
-            item.ondblclick = () => this.switchTrack(i);
-            item.onclick = () => {
-                // Single click = select, highlight
-                list.querySelectorAll('.winamp-pl-item.selected').forEach(el => el.classList.remove('selected'));
-                item.classList.add('selected');
-            };
-            list.appendChild(item);
-        });
-    },
-
-    setupEventListeners() {
+    // ─── UI Setup ─────────────────────────────────────
+    setupUI() {
+        const player = window.audioPlayer;
         const playPauseBtn = document.querySelector('.radio-playpause');
         const prevBtn = document.querySelector('.radio-prev');
         const nextBtn = document.querySelector('.radio-next');
         const volumeSlider = document.querySelector('.radio-volume');
         const seekBar = document.getElementById('winamp-seek');
 
-        if (playPauseBtn) playPauseBtn.onclick = () => this.togglePlayPause();
-        if (prevBtn) prevBtn.onclick = () => this.prev();
-        if (nextBtn) nextBtn.onclick = () => this.next();
+        if (playPauseBtn) playPauseBtn.onclick = () => player.togglePlayPause();
+        if (prevBtn) prevBtn.onclick = () => player.prev();
+        if (nextBtn) nextBtn.onclick = () => player.next();
 
         if (volumeSlider) {
-            volumeSlider.oninput = (e) => {
-                this.audio.volume = e.target.value / 100;
-            };
+            volumeSlider.oninput = (e) => { player.audio.volume = e.target.value / 100; };
         }
 
-        // Seek bar
         if (seekBar) {
             seekBar.oninput = (e) => {
-                if (this.audio.duration) {
-                    this.audio.currentTime = (e.target.value / 100) * this.audio.duration;
+                if (player.audio.duration) {
+                    player.audio.currentTime = (e.target.value / 100) * player.audio.duration;
                 }
             };
         }
-
-        // Update time, duration, and seek position
-        this.audio.ontimeupdate = () => {
-            const timeEl = document.getElementById('winamp-time');
-            if (timeEl) {
-                const m = Math.floor(this.audio.currentTime / 60);
-                const s = Math.floor(this.audio.currentTime % 60);
-                timeEl.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-            }
-            const durEl = document.getElementById('winamp-duration');
-            if (durEl && this.audio.duration) {
-                const dm = Math.floor(this.audio.duration / 60);
-                const ds = Math.floor(this.audio.duration % 60);
-                durEl.textContent = String(dm).padStart(2, '0') + ':' + String(ds).padStart(2, '0');
-            }
-            const seek = document.getElementById('winamp-seek');
-            if (seek && this.audio.duration) {
-                seek.value = (this.audio.currentTime / this.audio.duration) * 100;
-            }
-        };
-
-        // Sync playing class and button icon with actual audio state
-        this.audio.onplay = () => {
-            this.setPlayingState(true);
-            this.updatePlayPauseIcon(true);
-        };
-        this.audio.onpause = () => {
-            this.setPlayingState(false);
-            this.updatePlayPauseIcon(false);
-        };
-
-        // Auto-advance to next track
-        this.audio.onended = () => this.next();
-
-        // CORS fallback: if crossOrigin='anonymous' causes a load error
-        // (server doesn't send Access-Control-Allow-Origin), rebuild the
-        // Audio element without crossOrigin for direct playback.
-        this.audio.onerror = () => {
-            if (this.audio.crossOrigin && !this._noCors) {
-                console.warn('Audio CORS load failed, rebuilding without crossOrigin');
-                this._rebuildAudioElement();
-            }
-        };
     },
 
+    // ─── Time & Seek Display ──────────────────────────
+    updateTime(currentTime, duration) {
+        const timeEl = document.getElementById('winamp-time');
+        if (timeEl) {
+            const m = Math.floor(currentTime / 60);
+            const s = Math.floor(currentTime % 60);
+            timeEl.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+        }
+        const durEl = document.getElementById('winamp-duration');
+        if (durEl && duration) {
+            const dm = Math.floor(duration / 60);
+            const ds = Math.floor(duration % 60);
+            durEl.textContent = String(dm).padStart(2, '0') + ':' + String(ds).padStart(2, '0');
+        }
+        const seek = document.getElementById('winamp-seek');
+        if (seek && duration) {
+            seek.value = (currentTime / duration) * 100;
+        }
+    },
+
+    // ─── Play State ───────────────────────────────────
     setPlayingState(isPlaying) {
         const winamp = document.querySelector('.winamp');
         if (winamp) winamp.classList.toggle('playing', isPlaying);
-    },
-
-    togglePlayPause() {
-        if (this.audio.paused) {
-            this.play();
-        } else {
-            this.audio.pause();
-        }
-    },
-
-    /**
-     * Connect Web Audio API for real-time spectrum analysis.
-     * Must be called from a user gesture (play) to satisfy autoplay policy.
-     * Falls back to fake viz if AudioContext unavailable or CORS blocks data.
-     *
-     * IMPORTANT: createMediaElementSource() permanently captures the audio
-     * element's output — all sound must flow through the Web Audio graph.
-     * If any connection step fails after capture, we must recreate the
-     * Audio element to restore direct playback.
-     */
-    initAudioContext() {
-        if (this.audioCtx) return; // already connected
-        if (this._noCors) return;  // CORS failed — skip Web Audio entirely
-        try {
-            const AC = window.AudioContext || window.webkitAudioContext;
-            if (!AC) return;
-            const ctx = new AC();
-            const analyser = ctx.createAnalyser();
-            analyser.fftSize = 64; // 32 bins — we sample 12
-            analyser.smoothingTimeConstant = 0.6;
-            const source = ctx.createMediaElementSource(this.audio);
-            source.connect(analyser);
-            analyser.connect(ctx.destination);
-            // All connections succeeded — commit state
-            this.audioCtx = ctx;
-            this.analyser = analyser;
-            this.sourceNode = source;
-            this.freqData = new Uint8Array(analyser.frequencyBinCount);
-            this.vizMode = 'real';
-            this._corsCheckCount = 0;
-        } catch (e) {
-            console.warn('AudioContext unavailable, using fake viz:', e.message);
-            this.vizMode = 'fake';
-        }
-    },
-
-    /**
-     * Recreate the Audio element for direct playback (no Web Audio routing).
-     * Called when CORS prevents crossOrigin audio from loading.
-     * createMediaElementSource() permanently captures output, so we must
-     * create a fresh element to restore sound.
-     */
-    _rebuildAudioElement() {
-        const wasPlaying = !this.audio.paused;
-        const src = this.audio.src;
-        const vol = this.audio.volume;
-        this.audio.pause();
-        this.audio.removeAttribute('src');
-        // Disconnect Web Audio graph
-        if (this.sourceNode) { try { this.sourceNode.disconnect(); } catch (_) {} }
-        if (this.analyser) { try { this.analyser.disconnect(); } catch (_) {} }
-        if (this.audioCtx) { try { this.audioCtx.close(); } catch (_) {} }
-        this.audioCtx = null;
-        this.analyser = null;
-        this.sourceNode = null;
-        this.freqData = null;
-        this.vizMode = 'fake';
-        this._noCors = true;
-        // Fresh Audio element without crossOrigin — direct playback
-        this.audio = new Audio();
-        this.audio.volume = vol;
-        this.setupEventListeners();
-        if (src) {
-            this.audio.src = src;
-            if (wasPlaying) this.audio.play().catch(() => {});
-        }
-    },
-
-    async play() {
-        if (!this.audio.src && this.playlist.length > 0) {
-            this.switchTrack(0);
-            return; // switchTrack() calls play() after setting src
-        }
-        // Lazy-init AudioContext on first user-triggered play
-        this.initAudioContext();
-        // Await resume so the Web Audio graph is active before playback
-        if (this.audioCtx && this.audioCtx.state === 'suspended') {
-            try { await this.audioCtx.resume(); } catch (_) { /* ignored */ }
-        }
-        const p = this.audio.play();
-        if (p && p.catch) p.catch(e => console.warn('Play blocked:', e));
-        this.setPlayingState(true);
     },
 
     updatePlayPauseIcon(isPlaying) {
@@ -274,53 +98,58 @@ const media = {
         btn.title = isPlaying ? 'Pause' : 'Play';
     },
 
-    prev() {
-        if (this.playlist.length === 0) return;
-        const prev = (this.currentTrackIndex - 1 + this.playlist.length) % this.playlist.length;
-        this.switchTrack(prev);
-    },
-
-    next() {
-        if (this.playlist.length === 0) return;
-        const next = (this.currentTrackIndex + 1) % this.playlist.length;
-        this.switchTrack(next);
-    },
-
-    switchTrack(index) {
-        this.currentTrackIndex = index;
-        const track = this.playlist[index];
-        if (!track) return;
-        this.audio.src = track.src;
-        // Reset CORS check for new source (different URL may have different headers)
-        if (this.vizMode === 'fake' && this.analyser) {
-            this.vizMode = 'real';
-            this._corsCheckCount = 0;
-        }
-        this.updateTrackDisplay();
-        this.play();
-        // Highlight active track in playlist
-        const list = document.getElementById('radio-tracklist');
-        if (list) {
-            list.querySelectorAll('.winamp-pl-item').forEach(el => {
-                el.classList.toggle('active', parseInt(el.dataset.index) === index);
-            });
-            // Scroll active into view
-            const activeEl = list.querySelector('.winamp-pl-item.active');
-            if (activeEl) activeEl.scrollIntoView({ block: 'nearest' });
-        }
-    },
-
+    // ─── Track Display ────────────────────────────────
     updateTrackDisplay() {
+        const player = window.audioPlayer;
         const el = document.querySelector('.radio-track-name');
         if (!el) return;
-        if (this.playlist.length > 0) {
-            const idx = this.currentTrackIndex + 1;
-            el.innerText = `${idx}. ${this.playlist[this.currentTrackIndex].name}`;
+        if (player.playlist.length > 0) {
+            const idx = player.currentTrackIndex + 1;
+            el.innerText = `${idx}. ${player.playlist[player.currentTrackIndex].name}`;
         } else {
             el.innerText = (window.i18n && i18n.translations.sidebar_radio_no_tracks) || 'No tracks available';
         }
+    },
+
+    // ─── Playlist DOM ─────────────────────────────────
+    populateTrackSelector() {
+        const player = window.audioPlayer;
+        const list = document.getElementById('radio-tracklist');
+        if (!list) return;
+        list.innerHTML = '';
+        if (player.playlist.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'winamp-pl-item winamp-pl-empty';
+            empty.textContent = (window.i18n && i18n.translations.sidebar_radio_no_tracks) || 'No tracks available';
+            list.appendChild(empty);
+            return;
+        }
+        player.playlist.forEach((track, i) => {
+            const item = document.createElement('div');
+            item.className = 'winamp-pl-item';
+            if (i === player.currentTrackIndex) item.classList.add('active');
+            item.dataset.index = i;
+            item.innerHTML = `<span class="winamp-pl-num">${i + 1}.</span> ${track.name}`;
+            item.ondblclick = () => player.switchTrack(i);
+            item.onclick = () => {
+                list.querySelectorAll('.winamp-pl-item.selected').forEach(el => el.classList.remove('selected'));
+                item.classList.add('selected');
+            };
+            list.appendChild(item);
+        });
+    },
+
+    highlightActiveTrack() {
+        const player = window.audioPlayer;
+        const list = document.getElementById('radio-tracklist');
+        if (!list) return;
+        list.querySelectorAll('.winamp-pl-item').forEach(el => {
+            el.classList.toggle('active', parseInt(el.dataset.index) === player.currentTrackIndex);
+        });
+        const activeEl = list.querySelector('.winamp-pl-item.active');
+        if (activeEl) activeEl.scrollIntoView({ block: 'nearest' });
     }
 };
 
-// media.init() is called by the router during boot — no auto-run needed
+// media.init() is called by init.js during boot
 window.media = media;

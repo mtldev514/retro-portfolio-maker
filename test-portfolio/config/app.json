@@ -18,7 +18,9 @@
     "username": "testuser",
     "repoName": "test-portfolio",
     "mediaReleaseTag": "media",
-    "uploadCategories": ["music"]
+    "uploadCategories": [
+      "music"
+    ]
   },
   "counter": {
     "apiUrl": "https://api.counterapi.dev/v1/test-portfolio/visits/up"
