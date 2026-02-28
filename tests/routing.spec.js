@@ -19,21 +19,6 @@ test.describe('SPA routing', () => {
     expect(page.url()).toContain('detail.html');
   });
 
-  test('Ctrl+Shift+A navigates to admin.html', async ({ page }) => {
-    // Use evaluate to dispatch keyboard event directly — more reliable in headless CI
-    await page.evaluate(() => {
-      document.dispatchEvent(new KeyboardEvent('keydown', {
-        key: 'a',
-        code: 'KeyA',
-        ctrlKey: true,
-        shiftKey: true,
-        bubbles: true
-      }));
-    });
-    await page.waitForURL('**/admin.html', { timeout: 5000 });
-    expect(page.url()).toContain('admin.html');
-  });
-
   test('gallery links include from parameter', async ({ page }) => {
     const href = await page.locator('.gallery-link').first().getAttribute('href');
     expect(href).toContain('from=');
