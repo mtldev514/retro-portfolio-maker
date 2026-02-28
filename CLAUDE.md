@@ -5,7 +5,8 @@
 This is the **engine** (`@mtldev514/retro-portfolio-maker`), an npm package that powers retro portfolio sites.
 Child repositories (e.g. `alex_a_montreal`) consume this engine as a dependency.
 
-- `engine/` — Core frontend files (JS, CSS, HTML) copied to dist/ during build
+- `engine/` — Core infrastructure: admin panel, core JS (config-loader, i18n, page), config defaults
+- `views/` — Built-in view templates (each view is a directory with `index.js` + `view/` folder)
 - `scripts/` — CLI scripts (build, dev, admin, sync, init, deploy, validate)
 - `templates/user-portfolio/` — Scaffold template for new projects (copied by init/sync)
 - `tests/` — Playwright e2e tests
@@ -32,7 +33,7 @@ These are distinct concepts. Categories describe *what* the content is; media ty
 ## Development Workflow (CRITICAL — always follow this)
 
 ### 1. Make changes in the engine repo
-- Edit files in `engine/`, `scripts/`, `templates/`, etc.
+- Edit files in `engine/`, `views/`, `scripts/`, `templates/`, etc.
 
 ### 2. Run tests before committing
 ```bash
@@ -46,10 +47,10 @@ git add <specific files>
 git commit -m "descriptive message"
 git push
 ```
-- CI auto-publishes to npm on push to main (`.github/workflows/publish-npm.yml`)
+- CI: `test.yml` runs tests on push/PR, then triggers `publish.yml` if publishable files changed
 - CI auto-bumps the **patch** version — **never manually run `npm version`**
-- CI only triggers when publishable files change: `engine/`, `scripts/`, `bin/`, `templates/`, `index.js`, `package.json`, `README.md`, `LICENSE`
-- To trigger a **minor or major** bump: use GitHub Actions → "Publish to NPM" → Run workflow → choose bump type
+- CI only triggers when publishable files change: `engine/`, `views/`, `scripts/`, `bin/`, `templates/`, `index.js`, `package.json`, `README.md`, `LICENSE`
+- To trigger a **minor or major** bump: use GitHub Actions → "Publish" → Run workflow → choose bump type
 - If push is rejected (CI bumped version): `git pull --rebase && git push`
 
 ### 4. Wait for CI publish, then update child repos
@@ -67,11 +68,22 @@ npm run build
 - Themes are standalone CSS files in `styles/` (e.g. `beton.css`)
 - `styles/styles.json` — theme registry: list, order, default, `allowUserSwitch`
 - `styles/theme.json` — design token overrides applied via `setProperty()`. Format: `{ "overrides": { "page-bg": "#fff", ... } }`
-- `engine/js/themes.js` loads CSS via `<link>` swapping with localStorage caching (FOUC prevention)
+- `views/retro/view/js/themes.js` loads CSS via `<link>` swapping with localStorage caching (FOUC prevention)
+
+### Views
+- Built-in views live in `views/{name}/` (currently only `retro`)
+- Each view has `index.js` exporting `{ viewPath }` and a `view/` directory with HTML, CSS, JS
+- `app.json` `"view"` field selects the view (defaults to `"retro"`)
+- View-specific JS (init.js, render.js, router.js, etc.) lives inside the view
+- Core JS (config-loader.js, i18n.js, page.js) stays in `engine/js/` and is shared across all views
 
 ### Build Pipeline
-- Engine files copied to `dist/` first
-- User files (config/, data/, lang/, styles/) copied on top, overriding engine defaults
+- Resolves view by name → copies view files to `dist/`
+- Injects core JS from `engine/js/` into `dist/js/` (if not already present in the view)
+- Copies engine config defaults (display.json, admin-schema.json) → `dist/config/`
+- Copies admin files (admin.html, edit.html, etc.) → `dist/`
+- Generates filter buttons if view's HTML has `#filter-nav`
+- Copies user files (config/, data/, lang/, styles/) on top, overriding defaults
 - `styles/` directory is user-customizable — users can edit theme CSS or add new themes
 
 ### Admin API
@@ -83,7 +95,7 @@ npm run build
 ### Scripts
 - `init` — scaffolds new project from `templates/user-portfolio/`
 - `sync` — updates existing project with missing template files, migrates data formats (non-destructive)
-- `build` — copies engine + user files to `dist/`
+- `build` — resolves view, copies view + core JS + admin + user files to `dist/`
 - `admin` — launches Express admin API
 - `validate` — checks config/data files for errors
 - `serve` — static file server for `dist/`

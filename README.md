@@ -9,7 +9,7 @@ A portfolio engine for multi-passionate creators with a soft spot for early 2000
 
 ## Concept
 
-Instead of cloning a repo, you **install an npm package** that contains the entire engine (HTML, CSS, JS, admin panel). You keep only **your data** in your own repo.
+Instead of cloning a repo, you **install an npm package** that contains the build engine, admin panel, and view templates. You keep only **your data** in your own repo.
 
 **Why this approach?**
 
@@ -18,7 +18,7 @@ Instead of cloning a repo, you **install an npm package** that contains the enti
 - **Simple workflow** — `npm install` then `npm run build`
 - **Admin included** — visual interface to manage content, upload images, edit translations
 - **Multi-language** — built-in i18n with as many languages as you need
-- **4 retro themes** — JR-16, Beton, Ciment, Bubble Gum (customizable)
+- **Themeable** — ships with Beton theme, fully customizable via CSS tokens
 - **GitHub Pages ready** — deployment workflow included
 
 ---
@@ -69,10 +69,8 @@ my-portfolio/
 │   └── fr.json              # French translations
 ├── styles/
 │   ├── styles.json          # theme registry
-│   ├── ciment.css           # default theme
-│   ├── jr16.css
-│   ├── beton.css
-│   └── bubblegum.css
+│   ├── beton.css            # default theme (add more CSS files for more themes)
+│   └── theme.json           # design token overrides
 ├── assets/                  # your images and media
 └── .github/workflows/
     └── deploy.yml           # GitHub Pages auto-deploy
@@ -163,17 +161,16 @@ Top-level site settings:
 
 ### config/categories.json
 
-Define your content types (up to 7 recommended). Each category creates a filter button in the UI and links to a data file:
+Define your categories (up to 7 recommended). Each category creates a filter button in the UI. Content is stored in `data/{id}.json`:
 
 ```json
 {
-  "contentTypes": [
+  "categories": [
     {
       "id": "painting",
       "name": "Painting",
       "icon": "🎨",
       "mediaType": "image",
-      "dataFile": "data/painting.json",
       "description": "Traditional paintings using various media",
       "fields": {
         "required": ["title", "url"],
@@ -191,11 +188,10 @@ Define your content types (up to 7 recommended). Each category creates a filter 
 ```
 
 **Key fields:**
-- `id` — unique identifier, used in translation keys (`nav_<id>`)
+- `id` — unique identifier, also determines the data file (`data/{id}.json`) and translation key (`nav_{id}`)
 - `name` — display name (string or `{ "en": "...", "fr": "..." }` for i18n)
 - `icon` — emoji shown in the filter bar
 - `mediaType` — one of: `image`, `audio`, `video`, `text`, `link` (defines the viewer)
-- `dataFile` — path to the JSON file holding this category's content
 - `fields.required` — fields the admin panel requires
 - `fields.optional` — extra metadata fields with type, label, and placeholder
 
@@ -235,18 +231,15 @@ Theme registry:
 
 ```json
 {
-  "defaultTheme": "ciment",
-  "allowUserSwitch": true,
+  "defaultTheme": "beton",
+  "allowUserSwitch": false,
   "themes": [
-    { "id": "jr16", "name": "JR-16", "emoji": "🌿", "file": "jr16.css" },
-    { "id": "beton", "name": "Beton", "emoji": "🌫️", "file": "beton.css" },
-    { "id": "ciment", "name": "Ciment", "emoji": "🪨", "file": "ciment.css" },
-    { "id": "bubblegum", "name": "Bubble Gum", "emoji": "🍬", "file": "bubblegum.css" }
+    { "id": "beton", "name": "Beton", "emoji": "🌫️", "file": "beton.css" }
   ]
 }
 ```
 
-Set `allowUserSwitch: false` to lock visitors to a single theme.
+Add more themes by creating CSS files in `styles/` and registering them here. Set `allowUserSwitch: true` to let visitors pick a theme.
 
 ---
 
@@ -375,13 +368,12 @@ Edit `config/categories.json`. Here's an example replacing the defaults with you
 
 ```json
 {
-  "contentTypes": [
+  "categories": [
     {
       "id": "pottery",
       "name": "Pottery",
       "icon": "🏺",
       "mediaType": "image",
-      "dataFile": "data/pottery.json",
       "description": "My ceramic works",
       "fields": {
         "required": ["title", "url"],
@@ -396,7 +388,6 @@ Edit `config/categories.json`. Here's an example replacing the defaults with you
       "name": "Videos",
       "icon": "🎬",
       "mediaType": "video",
-      "dataFile": "data/videos.json",
       "description": "Video projects",
       "fields": {
         "required": ["title", "url"],
@@ -411,7 +402,7 @@ Edit `config/categories.json`. Here's an example replacing the defaults with you
 ```
 
 Then:
-1. Create the data file: `echo '{ "items": [] }' > data/pottery.json`
+1. Create the data files: `echo '{ "items": [] }' > data/pottery.json && echo '{ "items": [] }' > data/videos.json`
 2. Add translations in `lang/en.json`: `"nav_pottery": "Pottery"`, `"nav_videos": "Videos"`
 3. Rebuild: `npm run build`
 
@@ -421,7 +412,7 @@ Filter buttons are **automatically generated** from your categories.
 
 1. Duplicate an existing theme CSS file in `styles/`:
    ```bash
-   cp styles/ciment.css styles/my-theme.css
+   cp styles/beton.css styles/my-theme.css
    ```
 2. Edit `styles/my-theme.css` with your colors, fonts, etc.
 3. Register it in `styles/styles.json`:

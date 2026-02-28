@@ -29,6 +29,7 @@
   },
   "files": [
     "engine/",
+    "views/",
     "scripts/",
     "bin/",
     "templates/",

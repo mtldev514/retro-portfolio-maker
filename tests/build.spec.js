@@ -14,6 +14,7 @@ test.describe('Build output', () => {
       'config-source.json',
       'js/render.js',
       'js/init.js',
+      'js/page.js',
       'js/effects.js',
       'js/router.js',
       'js/i18n.js',
@@ -57,9 +58,86 @@ test.describe('Build output', () => {
     expect(html).toContain('data-filter="all"');
   });
 
-  test('build-info.json exists with correct metadata', () => {
+  test('build-info.json records retro view', () => {
     const buildInfo = JSON.parse(fs.readFileSync(path.join(distDir, 'build-info.json'), 'utf-8'));
     expect(buildInfo).toHaveProperty('buildDate');
     expect(buildInfo).toHaveProperty('engine');
+    expect(buildInfo).toHaveProperty('view', 'retro');
+  });
+});
+
+test.describe('Alternative view build', () => {
+  test.describe.configure({ mode: 'serial' });
+
+  const mockViewDir = path.join(__dirname, '..', 'views', 'mock-view');
+  const mockViewDistDir = path.join(__dirname, '..', 'test-portfolio', 'dist-mock-view');
+
+  test.beforeAll(async () => {
+    const testPortfolioDir = path.join(__dirname, '..', 'test-portfolio');
+    const originalCwd = process.cwd();
+    const appJsonPath = path.join(testPortfolioDir, 'config', 'app.json');
+    const appJson = JSON.parse(fs.readFileSync(appJsonPath, 'utf-8'));
+
+    try {
+      // Temporarily install mock-view as a built-in view
+      const mockFixture = path.join(__dirname, '..', 'test-fixtures', 'mock-view');
+      fs.cpSync(mockFixture, mockViewDir, { recursive: true });
+
+      // Set view to mock-view (built-in name, not a path)
+      appJson.view = 'mock-view';
+      fs.writeFileSync(appJsonPath, JSON.stringify(appJson, null, 2));
+
+      process.chdir(testPortfolioDir);
+      const build = require('../scripts/build');
+      await build({ output: 'dist-mock-view' });
+    } finally {
+      // Restore original app.json (remove view field)
+      delete appJson.view;
+      fs.writeFileSync(appJsonPath, JSON.stringify(appJson, null, 2));
+      process.chdir(originalCwd);
+    }
+  });
+
+  test.afterAll(() => {
+    // Clean up mock view from views/ and dist
+    if (fs.existsSync(mockViewDir)) {
+      fs.rmSync(mockViewDir, { recursive: true });
+    }
+    if (fs.existsSync(mockViewDistDir)) {
+      fs.rmSync(mockViewDistDir, { recursive: true });
+    }
+  });
+
+  test('uses mock view index.html instead of retro default', () => {
+    const html = fs.readFileSync(path.join(mockViewDistDir, 'index.html'), 'utf-8');
+    expect(html).toContain('MOCK VIEW');
+    expect(html).not.toContain('winamp');
+  });
+
+  test('core JS files are injected into dist/js/', () => {
+    expect(fs.existsSync(path.join(mockViewDistDir, 'js', 'config-loader.js'))).toBe(true);
+    expect(fs.existsSync(path.join(mockViewDistDir, 'js', 'i18n.js'))).toBe(true);
+    expect(fs.existsSync(path.join(mockViewDistDir, 'js', 'page.js'))).toBe(true);
+  });
+
+  test('view-specific init.js comes from mock view, not engine', () => {
+    const initJs = fs.readFileSync(path.join(mockViewDistDir, 'js', 'init.js'), 'utf-8');
+    expect(initJs).toContain('MOCK VIEW LOADED');
+  });
+
+  test('user data files are copied on top of view', () => {
+    expect(fs.existsSync(path.join(mockViewDistDir, 'config', 'app.json'))).toBe(true);
+    expect(fs.existsSync(path.join(mockViewDistDir, 'data', 'painting.json'))).toBe(true);
+    expect(fs.existsSync(path.join(mockViewDistDir, 'lang', 'en.json'))).toBe(true);
+  });
+
+  test('build-info records the mock-view name', () => {
+    const buildInfo = JSON.parse(fs.readFileSync(path.join(mockViewDistDir, 'build-info.json'), 'utf-8'));
+    expect(buildInfo.view).toBe('mock-view');
+  });
+
+  test('filter injection is skipped (mock view has no #filter-nav)', () => {
+    const html = fs.readFileSync(path.join(mockViewDistDir, 'index.html'), 'utf-8');
+    expect(html).toContain('<main id="app">');
   });
 });

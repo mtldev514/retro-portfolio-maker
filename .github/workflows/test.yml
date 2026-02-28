@@ -50,7 +50,7 @@ jobs:
           # Get changed files from the push event
           CHANGED='${{ toJson(github.event.commits.*.modified) }} ${{ toJson(github.event.commits.*.added) }}'
 
-          if echo "$CHANGED" | grep -qE '"(engine/|scripts/|bin/|templates/|index\.js|package\.json|README\.md|LICENSE)"'; then
+          if echo "$CHANGED" | grep -qE '"(engine/|views/|scripts/|bin/|templates/|index\.js|package\.json|README\.md|LICENSE)"'; then
             echo "should_publish=true" >> $GITHUB_OUTPUT
           else
             echo "should_publish=false" >> $GITHUB_OUTPUT

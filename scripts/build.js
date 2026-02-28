@@ -21,6 +21,9 @@ const ADMIN_FILES = [
   'admin'  // entire admin/ directory (admin API, shell scripts)
 ];
 
+// Core JS files provided by the engine for any view to use
+const { coreJsFiles } = require('..');
+
 async function build(options = {}) {
   console.log(chalk.blue('🏗️  Building your portfolio...\n'));
 
@@ -68,42 +71,75 @@ async function build(options = {}) {
   await fs.emptyDir(outputDir);
   console.log(chalk.green('  ✓ Output directory cleaned\n'));
 
-  // Copy engine files
-  console.log(chalk.cyan('📦 Copying engine files...'));
-
+  // Resolve built-in view
   const enginePath = path.join(__dirname, '../engine');
-
   if (!fs.existsSync(enginePath)) {
     throw new Error('Engine files not found. Package may be corrupted.');
   }
 
-  if (options.production) {
-    // Production build: exclude admin/dev-only files
-    await fs.copy(enginePath, outputDir, {
-      filter: (src) => {
-        const relative = path.relative(enginePath, src);
-        if (relative === '') return true; // allow root directory
-        const topLevel = relative.split(path.sep)[0];
-        return !ADMIN_FILES.includes(topLevel);
-      }
-    });
-  } else {
-    await fs.copy(enginePath, outputDir);
+  const appJsonPath = path.join(cwd, 'config', 'app.json');
+  const appJson = await fs.readJson(appJsonPath);
+  const viewName = appJson.view || 'retro';
+
+  const viewDir = path.join(__dirname, '..', 'views', viewName);
+  if (!fs.existsSync(path.join(viewDir, 'index.js'))) {
+    const available = listBuiltInViews();
+    throw new Error(
+      `View "${viewName}" not found.\n` +
+      `  Available views: ${available.join(', ')}`
+    );
   }
 
-  // Count files copied
-  const engineFiles = (await fs.readdir(outputDir)).filter(f => f !== 'build-info.json');
-  console.log(chalk.green(`  ✓ Copied ${engineFiles.length} engine files`));
+  console.log(chalk.cyan(`📦 Loading view: ${viewName}...`));
+  const viewPkg = require(viewDir);
+  await fs.copy(viewPkg.viewPath, outputDir);
+  console.log(chalk.green(`  ✓ View: ${viewName}`));
 
-  if (options.production) {
+  // Inject core JS files (don't overwrite if view provides its own)
+  await fs.ensureDir(path.join(outputDir, 'js'));
+  for (const coreFile of coreJsFiles) {
+    const destPath = path.join(outputDir, 'js', coreFile);
+    if (!fs.existsSync(destPath)) {
+      await fs.copy(path.join(enginePath, 'js', coreFile), destPath);
+      console.log(chalk.green('  ✓ Injected core:'), `js/${coreFile}`);
+    }
+  }
+
+  // Copy engine config defaults (display.json, admin-schema.json) as fallbacks
+  const engineConfigDir = path.join(enginePath, 'config');
+  if (fs.existsSync(engineConfigDir)) {
+    await fs.ensureDir(path.join(outputDir, 'config'));
+    await fs.copy(engineConfigDir, path.join(outputDir, 'config'), { overwrite: false });
+  }
+
+  // Copy engine 404 page
+  const engine404 = path.join(enginePath, '404.html');
+  if (fs.existsSync(engine404)) {
+    await fs.copy(engine404, path.join(outputDir, '404.html'));
+  }
+
+  // Copy admin files (unless production)
+  if (!options.production) {
+    for (const adminFile of ADMIN_FILES) {
+      const src = path.join(enginePath, adminFile);
+      if (fs.existsSync(src)) {
+        await fs.copy(src, path.join(outputDir, adminFile));
+      }
+    }
+    console.log(chalk.green('  ✓ Admin panel included'));
+  } else {
     console.log(chalk.yellow('  ⚡ Production mode: admin files excluded'));
   }
   console.log('');
 
-  // Generate dynamic filter buttons from categories
+  // Generate dynamic filter buttons from categories (skipped if view has no #filter-nav)
   console.log(chalk.cyan('🔧 Generating filter buttons from categories...'));
-  await generateFilterButtons(cwd, outputDir);
-  console.log(chalk.green('  ✓ Filter buttons generated\n'));
+  const filtersInjected = await generateFilterButtons(cwd, outputDir);
+  if (filtersInjected) {
+    console.log(chalk.green('  ✓ Filter buttons generated\n'));
+  } else {
+    console.log(chalk.gray('  ⊘ Skipped (view has no #filter-nav)\n'));
+  }
 
   // Copy config-source.json to dist (frontend needs it to determine data source)
   if (fs.existsSync(configSourcePath)) {
@@ -152,9 +188,10 @@ async function build(options = {}) {
   const buildInfo = {
     buildDate: new Date().toISOString(),
     engine: {
-      name: '@mtldev514/retro-portfolio-engine',
+      name: '@mtldev514/retro-portfolio-maker',
       version: require('../package.json').version
     },
+    view: viewName,
     site: {
       name: path.basename(cwd)
     }
@@ -286,8 +323,7 @@ async function generateFilterButtons(userDir, outputDir) {
   const filterNavClose = indexHtml.indexOf('</div>', filterNavStart);
 
   if (filterNavStart === -1 || filterNavClose === -1) {
-    console.warn(chalk.yellow('  ⚠ Could not find filter nav section in index.html'));
-    return;
+    return false;
   }
 
   // Find where the inner content starts (after the opening tag)
@@ -301,6 +337,7 @@ async function generateFilterButtons(userDir, outputDir) {
 
   // Write back to index.html
   await fs.writeFile(indexPath, indexHtml, 'utf8');
+  return true;
 }
 
 /**
@@ -335,6 +372,17 @@ async function getDirSize(dirPath) {
   }
 
   return `${size.toFixed(2)} ${units[unitIndex]}`;
+}
+
+/**
+ * List available built-in views (for error messages)
+ */
+function listBuiltInViews() {
+  const viewsDir = path.join(__dirname, '..', 'views');
+  if (!fs.existsSync(viewsDir)) return [];
+  return fs.readdirSync(viewsDir).filter(name =>
+    fs.existsSync(path.join(viewsDir, name, 'index.js'))
+  );
 }
 
 module.exports = build;
