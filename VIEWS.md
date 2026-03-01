@@ -221,7 +221,9 @@ Design token overrides applied via CSS `setProperty()`:
 
 ---
 
-## Critical Design Directive: Songs vs Links Structure
+## Critical Design Directives
+
+### 1. Songs vs Links Structure
 
 When rendering gallery items, **always structure content and actions distinctly**:
 
@@ -241,6 +243,24 @@ When rendering gallery items, **always structure content and actions distinctly*
 - **Links** (or actions): external destinations separate from the portfolio item itself
 
 This keeps the visual hierarchy clean and the UI clear.
+
+### 2. No-Zoom (Fill vs Cover)
+
+Images should use `object-fit: fill` instead of `cover`:
+- `fill`: Image stretches to fit the container (may distort aspect ratio)
+- `cover`: Image scales uniformly and crops (what you want to avoid)
+
+Use `object-fit: fill` on `.gallery-item-visual img` to ensure images don't zoom/crop unexpectedly.
+
+### 3. Content Takes Space
+
+For music items and projects, **show actual content instead of emoji**:
+- **Music cards**: Display lyrics, artist info, or other relevant text (not just a play button emoji)
+- **Project cards**: Show project descriptions, technologies, or details (not just a category icon)
+- Text should have proper spacing and readable line-height
+- This applies to subtitle fields and metadata that users provide
+
+Text content is more informative than visual-only cards. Let users see what they're clicking.
 
 ---
 
