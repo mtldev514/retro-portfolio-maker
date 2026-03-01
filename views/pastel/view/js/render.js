@@ -2,6 +2,13 @@
  * Pastel View — Renderer
  * Loads all items via AppConfig, builds gallery cards with magazine layout.
  */
+
+// SVG icon registry — maps icon names to SVG markup
+const _svgIcons = {
+    'github': '<svg class="icon" viewBox="0 0 24 24"><path d="M12 .3a12 12 0 00-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.8.1-.7.1-.7 1.2.1 1.9 1.3 1.9 1.3 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 016 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.7.3 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0012 .3z"/></svg>',
+    'external-link': '<svg class="icon" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>'
+};
+
 const renderer = (() => {
     let allItems = [];
     let currentFilter = 'all';
@@ -50,6 +57,46 @@ const renderer = (() => {
         }
 
         return items;
+    }
+
+    /** Check if action condition is met */
+    function _evalCondition(condition, item) {
+        if (!condition) return true;
+        return item[condition.field] === condition.equals;
+    }
+
+    /** Render action links (external URLs, GitHub, etc.) */
+    function _renderCardActions(cardSchema, item) {
+        if (!cardSchema?.actions || cardSchema.actions.length === 0) return null;
+
+        const actions = document.createElement('div');
+        actions.className = 'gallery-item-actions';
+        let hasActions = false;
+
+        for (const action of cardSchema.actions) {
+            if (!_evalCondition(action.condition, item)) continue;
+            if (!action.links) continue;
+
+            // Find first matching link, or fallback link
+            const link = action.links.find(l => item[l.field]) ||
+                         action.links.find(l => l.fallback && item[l.field]);
+            if (!link || !item[link.field]) continue;
+
+            const label = (window.i18n && i18n.translations?.[link.labelKey]) || link.labelKey;
+            const svg = _svgIcons[link.icon] || '';
+
+            const actionBtn = document.createElement('a');
+            actionBtn.href = item[link.field];
+            actionBtn.target = '_blank';
+            actionBtn.className = 'gallery-item-action-btn';
+            actionBtn.innerHTML = `${svg} ${label}`;
+            actionBtn.addEventListener('click', (e) => e.stopPropagation());
+
+            actions.appendChild(actionBtn);
+            hasActions = true;
+        }
+
+        return hasActions ? actions : null;
     }
 
     /** Build a single gallery card */
@@ -134,6 +181,12 @@ const renderer = (() => {
                 router.showDetail(item);
             }
         });
+
+        // Render action links (external URLs, etc.) if any
+        const actions = _renderCardActions(cardSchema, item);
+        if (actions) {
+            card.appendChild(actions);
+        }
 
         return card;
     }

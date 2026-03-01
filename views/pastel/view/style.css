@@ -483,6 +483,44 @@ body::before {
     font-size: 0.65rem;
 }
 
+/* Action links (external URLs, GitHub, etc.) */
+.gallery-item-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+    background: var(--surface);
+    border-top: 1px solid var(--border-light);
+    pointer-events: all;
+}
+
+.gallery-item-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: var(--radius);
+    background: var(--bg-warm);
+    color: var(--text-soft);
+    transition: all var(--duration) var(--ease);
+    border: 1px solid var(--border-light);
+}
+
+.gallery-item-action-btn:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    transform: translateY(-1px);
+}
+
+.gallery-item-action-btn svg {
+    width: 0.65rem;
+    height: 0.65rem;
+    stroke-width: 2;
+    stroke: currentColor;
+}
+
 /* Category color accents — thin top border */
 .gallery-item[data-category="photography"]::before,
 .gallery-item[data-category="painting"]::before,

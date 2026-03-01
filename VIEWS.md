@@ -221,6 +221,29 @@ Design token overrides applied via CSS `setProperty()`:
 
 ---
 
+## Critical Design Directive: Songs vs Links Structure
+
+When rendering gallery items, **always structure content and actions distinctly**:
+
+- **Main card content** (visual + title + metadata):
+  - Clickable → navigates to detail page
+  - Title and metadata in consistent, readable spacing
+  - Text hierarchy should be clear (title larger, subtitle smaller)
+
+- **Action links** (external URLs, GitHub, etc.):
+  - Rendered OUTSIDE or BELOW the main clickable area
+  - Separate visual treatment (different styling, icons)
+  - Should not compete with main card click target
+  - Requires `stopPropagation()` to prevent triggering detail view
+
+**Why**: Users should instantly distinguish between:
+- **Songs** (or main content): clicking opens the detail view
+- **Links** (or actions): external destinations separate from the portfolio item itself
+
+This keeps the visual hierarchy clean and the UI clear.
+
+---
+
 ## Common Mistakes to Avoid
 
 ❌ **Putting files in wrong directory**
@@ -241,6 +264,11 @@ Design token overrides applied via CSS `setProperty()`:
 ❌ **Not testing with actual data**
 - Use `test-portfolio/` or a real project folder
 - Don't just eyeball the HTML—test with real config/data files
+
+❌ **Forgetting to render action links**
+- Display schema `card.actions` must be rendered in your view
+- Don't just show title and visual—external links are important metadata
+- Keep them distinct from the main clickable content (songs vs links directive)
 
 ---
 
