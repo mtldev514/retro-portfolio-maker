@@ -1,0 +1,99 @@
+[
+  {
+    "id": "f22aa38c-30e1-4d77-886a-8ca898a1d205",
+    "legacyId": "project-1",
+    "title": {
+      "en": "Weather App",
+      "fr": "Appli Météo",
+      "mx": "App del Clima",
+      "ht": "App Meteyo"
+    },
+    "url": "https://github.com/testuser/weather-app",
+    "date": "2025-06-15",
+    "visibility": "public",
+    "techStack": "React, Node.js, OpenWeatherMap API, Chart.js",
+    "description": {
+      "en": "A real-time weather dashboard with interactive maps, 7-day forecasts, and historical data visualization. Built with React and powered by the OpenWeatherMap API. Features hourly breakdowns, severe weather alerts, and air quality monitoring.",
+      "fr": "Un tableau de bord météo en temps réel avec cartes interactives, prévisions sur 7 jours et visualisation de données historiques.",
+      "mx": "Panel de clima en tiempo real con mapas interactivos, pronósticos de 7 días y visualización de datos históricos.",
+      "ht": "Yon tablo meteyo an tan reyèl ak kat entèraktif, previzyon 7 jou ak vizyalizasyon done istorik."
+    },
+    "website": "https://weather-app.example.com"
+  },
+  {
+    "id": "f92ae7b5-dbd8-4cda-9ba7-d86df38c7a32",
+    "legacyId": "project-2",
+    "title": {
+      "en": "Task Manager",
+      "fr": "Gestionnaire de tâches",
+      "mx": "Gestor de tareas",
+      "ht": "Jere travay"
+    },
+    "url": "https://github.com/testuser/task-manager",
+    "date": "2025-03-01",
+    "visibility": "public",
+    "techStack": "Vue.js, Vuex, Firebase, Tailwind CSS",
+    "description": {
+      "en": "A drag-and-drop Kanban board for team collaboration. Supports real-time sync across devices, customizable workflows, task assignments, due dates, and file attachments. Integrates with Slack and GitHub for notifications.",
+      "fr": "Un tableau Kanban glisser-déposer pour la collaboration d'équipe. Synchronisation en temps réel, flux de travail personnalisables.",
+      "mx": "Un tablero Kanban de arrastrar y soltar para la colaboración en equipo. Sincronización en tiempo real, flujos de trabajo personalizables.",
+      "ht": "Yon tablo Kanban trennen-lage pou kolaborasyon ekip. Senkronizasyon an tan reyèl, fli travay pèsonalizab."
+    }
+  },
+  {
+    "id": "50283533-8023-4c8d-9f6a-34563dec5581",
+    "legacyId": "project-3",
+    "title": {
+      "en": "Secret Project",
+      "fr": "Projet secret",
+      "mx": "Proyecto secreto",
+      "ht": "Pwojè sekrè"
+    },
+    "date": "2024-11-20",
+    "visibility": "private",
+    "description": {
+      "en": "An experimental project exploring generative art with machine learning. Uses TensorFlow.js to create unique visual patterns from audio input. Currently in alpha — stay tuned for the public release.",
+      "fr": "Un projet expérimental explorant l'art génératif avec l'apprentissage automatique. Utilise TensorFlow.js pour créer des motifs visuels uniques.",
+      "mx": "Un proyecto experimental que explora el arte generativo con aprendizaje automático. Usa TensorFlow.js para crear patrones visuales únicos.",
+      "ht": "Yon pwojè eksperimantal ki eksplore atizay jeneratif ak aprantisaj machin. Itilize TensorFlow.js pou kreye modèl vizyèl inik."
+    }
+  },
+  {
+    "id": "f6b3d9fb-3cb4-41fa-9b6d-65587072d83b",
+    "legacyId": "project-4",
+    "title": {
+      "en": "Portfolio Engine",
+      "fr": "Moteur de portfolio",
+      "mx": "Motor de portafolio",
+      "ht": "Motè pòtfolyo"
+    },
+    "date": "2025-09-10",
+    "visibility": "private",
+    "techStack": "Node.js, Express, Playwright, Vanilla JS",
+    "description": {
+      "en": "The engine powering this portfolio. An npm package that generates fully static portfolio sites from JSON data. Features schema-driven rendering, multilingual support, theming, and an admin panel for content management.",
+      "fr": "Le moteur qui fait tourner ce portfolio. Un package npm qui génère des sites portfolio statiques à partir de données JSON.",
+      "mx": "El motor que impulsa este portafolio. Un paquete npm que genera sitios de portafolio estáticos a partir de datos JSON.",
+      "ht": "Motè ki fè pòtfolyo sa a mache. Yon pakè npm ki jenere sit pòtfolyo statik nan done JSON."
+    }
+  },
+  {
+    "id": "49ab244e-2911-4572-8f60-9859853a7431",
+    "legacyId": "project-5",
+    "title": {
+      "en": "Data Viz Tool",
+      "fr": "Outil de visualisation",
+      "mx": "Herramienta de visualización",
+      "ht": "Zouti vizyalizasyon"
+    },
+    "date": "2024-07-05",
+    "visibility": "private",
+    "techStack": "D3.js, Python, Flask, PostgreSQL",
+    "description": {
+      "en": "An interactive data visualization toolkit for exploring complex datasets. Supports scatter plots, heatmaps, network graphs, and geographic projections. Backend API processes raw CSV and JSON imports into queryable datasets.",
+      "fr": "Un outil de visualisation de données interactif pour explorer des jeux de données complexes. Supporte les nuages de points, cartes thermiques et graphes réseau.",
+      "mx": "Un kit de herramientas de visualización de datos interactivo para explorar conjuntos de datos complejos. Soporta gráficos de dispersión y mapas de calor.",
+      "ht": "Yon zouti vizyalizasyon done entèraktif pou eksplore ansanm done konplèks. Sipòte grafik difizyon, kat chalè ak graf rezo."
+    }
+  }
+]

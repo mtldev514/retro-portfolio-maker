@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>YOUR-CONTROL-PANEL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Capriola&family=Titan+One&family=Rubik+Dirt&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="fonts.css">
+</head>
+
+<body class="admin-page">
+
+    <div class="window">
+        <div class="title-bar">
+            <span data-i18n="admin_title">PORTFOLIO MANAGER</span>
+            <div class="title-bar-controls">
+                <button onclick="window.location.href='/'">X</button>
+            </div>
+        </div>
+
+        <div class="admin-lang-bar">
+            <select id="adminLangSwitch" class="admin-lang-switch" title="Admin language"></select>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab active" onclick="showTab('content', this)" data-i18n="admin_tab_content">Content</div>
+            <div class="tab" onclick="showTab('translations', this)" data-i18n="admin_tab_translations">Translations</div>
+            <div class="tab" onclick="showTab('settings', this)" data-i18n="admin_tab_settings">Settings</div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════
+             CONTENT TAB (merged: Upload + Manage + Bulk Edit)
+             ═══════════════════════════════════════════════ -->
+        <div id="content" class="tab-content active">
+            <!-- Upload zone -->
+            <div id="bulkDropZone" class="bulk-drop-zone">
+                <p style="font-size: 14px; font-weight: bold;" data-i18n="admin_drop_title">DROP FILES HERE</p>
+                <p class="admin-muted" data-i18n="admin_drop_subtitle">or click to browse — images + audio supported</p>
+                <input type="file" id="bulkFileInput" multiple accept="image/*,audio/*" style="display:none;">
+            </div>
+
+            <div id="bulkQueue" class="bulk-queue" style="display:none;">
+                <div class="admin-flex-between" style="margin-bottom: 8px;">
+                    <b id="bulkCount">0 files queued</b>
+                    <div style="display: flex; gap: 5px;">
+                        <button type="button" class="action" style="margin:0; font-size:11px;" onclick="clearBulkQueue()">Clear All</button>
+                        <button type="button" class="action src-btn-active" style="margin:0; font-size:11px;" id="bulkUploadBtn" onclick="startBulkUpload()">UPLOAD ALL</button>
+                    </div>
+                </div>
+                <div id="bulkItems" class="bulk-items"></div>
+            </div>
+
+            <!-- Content filter bar -->
+            <div class="admin-flex-between" style="margin-top: 15px; align-items: center;">
+                <label style="margin: 0;">Filter:</label>
+                <select id="manageCategory" onchange="loadContent()" style="width: 200px;">
+                    <option value="all">All Categories</option>
+                </select>
+                <button class="action" onclick="loadContent()" style="margin: 0; font-size: 11px;">Refresh</button>
+            </div>
+
+            <!-- Content list with thumbnails and checkboxes -->
+            <div id="contentList" class="admin-content-list">
+                <!-- Bulk selection toolbar (sticky inside list) -->
+                <div id="bulkSelectToolbar" class="bulk-select-toolbar">
+                    <span><strong id="bulkSelectedCount">0</strong> selected</span>
+                    <div>
+                        <button type="button" onclick="selectAllInCategory()">Select All</button>
+                        <button type="button" onclick="clearBulkSelection()">Clear</button>
+                        <button type="button" class="con-error" onclick="bulkDelete()">Delete</button>
+                        <button type="button" class="src-btn-active" onclick="showBulkChangeCategory()">Move Category</button>
+                    </div>
+                </div>
+                <div id="contentListInner">
+                    <p align="center">Loading content...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════
+             TRANSLATIONS TAB (unchanged)
+             ═══════════════════════════════════════════════ -->
+        <div id="translations" class="tab-content">
+            <div class="admin-flex-between">
+                <label>Language:</label>
+                <select id="langSelect" onchange="loadTranslations()" style="width: 100px;">
+                </select>
+            </div>
+            <div id="translationGrid" class="translation-grid">
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════
+             SETTINGS TAB (merged: Config + Config Manager + Validation)
+             ═══════════════════════════════════════════════ -->
+        <div id="settings" class="tab-content">
+            <!-- Status info -->
+            <div class="settings-status">
+                <span>Cloudinary: <span class="admin-connected">CONNECTED</span></span>
+                <span>Server Port: <span id="server-port">5001</span></span>
+            </div>
+
+            <!-- Settings toolbar -->
+            <div class="settings-toolbar">
+                <button onclick="saveAllConfigurations()">Save All</button>
+                <button onclick="reloadConfigurations()">Reload</button>
+                <button onclick="exportConfigurations()">Export</button>
+            </div>
+
+            <!-- Media Types Section -->
+            <div class="config-section">
+                <div class="config-section-header">MEDIA TYPES (How content is displayed)</div>
+                <p style="font-size: 11px; margin: 10px 0; color: var(--admin-muted-text);">
+                    Media types define how different kinds of content are rendered (image viewer, audio player, etc.)
+                </p>
+                <div id="mediaTypesGrid" class="config-grid"></div>
+                <div class="add-new-section">
+                    <button onclick="openMediaTypeModal()">+ Add New Media Type</button>
+                </div>
+            </div>
+
+            <!-- Categories Section -->
+            <div class="config-section">
+                <div class="config-section-header">CONTENT TYPES (What you create)</div>
+                <p style="font-size: 11px; margin: 10px 0; color: var(--admin-muted-text);">
+                    Content types define categories of work and their custom fields
+                </p>
+                <div id="categoriesGrid" class="config-grid"></div>
+                <div class="add-new-section">
+                    <button onclick="openCategoryModal()">+ Add New Category</button>
+                </div>
+            </div>
+
+            <hr style="margin: 20px 0;">
+
+            <!-- Validation -->
+            <div class="config-section">
+                <div class="config-section-header">VALIDATION</div>
+                <button class="validate-btn" onclick="window.open('validator.html?auto=true', '_blank')">
+                    Run Validation Check
+                </button>
+                <p class="admin-muted" style="margin-top: 8px;">
+                    Opens the validator in a new tab to check all config, data, and translation files
+                </p>
+            </div>
+        </div>
+
+        <div class="console" id="console">
+            <span data-i18n="admin_kernel_ready">[OS-KERNEL] Ready...</span>
+        </div>
+
+        <div class="status-bar">
+            <span data-i18n="admin_logged_as">Logged in as</span> <span data-i18n="admin_user">ADMIN</span> | <span data-i18n="admin_system">System: AI-Enhanced</span> | <span id="current-date"></span>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         MEDIA TYPE MODAL (from config-manager.html)
+         ═══════════════════════════════════════════════ -->
+    <div id="mediaTypeModal" class="config-modal">
+        <div class="config-modal-content">
+            <div class="config-modal-header">
+                <span id="mediaTypeModalTitle">Add Media Type</span>
+                <button onclick="closeMediaTypeModal()">X</button>
+            </div>
+            <div class="config-modal-body">
+                <form id="mediaTypeForm">
+                    <div class="form-row">
+                        <label>ID (unique identifier):</label>
+                        <input type="text" id="mtId" required placeholder="e.g., image, audio, video">
+                    </div>
+                    <div class="form-row">
+                        <label>Name:</label>
+                        <input type="text" id="mtName" required placeholder="e.g., Image, Audio">
+                    </div>
+                    <div class="form-row">
+                        <label>Icon (emoji):</label>
+                        <input type="text" id="mtIcon" required placeholder="e.g., 🖼️, 🎵">
+                    </div>
+                    <div class="form-row">
+                        <label>Viewer Component:</label>
+                        <input type="text" id="mtViewer" required placeholder="e.g., ImageViewer, AudioPlayer">
+                    </div>
+                    <div class="form-row">
+                        <label>
+                            <input type="checkbox" id="mtSupportsGallery" style="width:auto;"> Supports Gallery
+                        </label>
+                    </div>
+                    <div class="form-row">
+                        <label>
+                            <input type="checkbox" id="mtSupportsMetadata" style="width:auto;"> Supports Per-Item Metadata
+                        </label>
+                    </div>
+                    <div class="form-row">
+                        <label>Accepted Formats (comma-separated):</label>
+                        <input type="text" id="mtFormats" placeholder="e.g., .jpg, .png, .webp">
+                    </div>
+                    <div class="form-row">
+                        <label>Upload Destination:</label>
+                        <select id="mtDestination">
+                            <option value="cloudinary">Cloudinary</option>
+                            <option value="github">GitHub Releases</option>
+                            <option value="none">None (URL only)</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label>Description:</label>
+                        <textarea id="mtDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-row" style="text-align: right;">
+                        <button type="button" onclick="closeMediaTypeModal()">Cancel</button>
+                        <button type="submit">Save Media Type</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         CONTENT TYPE MODAL (from config-manager.html)
+         ═══════════════════════════════════════════════ -->
+    <div id="categoryModal" class="config-modal">
+        <div class="config-modal-content">
+            <div class="config-modal-header">
+                <span id="categoryModalTitle">Add Category</span>
+                <button onclick="closeCategoryModal()">X</button>
+            </div>
+            <div class="config-modal-body">
+                <form id="categoryForm">
+                    <div class="form-row">
+                        <label>ID (unique identifier):</label>
+                        <input type="text" id="ctId" required placeholder="e.g., painting, photography">
+                    </div>
+                    <div class="form-row">
+                        <label>Name:</label>
+                        <input type="text" id="ctName" required placeholder="e.g., Painting, Photography">
+                    </div>
+                    <div class="form-row">
+                        <label>Icon (emoji):</label>
+                        <input type="text" id="ctIcon" required placeholder="e.g., 🎨, 📷">
+                    </div>
+                    <div class="form-row">
+                        <label>Media Type:</label>
+                        <select id="ctMediaType" required></select>
+                    </div>
+                    <div class="form-row">
+                        <label>Data File Path:</label>
+                        <input type="text" id="ctDataFile" required placeholder="e.g., data/painting.json">
+                    </div>
+                    <div class="form-row">
+                        <label>Description:</label>
+                        <textarea id="ctDescription" rows="2"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <label>Custom Fields:</label>
+                        <div id="fieldsList" class="field-list"></div>
+                        <button type="button" onclick="addField()" style="margin-top: 5px;">+ Add Field</button>
+                    </div>
+                    <div class="form-row" style="text-align: right;">
+                        <button type="button" onclick="closeCategoryModal()">Cancel</button>
+                        <button type="submit">Save Category</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let API_URL = 'http://127.0.0.1:5001'; // fallback, overridden by bootstrapConfig()
+
+        // ══════════════════════════════════════════════
+        //  UTILITIES
+        // ══════════════════════════════════════════════
+
+        function isServerDown(err) {
+            return err instanceof TypeError && err.message === 'Failed to fetch';
+        }
+        function serverDownMsg() {
+            return `Admin server is not running on ${API_URL}. Start it with: npm run admin`;
+        }
+
+        function conLog(msg, cls) {
+            const c = document.getElementById('console');
+            c.innerHTML += `<br><span class="${cls || ''}">${msg}</span>`;
+            c.scrollTop = c.scrollHeight;
+        }
+
+        async function autoCommitAndPush(action) {
+            try {
+                const res = await fetch(`${API_URL}/api/git/commit-push`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `Admin: ${action}` })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    if (result.message === 'No changes to commit') {
+                        conLog('> Git: no new changes to commit.', 'con-info');
+                    } else {
+                        conLog(`> Git: ${result.message}`, 'con-success');
+                    }
+                } else {
+                    conLog(`> Git: ${result.error}`, 'con-warn');
+                }
+            } catch (err) {
+                console.warn('Auto commit-push failed:', err);
+            }
+        }
+
+        // ══════════════════════════════════════════════
+        //  BOOTSTRAP & CONFIG
+        // ══════════════════════════════════════════════
+
+        async function bootstrapConfig() {
+            try {
+                // Try local file first, fall back to API (Supabase mode skips local config)
+                let appConfig;
+                const localRes = await fetch('config/app.json');
+                if (localRes.ok) {
+                    appConfig = await localRes.json();
+                } else {
+                    const apiRes = await fetch(`${API_URL}/api/config/app`);
+                    if (apiRes.ok) appConfig = await apiRes.json();
+                }
+                if (appConfig) {
+                    API_URL = appConfig.api?.baseUrl
+                        || `http://${appConfig.api?.host || '127.0.0.1'}:${appConfig.api?.port || 5001}`;
+                    const portText = document.getElementById('server-port');
+                    if (portText) portText.textContent = appConfig.api?.port || 5001;
+                }
+            } catch (e) {
+                console.warn('Could not load app config, using default API URL');
+            }
+        }
+
+        async function initializeLanguages() {
+            try {
+                // Try local file first, fall back to API (Supabase mode skips local config)
+                let langConfig;
+                const localRes = await fetch('config/languages.json');
+                if (localRes.ok) {
+                    langConfig = await localRes.json();
+                } else {
+                    const apiRes = await fetch(`${API_URL}/api/config/languages`);
+                    if (apiRes.ok) langConfig = await apiRes.json();
+                }
+                if (!langConfig?.supportedLanguages) return;
+                const select = document.getElementById('langSelect');
+                select.innerHTML = '';
+                const adminSwitch = document.getElementById('adminLangSwitch');
+                langConfig.supportedLanguages.forEach(lang => {
+                    const option = document.createElement('option');
+                    option.value = lang.code;
+                    option.textContent = lang.name;
+                    select.appendChild(option);
+                    // Also populate admin language switch
+                    if (adminSwitch) {
+                        const opt2 = option.cloneNode(true);
+                        opt2.textContent = lang.code.toUpperCase();
+                        adminSwitch.appendChild(opt2);
+                    }
+                });
+                // Restore admin language from localStorage
+                const savedLang = localStorage.getItem('adminLang');
+                if (savedLang && adminSwitch) adminSwitch.value = savedLang;
+            } catch (e) {
+                console.warn('Could not load languages config');
+            }
+        }
+
+        // Admin panel UI translation
+        let adminTranslations = {};
+        async function translateAdminUI(lang) {
+            try {
+                const res = await fetch(`${API_URL}/api/translations/${lang}`);
+                adminTranslations = await res.json();
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (adminTranslations[key]) el.textContent = adminTranslations[key];
+                });
+                localStorage.setItem('adminLang', lang);
+            } catch (_) { /* silent — translations optional */ }
+        }
+
+        document.getElementById('adminLangSwitch')?.addEventListener('change', (e) => {
+            translateAdminUI(e.target.value);
+        });
+
+        const AppConfig = {
+            app: null,
+            languages: null,
+            categories: null,
+            mediaTypes: null,
+            loaded: false,
+
+            async load() {
+                try {
+                    const [categoriesData, mediaTypesData] = await Promise.all([
+                        fetch(`${API_URL}/api/config/categories`).then(r => r.json()),
+                        fetch(`${API_URL}/api/config/media-types`).then(r => r.json())
+                    ]);
+                    this.categories = categoriesData;
+                    this.mediaTypes = mediaTypesData;
+                    this.loaded = true;
+                    console.log('Configuration loaded from API');
+                    return true;
+                } catch (error) {
+                    if (isServerDown(error)) {
+                        console.error(serverDownMsg());
+                    } else {
+                        console.error('Failed to load configuration from API:', error);
+                    }
+                    return false;
+                }
+            },
+
+            getApiUrl() { return API_URL; },
+            getAllCategories() { return this.categories?.categories || []; },
+            getCategory(id) { return this.getAllCategories().find(c => c.id === id); },
+            getAllMediaTypes() { return this.mediaTypes?.mediaTypes || []; },
+            getMediaType(id) { return this.getAllMediaTypes().find(m => m.id === id); }
+        };
+
+        let categoriesLoaded = false;
+        async function initializeCategories() {
+            if (categoriesLoaded) return;
+            try {
+                await AppConfig.load();
+                const categories = AppConfig.getAllCategories();
+                const select = document.getElementById('manageCategory');
+                if (!select) return;
+                const firstOption = select.options[0];
+                select.innerHTML = '';
+                if (firstOption) select.appendChild(firstOption);
+                categories.forEach(ct => {
+                    const option = document.createElement('option');
+                    option.value = ct.id;
+                    option.textContent = `${ct.icon} ${ct.name}`;
+                    select.appendChild(option);
+                });
+                categoriesLoaded = true;
+            } catch (error) {
+                console.error('Failed to load categories:', error);
+            }
+        }
+
+        // ══════════════════════════════════════════════
+        //  TAB SWITCHING
+        // ══════════════════════════════════════════════
+
+        function showTab(tabId, el) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            if (el) el.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+
+            if (tabId === 'translations') loadTranslations();
+            if (tabId === 'content') loadContent();
+            if (tabId === 'settings') loadSettingsData();
+        }
+
+        // ══════════════════════════════════════════════
+        //  BULK UPLOAD
+        // ══════════════════════════════════════════════
+
+        const AUDIO_EXTS = ['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.aac'];
+        let bulkFiles = [];
+
+        function getDefaultCategory(isAudio) {
+            if (!AppConfig.loaded) return isAudio ? 'music' : 'painting';
+            const categories = AppConfig.getAllCategories();
+            if (isAudio) {
+                const audioType = categories.find(ct => ct.mediaType === 'audio');
+                return audioType ? audioType.id : 'music';
+            } else {
+                const imageType = categories.find(ct => ct.mediaType === 'image');
+                return imageType ? imageType.id : 'painting';
+            }
+        }
+
+        const dropZone = document.getElementById('bulkDropZone');
+        const fileInput = document.getElementById('bulkFileInput');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            addFiles(e.dataTransfer.files);
+        });
+        fileInput.addEventListener('change', (e) => { addFiles(e.target.files); fileInput.value = ''; });
+
+        function addFiles(fileList) {
+            for (const file of fileList) {
+                const ext = '.' + file.name.split('.').pop().toLowerCase();
+                const isAudio = AUDIO_EXTS.includes(ext);
+                const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+                bulkFiles.push({ file, isAudio, title: baseName, category: getDefaultCategory(isAudio) });
+            }
+            renderBulkQueue();
+        }
+
+        function bulkUpdateTitle(idx, val) { bulkFiles[idx].title = val; }
+        function bulkUpdateCat(idx, val) { bulkFiles[idx].category = val; }
+        function bulkRemove(idx) { bulkFiles.splice(idx, 1); renderBulkQueue(); }
+
+        function renderBulkQueue() {
+            const queue = document.getElementById('bulkQueue');
+            const items = document.getElementById('bulkItems');
+            const count = document.getElementById('bulkCount');
+
+            if (bulkFiles.length === 0) { queue.style.display = 'none'; return; }
+            queue.style.display = 'block';
+            count.textContent = `${bulkFiles.length} file${bulkFiles.length > 1 ? 's' : ''} queued`;
+
+            let html = '';
+            bulkFiles.forEach((entry, i) => {
+                const thumbContent = entry.isAudio
+                    ? '<span style="font-size:24px;">&#9835;</span>'
+                    : `<img src="${URL.createObjectURL(entry.file)}">`;
+
+                let catOptions = '';
+                const categories = AppConfig.loaded ? AppConfig.getAllCategories() : [];
+                const relevantTypes = entry.isAudio
+                    ? categories.filter(ct => ct.mediaType === 'audio')
+                    : categories.filter(ct => ct.mediaType === 'image');
+                catOptions = relevantTypes.map(ct =>
+                    `<option value="${ct.id}"${ct.id === entry.category ? ' selected' : ''}>${ct.icon} ${ct.name}</option>`
+                ).join('');
+
+                html += `<div class="bulk-item">
+                    <div class="bulk-thumb">${thumbContent}</div>
+                    <div class="bulk-fields">
+                        <input type="text" value="${entry.title.replace(/"/g, '&quot;')}" placeholder="Title" onchange="bulkUpdateTitle(${i}, this.value)">
+                        <select onchange="bulkUpdateCat(${i}, this.value)"${entry.isAudio ? ' disabled' : ''}>${catOptions}</select>
+                    </div>
+                    <span class="bulk-status" id="bulk-status-${i}"></span>
+                    <button type="button" class="bulk-remove" onclick="bulkRemove(${i})">&times;</button>
+                </div>`;
+            });
+            items.innerHTML = html;
+        }
+
+        function clearBulkQueue() { bulkFiles = []; renderBulkQueue(); }
+
+        async function startBulkUpload() {
+            if (bulkFiles.length === 0) return;
+            const uploadBtn = document.getElementById('bulkUploadBtn');
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'UPLOADING...';
+            conLog(`> Starting bulk upload of ${bulkFiles.length} file(s)...`);
+
+            const formData = new FormData();
+            bulkFiles.forEach((entry, i) => {
+                formData.append(`file_${i}`, entry.file);
+                formData.append(`title_${i}`, entry.title);
+                formData.append(`category_${i}`, entry.category);
+            });
+            bulkFiles.forEach((_, i) => {
+                const s = document.getElementById(`bulk-status-${i}`);
+                if (s) s.textContent = '...';
+            });
+
+            try {
+                const res = await fetch(`${API_URL}/api/upload-bulk`, { method: 'POST', body: formData });
+                const result = await res.json();
+
+                (result.results || []).forEach(r => {
+                    const idx = bulkFiles.findIndex(f => f.file.name === r.file);
+                    if (idx >= 0) {
+                        const s = document.getElementById(`bulk-status-${idx}`);
+                        if (s) { s.textContent = 'OK'; s.classList.add('con-success'); }
+                    }
+                });
+                (result.errors || []).forEach(r => {
+                    const idx = bulkFiles.findIndex(f => f.file.name === r.file);
+                    if (idx >= 0) {
+                        const s = document.getElementById(`bulk-status-${idx}`);
+                        if (s) { s.textContent = 'FAIL'; s.classList.add('con-error'); s.title = r.error || 'Unknown error'; }
+                    }
+                    conLog(`> FAILED: ${r.file} — ${r.error || 'Unknown error'}`, 'con-error');
+                });
+
+                conLog(`> Bulk upload complete: ${result.uploaded} uploaded, ${result.failed} failed.`, result.failed > 0 ? 'con-error' : 'con-success');
+
+                if (result.uploaded > 0) {
+                    autoCommitAndPush(`bulk upload ${result.uploaded} file(s)`);
+                    setTimeout(() => {
+                        bulkFiles = bulkFiles.filter((_, i) => {
+                            const s = document.getElementById(`bulk-status-${i}`);
+                            return s && !s.classList.contains('con-success');
+                        });
+                        renderBulkQueue();
+                        loadContent();
+                    }, 2000);
+                }
+            } catch (err) {
+                conLog(isServerDown(err) ? `> ${serverDownMsg()}` : `> NETWORK ERROR: ${err.message}`, 'con-error');
+            }
+
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = 'UPLOAD ALL';
+        }
+
+        // ══════════════════════════════════════════════
+        //  CONTENT LIST (enhanced with thumbnails)
+        // ══════════════════════════════════════════════
+
+        let loadedContent = {};
+
+        function isImageCategory(categoryId) {
+            const ct = AppConfig.getCategory(categoryId);
+            return ct && ct.mediaType === 'image';
+        }
+
+        async function loadContent() {
+            const cat = document.getElementById('manageCategory').value;
+            const inner = document.getElementById('contentListInner');
+            inner.innerHTML = '<p align="center">Loading content...</p>';
+
+            try {
+                const res = await fetch(`${API_URL}/api/content`);
+                const all = await res.json();
+                loadedContent = all;
+
+                let html = '';
+                Object.keys(all).forEach(category => {
+                    const items = all[category];
+                    if (cat !== 'all' && cat !== category) return;
+                    if (!items || items.length === 0) return;
+
+                    const categoryInfo = AppConfig.getCategory(category);
+                    const isImage = isImageCategory(category);
+
+                    items.forEach(item => {
+                        const titleStr = (typeof item.title === 'object' && item.title !== null) ? (item.title.en || '') : (item.title || '');
+                        const id = item.id || titleStr;
+                        const safeId = id.replace(/"/g, '&quot;');
+                        const galleryCount = (item.gallery && item.gallery.length) ? item.gallery.length + 1 : 0;
+
+                        // Thumbnail
+                        let thumbHtml;
+                        if (isImage && item.url) {
+                            thumbHtml = `<img src="${item.url}" loading="lazy" alt="">`;
+                        } else {
+                            thumbHtml = `<span class="content-thumb-icon">${isImage ? '&#128444;' : '&#9835;'}</span>`;
+                        }
+
+                        const isPile = galleryCount > 1;
+                        const pileButtonText = isPile ? 'Merge' : 'Pile';
+                        const pileButtonTitle = isPile ? 'Merge this pile into another pile' : 'Move this item into another pile';
+
+                        html += `<div class="content-row" data-id="${safeId}" data-category="${category}">
+                            <input type="checkbox" class="bulk-check" onchange="updateBulkSelection()">
+                            <div class="content-row-info">
+                                <div class="content-thumb">${thumbHtml}</div>
+                                <div style="min-width:0; flex:1;">
+                                    <div class="content-title">${titleStr}</div>
+                                    <div class="content-meta">
+                                        <span>${item.date || 'N/A'}</span>
+                                        ${galleryCount > 1 ? `<span>${galleryCount} imgs</span>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="content-actions">
+                                ${isImage ? `<button type="button" class="pile-btn" style="font-size:10px" data-category="${category}" data-id="${safeId}" title="${pileButtonTitle}">${pileButtonText}</button>` : ''}
+                                <button type="button" class="edit-btn" style="font-size:10px" data-category="${category}" data-id="${safeId}">Edit</button>
+                                <button type="button" class="delete-btn con-error" style="font-size:10px" data-category="${category}" data-id="${safeId}">Delete</button>
+                                <span class="delete-status" style="font-size:9px;margin-left:3px"></span>
+                            </div>
+                        </div>`;
+                    });
+                });
+
+                inner.innerHTML = html || '<p align="center">No content found for this category.</p>';
+                clearBulkSelection();
+            } catch (err) {
+                inner.innerHTML = isServerDown(err)
+                    ? `<p align="center" class="con-error">${serverDownMsg()}</p>`
+                    : '<p align="center" class="con-error">Error loading content list.</p>';
+            }
+        }
+
+        // ══════════════════════════════════════════════
+        //  BULK SELECTION (integrated into content list)
+        // ══════════════════════════════════════════════
+
+        function updateBulkSelection() {
+            const count = document.querySelectorAll('#contentListInner .bulk-check:checked').length;
+            const toolbar = document.getElementById('bulkSelectToolbar');
+            document.getElementById('bulkSelectedCount').textContent = count;
+            toolbar.classList.toggle('active', count > 0);
+        }
+
+        function clearBulkSelection() {
+            document.querySelectorAll('#contentListInner .bulk-check').forEach(cb => cb.checked = false);
+            updateBulkSelection();
+        }
+
+        function selectAllInCategory() {
+            const cat = document.getElementById('manageCategory').value;
+            document.querySelectorAll('#contentListInner .content-row').forEach(row => {
+                if (cat === 'all' || row.dataset.category === cat) {
+                    const cb = row.querySelector('.bulk-check');
+                    if (cb) cb.checked = true;
+                }
+            });
+            updateBulkSelection();
+        }
+
+        // ══════════════════════════════════════════════
+        //  CONTENT LIST ACTIONS (edit, delete, pile)
+        // ══════════════════════════════════════════════
+
+        document.getElementById('contentListInner').addEventListener('click', (e) => {
+            const editBtn = e.target.closest('.edit-btn');
+            if (editBtn) {
+                e.stopPropagation();
+                window.location.href = `edit.html?category=${encodeURIComponent(editBtn.dataset.category)}&id=${encodeURIComponent(editBtn.dataset.id)}`;
+                return;
+            }
+
+            const pileBtn = e.target.closest('.pile-btn');
+            if (pileBtn) {
+                e.stopPropagation();
+                openPilePicker(pileBtn);
+                return;
+            }
+
+            const deleteBtn = e.target.closest('.delete-btn');
+            if (deleteBtn) {
+                e.stopPropagation();
+                const statusSpan = deleteBtn.parentElement.querySelector('.delete-status');
+                if (deleteBtn.dataset.armed === 'true') {
+                    deleteItem(deleteBtn.dataset.category, deleteBtn.dataset.id, statusSpan);
+                } else {
+                    deleteBtn.dataset.armed = 'true';
+                    deleteBtn.innerText = 'Sure?';
+                    deleteBtn.style.fontWeight = 'bold';
+                    statusSpan.innerHTML = '<span class="con-warn">click again to confirm</span>';
+                    setTimeout(() => {
+                        deleteBtn.dataset.armed = 'false';
+                        deleteBtn.innerText = 'Delete';
+                        deleteBtn.style.fontWeight = 'normal';
+                        statusSpan.innerHTML = '';
+                    }, 3000);
+                }
+            }
+        });
+
+        function openPilePicker(btn) {
+            document.querySelectorAll('.pile-picker').forEach(p => p.remove());
+            const category = btn.dataset.category;
+            const sourceId = btn.dataset.id;
+
+            const sourceItem = (loadedContent[category] || []).find(item => {
+                const id = item.id || (typeof item.title === 'string' ? item.title : (item.title && item.title.en) || '');
+                return id === sourceId;
+            });
+            const sourceGalleryCount = (sourceItem && sourceItem.gallery && sourceItem.gallery.length) ? sourceItem.gallery.length + 1 : 1;
+            const isSourcePile = sourceGalleryCount > 1;
+
+            const items = (loadedContent[category] || []).filter(item => {
+                const id = item.id || (typeof item.title === 'string' ? item.title : (item.title && item.title.en) || '');
+                return id !== sourceId;
+            });
+
+            if (items.length === 0) {
+                conLog(`> No other items in ${category} to ${isSourcePile ? 'merge' : 'pile'} into.`, 'con-warn');
+                return;
+            }
+
+            const picker = document.createElement('div');
+            picker.className = 'pile-picker';
+
+            let html = `<div class="pile-picker-title">${isSourcePile ? 'Merge into:' : 'Move into:'}</div>`;
+            if (isSourcePile) {
+                html += `<div style="padding: 4px 8px; font-size: 9px; background: #fffff0; border-bottom: 1px solid var(--admin-win-border-dark);">This will merge all ${sourceGalleryCount} images into the selected pile</div>`;
+            }
+            items.forEach(item => {
+                const titleStr = (typeof item.title === 'object' && item.title !== null) ? (item.title.en || '') : (item.title || '');
+                const id = item.id || titleStr;
+                const safeId = id.replace(/"/g, '&quot;');
+                const galleryCount = (item.gallery && item.gallery.length) ? item.gallery.length + 1 : 1;
+                html += `<div class="pile-picker-item" data-target-id="${safeId}">
+                    ${titleStr} <span class="admin-muted">(${galleryCount} img${galleryCount > 1 ? 's' : ''})</span>
+                </div>`;
+            });
+            picker.innerHTML = html;
+
+            btn.parentElement.style.position = 'relative';
+            btn.parentElement.appendChild(picker);
+
+            picker.addEventListener('click', async (ev) => {
+                const pickItem = ev.target.closest('.pile-picker-item');
+                if (!pickItem) return;
+                const targetId = pickItem.dataset.targetId;
+                picker.innerHTML = '<div class="pile-picker-title">Moving...</div>';
+                try {
+                    const res = await fetch(`${API_URL}/api/content/move-to-pile`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ category, sourceId, targetId })
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                        conLog(`> Moved into pile (${result.targetGalleryCount + 1} images total).`, 'con-success');
+                        autoCommitAndPush(`move item to pile in ${category}`);
+                        picker.remove();
+                        loadContent();
+                    } else {
+                        conLog(`> Pile error: ${result.error}`, 'con-error');
+                        picker.remove();
+                    }
+                } catch (err) {
+                    conLog(isServerDown(err) ? `> ${serverDownMsg()}` : `> Network error: ${err.message}`, 'con-error');
+                    picker.remove();
+                }
+            });
+
+            setTimeout(() => {
+                document.addEventListener('click', function closePicker(ev) {
+                    if (!picker.contains(ev.target) && ev.target !== btn) {
+                        picker.remove();
+                        document.removeEventListener('click', closePicker);
+                    }
+                });
+            }, 0);
+        }
+
+        async function deleteItem(category, id, statusSpan) {
+            statusSpan.innerHTML = '<span class="con-hi">deleting...</span>';
+            try {
+                const res = await fetch(`${API_URL}/api/content/delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category, id })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    conLog(`> Item "${id}" deleted from ${category}.`, 'con-warn');
+                    statusSpan.innerHTML = '<span class="con-success">deleted!</span>';
+                    autoCommitAndPush(`delete "${id}" from ${category}`);
+                    setTimeout(() => loadContent(), 500);
+                } else {
+                    statusSpan.innerHTML = `<span class="con-error">error: ${result.error}</span>`;
+                }
+            } catch (err) {
+                statusSpan.innerHTML = isServerDown(err)
+                    ? `<span class="con-error">${serverDownMsg()}</span>`
+                    : '<span class="con-error">network error</span>';
+            }
+        }
+
+        // ══════════════════════════════════════════════
+        //  BULK EDIT (modal, reads from checkboxes)
+        // ══════════════════════════════════════════════
+
+        function getSelectedItems() {
+            const items = [];
+            document.querySelectorAll('#contentListInner .bulk-check:checked').forEach(cb => {
+                const row = cb.closest('.content-row');
+                const category = row.dataset.category;
+                const id = row.dataset.id;
+                const catItems = loadedContent[category] || [];
+                const item = catItems.find(it => {
+                    const itId = it.id || (typeof it.title === 'string' ? it.title : (it.title && it.title.en) || '');
+                    return itId === id;
+                });
+                if (item) items.push({ category, id, item });
+            });
+            return items;
+        }
+
+        async function bulkDelete() {
+            const selected = getSelectedItems();
+            if (selected.length === 0) return;
+            if (!confirm(`Delete ${selected.length} item(s)? This cannot be undone.`)) return;
+
+            let ok = 0, fail = 0;
+            for (const { category, id } of selected) {
+                try {
+                    const res = await fetch(`${API_URL}/api/content/delete`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ category, id })
+                    });
+                    const r = await res.json();
+                    if (r.success) ok++; else fail++;
+                } catch (_) { fail++; }
+            }
+            conLog(`> Bulk delete: ${ok} removed, ${fail} failed`, ok ? 'con-success' : 'con-error');
+            if (ok) {
+                autoCommitAndPush(`bulk delete ${ok} items`);
+                loadContent();
+            }
+        }
+
+        function showBulkChangeCategory() {
+            const selected = getSelectedItems();
+            if (selected.length === 0) return;
+
+            const allCats = AppConfig.getAllCategories();
+            const options = allCats.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+
+            const modal = document.createElement('div');
+            modal.className = 'bulk-edit-modal';
+            modal.innerHTML = `
+                <div class="bulk-edit-modal-content window" style="width: 400px;">
+                    <div class="title-bar">
+                        <span>MOVE ${selected.length} ITEM(S)</span>
+                        <div class="title-bar-controls">
+                            <button onclick="closeBulkEditModal()">X</button>
+                        </div>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div class="form-group">
+                            <label>Move to category:</label>
+                            <select id="bulkTargetCategory">${options}</select>
+                        </div>
+                        <div class="button-bar">
+                            <button type="button" onclick="closeBulkEditModal()">Cancel</button>
+                            <button type="button" class="save-btn" onclick="applyBulkChangeCategory()">Move</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        window.closeBulkEditModal = function() {
+            const modal = document.querySelector('.bulk-edit-modal');
+            if (modal) modal.remove();
+        };
+
+        window.applyBulkChangeCategory = async function() {
+            const toCategory = document.getElementById('bulkTargetCategory').value;
+            const selected = getSelectedItems();
+            let ok = 0, fail = 0;
+
+            for (const { category, id } of selected) {
+                if (category === toCategory) { ok++; continue; }
+                try {
+                    const res = await fetch(`${API_URL}/api/content/change-category`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id, fromCategory: category, toCategory })
+                    });
+                    const r = await res.json();
+                    if (r.success) ok++; else fail++;
+                } catch (_) { fail++; }
+            }
+
+            conLog(`> Moved ${ok} items to ${toCategory}${fail ? `, ${fail} failed` : ''}`, ok ? 'con-success' : 'con-error');
+            if (ok) {
+                autoCommitAndPush(`move ${ok} items to ${toCategory}`);
+                closeBulkEditModal();
+                loadContent();
+            }
+        };
+
+        // ══════════════════════════════════════════════
+        //  TRANSLATIONS
+        // ══════════════════════════════════════════════
+
+        async function loadTranslations() {
+            const lang = document.getElementById('langSelect').value;
+            if (!lang) return;
+            const grid = document.getElementById('translationGrid');
+            grid.innerHTML = 'Loading...';
+
+            try {
+                const res = await fetch(`${API_URL}/api/translations/${lang}`);
+                const trans = await res.json();
+
+                // Group keys by prefix for readable sections
+                const groups = {};
+                const groupOrder = [];
+                Object.keys(trans).forEach(key => {
+                    const prefix = key.split('_')[0];
+                    if (!groups[prefix]) { groups[prefix] = []; groupOrder.push(prefix); }
+                    groups[prefix].push(key);
+                });
+
+                const groupLabels = {
+                    nav: 'Navigation', filter: 'Filters', header: 'Header', marquee: 'Marquee',
+                    sidebar: 'Sidebar', footer: 'Footer', gallery: 'Gallery', index: 'Home Page',
+                    detail: 'Detail View', card: 'Cards', music: 'Music', photo: 'Photography',
+                    street: 'Street', projects: 'Projects', sculpting: 'Sculpting',
+                    admin: 'Admin', edit: 'Edit Page'
+                };
+
+                let html = '';
+                groupOrder.forEach(prefix => {
+                    const label = groupLabels[prefix] || prefix.toUpperCase();
+                    const keys = groups[prefix];
+                    html += `<div class="trans-section">
+                        <div class="trans-section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                            ${label} <span class="trans-count">${keys.length}</span>
+                        </div>
+                        <div class="trans-section-body">`;
+                    keys.forEach(key => {
+                        const safeVal = (trans[key] || '').replace(/"/g, '&quot;');
+                        const shortKey = key.replace(prefix + '_', '');
+                        html += `<div class="trans-row">
+                            <span class="trans-key" title="${key}">${shortKey}</span>
+                            <input type="text" value="${safeVal}" onblur="updateTrans('${lang}', '${key}', this.value)">
+                        </div>`;
+                    });
+                    html += `</div></div>`;
+                });
+                grid.innerHTML = html;
+            } catch (err) {
+                grid.innerHTML = isServerDown(err)
+                    ? `<span class="con-error">${serverDownMsg()}</span>`
+                    : 'Error loading translations.';
+            }
+        }
+
+        async function updateTrans(lang, key, value) {
+            try {
+                const res = await fetch(`${API_URL}/api/translations/${lang}`);
+                const trans = await res.json();
+                trans[key] = value;
+                await fetch(`${API_URL}/api/translations/${lang}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(trans)
+                });
+                conLog(`> Translation "${key}" updated for [${lang}].`);
+                autoCommitAndPush(`update translation "${key}" for ${lang}`);
+            } catch (err) {
+                conLog(isServerDown(err) ? `> ${serverDownMsg()}` : '> Error updating translation.', 'con-error');
+            }
+        }
+
+        // ══════════════════════════════════════════════
+        //  SETTINGS: CONFIG MANAGER (merged from config-manager.html)
+        // ══════════════════════════════════════════════
+
+        let currentMediaTypes = [];
+        let currentCategories = [];
+        let editingMediaTypeIndex = null;
+        let editingCategoryIndex = null;
+        let currentFields = [];
+        let settingsLoaded = false;
+
+        async function loadSettingsData() {
+            if (settingsLoaded) return;
+            try {
+                const [mtRes, ctRes] = await Promise.all([
+                    fetch(`${API_URL}/api/config/media-types`),
+                    fetch(`${API_URL}/api/config/categories`)
+                ]);
+                const mtData = await mtRes.json();
+                const ctData = await ctRes.json();
+                currentMediaTypes = mtData.mediaTypes || [];
+                currentCategories = ctData.categories || [];
+                renderMediaTypes();
+                renderCategories();
+                populateMediaTypeSelect();
+                settingsLoaded = true;
+            } catch (error) {
+                conLog(isServerDown(error) ? `> ${serverDownMsg()}` : '> Error loading configuration', 'con-error');
+            }
+        }
+
+        function renderMediaTypes() {
+            const grid = document.getElementById('mediaTypesGrid');
+            grid.innerHTML = currentMediaTypes.map((mt, index) => `
+                <div class="config-list-row">
+                    <span class="config-list-icon">${mt.icon}</span>
+                    <span class="config-list-name">${mt.name}</span>
+                    <span class="config-list-detail"><code>${mt.id}</code></span>
+                    <span class="config-list-detail">${mt.viewer}</span>
+                    <span class="config-list-badges">
+                        ${mt.supportsGallery ? '<span class="config-badge">Gallery</span>' : ''}
+                        ${mt.supportsMetadata ? '<span class="config-badge">Meta</span>' : ''}
+                    </span>
+                    <span class="config-list-actions">
+                        <button class="btn-small btn-primary" onclick="viewMediaTypeContent('${mt.id}')">View</button>
+                        <button class="btn-small" onclick="editMediaType(${index})">Edit</button>
+                        <button class="btn-small" onclick="deleteMediaType(${index})">Del</button>
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function renderCategories() {
+            const grid = document.getElementById('categoriesGrid');
+            grid.innerHTML = currentCategories.map((ct, index) => {
+                const mediaType = currentMediaTypes.find(m => m.id === ct.mediaType);
+                const fieldCount = (ct.fields?.optional || []).length;
+                return `
+                    <div class="config-list-row">
+                        <span class="config-list-icon">${ct.icon}</span>
+                        <span class="config-list-name">${ct.name}</span>
+                        <span class="config-list-detail"><code>${ct.id}</code></span>
+                        <span class="config-list-detail">${mediaType?.icon || ''} ${ct.mediaType}</span>
+                        <span class="config-list-detail">${fieldCount} field(s)</span>
+                        <span class="config-list-actions">
+                            <button class="btn-small btn-primary" onclick="viewCategoryItems('${ct.id}')">View</button>
+                            <button class="btn-small" onclick="editCategory(${index})">Edit</button>
+                            <button class="btn-small" onclick="deleteCategory(${index})">Del</button>
+                        </span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function populateMediaTypeSelect() {
+            const select = document.getElementById('ctMediaType');
+            if (!select) return;
+            select.innerHTML = currentMediaTypes.map(mt =>
+                `<option value="${mt.id}">${mt.icon} ${mt.name}</option>`
+            ).join('');
+        }
+
+        // Modal handlers
+        function openMediaTypeModal(index) {
+            editingMediaTypeIndex = index !== undefined ? index : null;
+            const modal = document.getElementById('mediaTypeModal');
+            const form = document.getElementById('mediaTypeForm');
+
+            if (editingMediaTypeIndex !== null) {
+                const mt = currentMediaTypes[editingMediaTypeIndex];
+                document.getElementById('mediaTypeModalTitle').textContent = 'Edit Media Type';
+                document.getElementById('mtId').value = mt.id;
+                document.getElementById('mtName').value = mt.name;
+                document.getElementById('mtIcon').value = mt.icon;
+                document.getElementById('mtViewer').value = mt.viewer;
+                document.getElementById('mtSupportsGallery').checked = mt.supportsGallery;
+                document.getElementById('mtSupportsMetadata').checked = mt.supportsMetadata;
+                document.getElementById('mtFormats').value = (mt.acceptedFormats || []).join(', ');
+                document.getElementById('mtDestination').value = mt.uploadDestination || 'cloudinary';
+                document.getElementById('mtDescription').value = mt.description || '';
+                document.getElementById('mtId').disabled = true;
+            } else {
+                document.getElementById('mediaTypeModalTitle').textContent = 'Add Media Type';
+                form.reset();
+                document.getElementById('mtId').disabled = false;
+            }
+            modal.classList.add('active');
+        }
+
+        function closeMediaTypeModal() {
+            document.getElementById('mediaTypeModal').classList.remove('active');
+            editingMediaTypeIndex = null;
+        }
+
+        function openCategoryModal(index) {
+            editingCategoryIndex = index !== undefined ? index : null;
+            const modal = document.getElementById('categoryModal');
+            const form = document.getElementById('categoryForm');
+
+            if (editingCategoryIndex !== null) {
+                const ct = currentCategories[editingCategoryIndex];
+                document.getElementById('categoryModalTitle').textContent = 'Edit Category';
+                document.getElementById('ctId').value = ct.id;
+                document.getElementById('ctName').value = ct.name;
+                document.getElementById('ctIcon').value = ct.icon;
+                document.getElementById('ctMediaType').value = ct.mediaType;
+                document.getElementById('ctDataFile').value = ct.dataFile;
+                document.getElementById('ctDescription').value = ct.description || '';
+                currentFields = (ct.fields?.optional || []).map(f => ({...f}));
+                document.getElementById('ctId').disabled = true;
+            } else {
+                document.getElementById('categoryModalTitle').textContent = 'Add Category';
+                form.reset();
+                currentFields = [];
+                document.getElementById('ctId').disabled = false;
+            }
+            renderFields();
+            modal.classList.add('active');
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').classList.remove('active');
+            editingCategoryIndex = null;
+            currentFields = [];
+        }
+
+        // Field management
+        function addField() {
+            currentFields.push({ name: '', type: 'text', label: '', placeholder: '' });
+            renderFields();
+        }
+
+        function removeField(index) {
+            currentFields.splice(index, 1);
+            renderFields();
+        }
+
+        function renderFields() {
+            const list = document.getElementById('fieldsList');
+            list.innerHTML = currentFields.map((field, index) => `
+                <div class="field-item">
+                    <div>
+                        <input type="text" placeholder="Field Name"
+                               value="${field.name}"
+                               onchange="currentFields[${index}].name = this.value"
+                               style="width: 120px; margin-right: 5px;">
+                        <select onchange="currentFields[${index}].type = this.value"
+                                style="width: 100px; margin-right: 5px;">
+                            <option value="text" ${field.type === 'text' ? 'selected' : ''}>Text</option>
+                            <option value="textarea" ${field.type === 'textarea' ? 'selected' : ''}>Textarea</option>
+                        </select>
+                        <input type="text" placeholder="Label"
+                               value="${field.label || ''}"
+                               onchange="currentFields[${index}].label = this.value"
+                               style="width: 120px;">
+                    </div>
+                    <button type="button" onclick="removeField(${index})">x</button>
+                </div>
+            `).join('');
+        }
+
+        // Form submissions
+        document.getElementById('mediaTypeForm').onsubmit = (e) => {
+            e.preventDefault();
+            const mediaType = {
+                id: document.getElementById('mtId').value,
+                name: document.getElementById('mtName').value,
+                icon: document.getElementById('mtIcon').value,
+                viewer: document.getElementById('mtViewer').value,
+                supportsGallery: document.getElementById('mtSupportsGallery').checked,
+                supportsMetadata: document.getElementById('mtSupportsMetadata').checked,
+                acceptedFormats: document.getElementById('mtFormats').value.split(',').map(f => f.trim()),
+                uploadDestination: document.getElementById('mtDestination').value,
+                description: document.getElementById('mtDescription').value
+            };
+            if (editingMediaTypeIndex !== null) {
+                currentMediaTypes[editingMediaTypeIndex] = mediaType;
+            } else {
+                currentMediaTypes.push(mediaType);
+            }
+            renderMediaTypes();
+            populateMediaTypeSelect();
+            closeMediaTypeModal();
+            conLog('> Media type saved (click Save All to persist)', 'con-info');
+        };
+
+        document.getElementById('categoryForm').onsubmit = (e) => {
+            e.preventDefault();
+            const category = {
+                id: document.getElementById('ctId').value,
+                name: document.getElementById('ctName').value,
+                icon: document.getElementById('ctIcon').value,
+                mediaType: document.getElementById('ctMediaType').value,
+                dataFile: document.getElementById('ctDataFile').value,
+                description: document.getElementById('ctDescription').value,
+                fields: {
+                    required: ['title', 'url'],
+                    optional: currentFields
+                }
+            };
+            if (editingCategoryIndex !== null) {
+                currentCategories[editingCategoryIndex] = category;
+            } else {
+                currentCategories.push(category);
+            }
+            renderCategories();
+            closeCategoryModal();
+            conLog('> Category saved (click Save All to persist)', 'con-info');
+        };
+
+        // CRUD
+        function editMediaType(index) { openMediaTypeModal(index); }
+        function deleteMediaType(index) {
+            if (confirm(`Delete media type "${currentMediaTypes[index].name}"?`)) {
+                currentMediaTypes.splice(index, 1);
+                renderMediaTypes();
+                conLog('> Media type deleted (click Save All to persist)', 'con-warn');
+            }
+        }
+
+        function editCategory(index) { openCategoryModal(index); }
+        function deleteCategory(index) {
+            if (confirm(`Delete category "${currentCategories[index].name}"?`)) {
+                currentCategories.splice(index, 1);
+                renderCategories();
+                conLog('> Content type deleted (click Save All to persist)', 'con-warn');
+            }
+        }
+
+        // Save / Export / Reload
+        async function saveAllConfigurations() {
+            if (!confirm('Save all configuration changes? This will update your config files.')) return;
+            try {
+                const [mtRes, ctRes] = await Promise.all([
+                    fetch(`${API_URL}/api/config/media-types`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ mediaTypes: currentMediaTypes })
+                    }),
+                    fetch(`${API_URL}/api/config/categories`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ categories: currentCategories })
+                    })
+                ]);
+
+                if (mtRes.ok && ctRes.ok) {
+                    conLog('> Configuration saved!', 'con-success');
+                    autoCommitAndPush('update configuration');
+                } else {
+                    throw new Error('Failed to save');
+                }
+            } catch (error) {
+                conLog(isServerDown(error) ? `> ${serverDownMsg()}` : `> Error saving: ${error.message}`, 'con-error');
+            }
+        }
+
+        function reloadConfigurations() {
+            if (confirm('Reload configurations from server? Unsaved changes will be lost.')) {
+                settingsLoaded = false;
+                loadSettingsData();
+            }
+        }
+
+        function exportConfigurations() {
+            const config = {
+                mediaTypes: { mediaTypes: currentMediaTypes },
+                categories: { categories: currentCategories }
+            };
+            const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `portfolio-config-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Navigation from config cards (stay on same page)
+        function viewMediaTypeContent(mediaTypeId) {
+            const related = currentCategories.filter(ct => ct.mediaType === mediaTypeId);
+            if (related.length === 0) {
+                alert(`No categories use the "${mediaTypeId}" media type yet.`);
+                return;
+            }
+            if (related.length === 1) {
+                document.getElementById('manageCategory').value = related[0].id;
+            } else {
+                document.getElementById('manageCategory').value = 'all';
+            }
+            showTab('content', document.querySelectorAll('.tab')[0]);
+        }
+
+        function viewCategoryItems(categoryId) {
+            document.getElementById('manageCategory').value = categoryId;
+            showTab('content', document.querySelectorAll('.tab')[0]);
+        }
+
+        // ══════════════════════════════════════════════
+        //  HASH ROUTING & INITIALIZATION
+        // ══════════════════════════════════════════════
+
+        // Auto-switch tab based on URL hash
+        if (window.location.hash === '#manage' || window.location.hash === '#content') {
+            const contentTab = document.querySelectorAll('.tab')[0];
+            if (contentTab) showTab('content', contentTab);
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const categoryParam = urlParams.get('category');
+            if (categoryParam) {
+                const categorySelect = document.getElementById('manageCategory');
+                if (categorySelect) {
+                    categorySelect.value = categoryParam;
+                    loadContent();
+                }
+            }
+        }
+
+        if (window.location.hash === '#config' || window.location.hash === '#settings') {
+            const settingsTab = document.querySelectorAll('.tab')[2];
+            if (settingsTab) showTab('settings', settingsTab);
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            await bootstrapConfig();
+            await initializeLanguages();
+            await initializeCategories();
+            loadContent();
+            // Apply saved admin language
+            const savedLang = localStorage.getItem('adminLang');
+            if (savedLang) translateAdminUI(savedLang);
+        });
+
+    </script>
+</body>
+
+</html>

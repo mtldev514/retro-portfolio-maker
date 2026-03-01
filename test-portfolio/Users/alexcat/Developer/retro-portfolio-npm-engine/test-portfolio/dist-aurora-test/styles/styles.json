@@ -1,0 +1,7 @@
+{
+    "defaultTheme": "beton",
+    "allowUserSwitch": false,
+    "themes": [
+        { "id": "beton", "name": "Béton", "emoji": "🌫️", "file": "beton.css" }
+    ]
+}

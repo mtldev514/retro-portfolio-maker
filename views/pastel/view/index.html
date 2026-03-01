@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="header_title">Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Config loader MUST be first (sync, not deferred) -->
+    <script src="js/config-loader.js"></script>
+
+    <!-- Core modules (deferred) -->
+    <script src="js/i18n.js" defer></script>
+    <script src="js/page.js" defer></script>
+    <script src="js/audio-player.js" defer></script>
+
+    <!-- View modules (deferred, loaded after core) -->
+    <script src="js/render.js" defer></script>
+    <script src="js/router.js" defer></script>
+    <script src="js/init.js" defer></script>
+</head>
+<body>
+
+    <!-- Loading screen -->
+    <div id="loading-screen">
+        <div class="loading-inner">
+            <div class="loading-spinner"></div>
+            <p class="loading-text" data-i18n="loading">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Main app -->
+    <div id="app">
+
+        <!-- Header -->
+        <header class="site-header">
+            <div class="header-left">
+                <h1 class="site-title" data-i18n="header_title">Portfolio</h1>
+                <p class="site-subtitle" data-i18n="header_subtitle"></p>
+            </div>
+            <div class="header-right">
+                <div class="lang-selector">
+                    <button class="lang-toggle" aria-label="Language">
+                        <span class="lang-current-flag"></span>
+                        <span class="lang-current-code"></span>
+                    </button>
+                    <div class="settings-dropdown lang-dropdown" hidden>
+                        <!-- populated by init.js -->
+                    </div>
+                </div>
+                <button class="audio-toggle" aria-label="Toggle music" hidden>
+                    <span class="audio-icon">♫</span>
+                    <span class="audio-track-name"></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Filter nav (auto-injected by build) -->
+        <nav class="filter-bar">
+            <div id="filter-nav"></div>
+        </nav>
+
+        <!-- Gallery grid -->
+        <main class="gallery-container">
+            <div class="gallery-grid" id="gallery-grid"></div>
+            <div class="load-more-wrap">
+                <button class="load-more-btn" id="load-more" hidden data-i18n="load_more">Load more</button>
+            </div>
+        </main>
+
+        <!-- Detail overlay (populated by router) -->
+        <div class="detail-overlay" id="detail-overlay" hidden>
+            <div class="detail-content" id="detail-content"></div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="site-footer">
+            <p class="footer-copy" data-i18n="footer_copy">&copy; 2026</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

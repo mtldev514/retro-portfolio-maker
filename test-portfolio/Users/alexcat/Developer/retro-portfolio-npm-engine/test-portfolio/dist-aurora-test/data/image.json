@@ -1,0 +1,436 @@
+[
+  {
+    "id": "d77d65ea-f187-4d5d-aa74-f66a78085472",
+    "legacyId": "painting-1",
+    "title": {
+      "en": "Sunset Over Mountains",
+      "fr": "Coucher de soleil sur les montagnes",
+      "mx": "Atardecer sobre montañas",
+      "ht": "Solèy kouche sou mòn yo"
+    },
+    "url": "https://picsum.photos/seed/painting1/400/300",
+    "date": "2025-03-15",
+    "medium": {
+      "en": "Oil on canvas",
+      "fr": "Huile sur toile",
+      "mx": "Óleo sobre lienzo",
+      "ht": "Lwil sou twal"
+    },
+    "description": {
+      "en": "A vibrant sunset scene",
+      "fr": "Un coucher de soleil vibrant",
+      "mx": "Una vibrante escena de atardecer",
+      "ht": "Yon sèn solèy kouche vibran"
+    }
+  },
+  {
+    "id": "f05aee36-c87f-4726-b08c-7698e80bf993",
+    "legacyId": "painting-2",
+    "title": {
+      "en": "Blue Harbor",
+      "fr": "Port bleu",
+      "mx": "Puerto azul",
+      "ht": "Pò ble"
+    },
+    "url": "https://picsum.photos/seed/painting2/400/300",
+    "date": "2025-01-20",
+    "medium": {
+      "en": "Acrylic",
+      "fr": "Acrylique",
+      "mx": "Acrílico",
+      "ht": "Akrilik"
+    },
+    "description": {
+      "en": "Harbor at dawn",
+      "fr": "Le port à l'aube",
+      "mx": "Puerto al amanecer",
+      "ht": "Pò a nan granmaten"
+    }
+  },
+  {
+    "id": "daac0376-1385-458a-a741-c215a3b43760",
+    "legacyId": "painting-3",
+    "title": {
+      "en": "Abstract Garden",
+      "fr": "Jardin abstrait",
+      "mx": "Jardín abstracto",
+      "ht": "Jaden abstrè"
+    },
+    "url": "https://picsum.photos/seed/painting3/400/300",
+    "date": "2024-11-05",
+    "medium": {
+      "en": "Watercolor",
+      "fr": "Aquarelle",
+      "mx": "Acuarela",
+      "ht": "Akwarèl"
+    },
+    "description": {
+      "en": "Abstract floral composition",
+      "fr": "Composition florale abstraite",
+      "mx": "Composición floral abstracta",
+      "ht": "Konpozisyon floral abstrè"
+    }
+  },
+  {
+    "id": "1bc79301-7f40-43cf-9d7d-aa285ddf81cc",
+    "legacyId": "painting-4",
+    "title": {
+      "en": "City Lights",
+      "fr": "Lumières de la ville",
+      "mx": "Luces de la ciudad",
+      "ht": "Limyè vil la"
+    },
+    "url": "https://picsum.photos/seed/painting4/400/300",
+    "date": "2025-06-10",
+    "medium": {
+      "en": "Oil on canvas",
+      "fr": "Huile sur toile",
+      "mx": "Óleo sobre lienzo",
+      "ht": "Lwil sou twal"
+    }
+  },
+  {
+    "id": "eecd040f-9876-43ab-a7f9-2ee93ab76f6b",
+    "legacyId": "painting-5",
+    "title": {
+      "en": "Morning Fog",
+      "fr": "Brouillard du matin",
+      "mx": "Niebla matutina",
+      "ht": "Bouya maten"
+    },
+    "url": "https://picsum.photos/seed/painting5/400/300",
+    "date": "2024-08-22",
+    "medium": {
+      "en": "Acrylic",
+      "fr": "Acrylique",
+      "mx": "Acrílico",
+      "ht": "Akrilik"
+    },
+    "description": {
+      "en": "Misty landscape",
+      "fr": "Paysage brumeux",
+      "mx": "Paisaje brumoso",
+      "ht": "Peyzaj nan bouya"
+    }
+  },
+  {
+    "id": "caff1e89-1a77-4ab9-87b6-63c9f2df31e3",
+    "legacyId": "painting-6",
+    "title": {
+      "en": "Red Fields",
+      "fr": "Champs rouges",
+      "mx": "Campos rojos",
+      "ht": "Chan wouj yo"
+    },
+    "url": "https://picsum.photos/seed/painting6/400/300",
+    "date": "2026-01-03",
+    "medium": {
+      "en": "Mixed media",
+      "fr": "Techniques mixtes",
+      "mx": "Técnica mixta",
+      "ht": "Teknik miks"
+    }
+  },
+  {
+    "id": "f417b70f-36ac-42ff-b75e-3db07db93c6d",
+    "legacyId": "drawing-1",
+    "title": {
+      "en": "Portrait Study",
+      "fr": "Étude de portrait",
+      "mx": "Estudio de retrato",
+      "ht": "Etid pòtrè"
+    },
+    "url": "https://picsum.photos/seed/drawing1/400/300",
+    "date": "2025-04-12",
+    "medium": {
+      "en": "Charcoal",
+      "fr": "Fusain",
+      "mx": "Carboncillo",
+      "ht": "Chabon"
+    },
+    "description": {
+      "en": "Life drawing session",
+      "fr": "Séance de dessin de modèle vivant",
+      "mx": "Sesión de dibujo del natural",
+      "ht": "Sesyon desen modèl vivan"
+    }
+  },
+  {
+    "id": "8aa024d1-eef9-4ac7-882a-3282f3438406",
+    "legacyId": "drawing-2",
+    "title": {
+      "en": "Urban Sketch",
+      "fr": "Croquis urbain",
+      "mx": "Boceto urbano",
+      "ht": "Desen vil"
+    },
+    "url": "https://picsum.photos/seed/drawing2/400/300",
+    "date": "2025-02-28",
+    "medium": {
+      "en": "Ink",
+      "fr": "Encre",
+      "mx": "Tinta",
+      "ht": "Lank"
+    }
+  },
+  {
+    "id": "8141dc81-7fef-4726-9171-20265c6fadd5",
+    "legacyId": "drawing-3",
+    "title": {
+      "en": "Hand Studies",
+      "fr": "Études de mains",
+      "mx": "Estudios de manos",
+      "ht": "Etid men"
+    },
+    "url": "https://picsum.photos/seed/drawing3/400/300",
+    "date": "2024-12-15",
+    "medium": {
+      "en": "Pencil",
+      "fr": "Crayon",
+      "mx": "Lápiz",
+      "ht": "Kreyon"
+    },
+    "description": {
+      "en": "Anatomical hand studies",
+      "fr": "Études anatomiques des mains",
+      "mx": "Estudios anatómicos de manos",
+      "ht": "Etid anatomik men"
+    }
+  },
+  {
+    "id": "998d6902-0f0a-4960-8208-5bfd38bd2809",
+    "legacyId": "drawing-4",
+    "title": {
+      "en": "Tree Line",
+      "fr": "Ligne d'arbres",
+      "mx": "Línea de árboles",
+      "ht": "Liy pyebwa"
+    },
+    "url": "https://picsum.photos/seed/drawing4/400/300",
+    "date": "2025-07-01"
+  },
+  {
+    "id": "930515c7-d3e3-44a6-9c29-171393dcf5f1",
+    "legacyId": "drawing-5",
+    "title": {
+      "en": "Still Life",
+      "fr": "Nature morte",
+      "mx": "Naturaleza muerta",
+      "ht": "Nati mò"
+    },
+    "url": "https://picsum.photos/seed/drawing5/400/300",
+    "date": "2024-09-18",
+    "medium": {
+      "en": "Graphite",
+      "fr": "Graphite",
+      "mx": "Grafito",
+      "ht": "Grafit"
+    }
+  },
+  {
+    "id": "81ba979b-39ef-445c-bd75-97284e61f400",
+    "legacyId": "photo-1",
+    "title": {
+      "en": "Downtown Morning",
+      "fr": "Centre-ville le matin",
+      "mx": "Centro por la mañana",
+      "ht": "Sant vil nan maten"
+    },
+    "url": "https://picsum.photos/seed/photo1/400/300",
+    "date": "2025-05-10",
+    "description": {
+      "en": "Early morning downtown",
+      "fr": "Tôt le matin au centre-ville",
+      "mx": "Temprano en el centro",
+      "ht": "Bonè nan maten nan sant vil"
+    }
+  },
+  {
+    "id": "00936bbf-4d1b-4a79-9283-e2d27224f811",
+    "legacyId": "photo-2",
+    "title": {
+      "en": "Market Day",
+      "fr": "Jour de marché",
+      "mx": "Día de mercado",
+      "ht": "Jou mache"
+    },
+    "url": "https://picsum.photos/seed/photo2/400/300",
+    "gallery": [
+      "https://picsum.photos/seed/photo2a/400/300",
+      "https://picsum.photos/seed/photo2b/400/300",
+      "https://picsum.photos/seed/photo2c/400/300"
+    ],
+    "date": "2025-03-22",
+    "description": {
+      "en": "Local market scenes",
+      "fr": "Scènes du marché local",
+      "mx": "Escenas del mercado local",
+      "ht": "Sèn mache lokal"
+    }
+  },
+  {
+    "id": "8f18070b-acc2-475b-9193-523a2be2143a",
+    "legacyId": "photo-3",
+    "title": {
+      "en": "Rainy Street",
+      "fr": "Rue pluvieuse",
+      "mx": "Calle lluviosa",
+      "ht": "Ri lapli"
+    },
+    "url": "https://picsum.photos/seed/photo3/400/300",
+    "date": "2024-10-30"
+  },
+  {
+    "id": "f62d7030-9ab1-4d9a-a048-06ae1ab7fd30",
+    "legacyId": "photo-4",
+    "title": {
+      "en": "Rooftop View",
+      "fr": "Vue du toit",
+      "mx": "Vista del tejado",
+      "ht": "Vi sou do kay"
+    },
+    "url": "https://picsum.photos/seed/photo4/400/300",
+    "gallery": [
+      "https://picsum.photos/seed/photo4a/400/300",
+      "https://picsum.photos/seed/photo4b/400/300"
+    ],
+    "date": "2025-08-14",
+    "description": {
+      "en": "City panorama from above",
+      "fr": "Panorama de la ville d'en haut",
+      "mx": "Panorama de la ciudad desde arriba",
+      "ht": "Panorama vil la anwo"
+    }
+  },
+  {
+    "id": "16109605-8e72-412b-b6b2-de253ed2bedb",
+    "legacyId": "photo-5",
+    "title": {
+      "en": "Night Walk",
+      "fr": "Promenade nocturne",
+      "mx": "Paseo nocturno",
+      "ht": "Pwomnad lannwit"
+    },
+    "url": "https://picsum.photos/seed/photo5/400/300",
+    "date": "2025-01-05"
+  },
+  {
+    "id": "64c301e5-48d2-432f-96bd-fe1ab3a3ecfb",
+    "legacyId": "photo-6",
+    "title": {
+      "en": "Bridge at Dusk",
+      "fr": "Pont au crépuscule",
+      "mx": "Puente al atardecer",
+      "ht": "Pon nan aswè"
+    },
+    "url": "https://picsum.photos/seed/photo6/400/300",
+    "date": "2024-07-19",
+    "description": {
+      "en": "Old stone bridge",
+      "fr": "Vieux pont en pierre",
+      "mx": "Viejo puente de piedra",
+      "ht": "Vye pon wòch"
+    }
+  },
+  {
+    "id": "dfe0e408-483d-4762-8c0d-5d069731df21",
+    "legacyId": "photo-7",
+    "title": {
+      "en": "Garden Path",
+      "fr": "Chemin du jardin",
+      "mx": "Camino del jardín",
+      "ht": "Chemen jaden"
+    },
+    "url": "https://picsum.photos/seed/photo7/400/300",
+    "gallery": [
+      "https://picsum.photos/seed/photo7a/400/300",
+      "https://picsum.photos/seed/photo7b/400/300",
+      "https://picsum.photos/seed/photo7c/400/300",
+      "https://picsum.photos/seed/photo7d/400/300"
+    ],
+    "date": "2025-09-02"
+  },
+  {
+    "id": "a057ca75-77c0-4c4e-bad5-0102fd1c747c",
+    "legacyId": "photo-8",
+    "title": {
+      "en": "Alley Cat",
+      "fr": "Chat de ruelle",
+      "mx": "Gato callejero",
+      "ht": "Chat nan koulwa"
+    },
+    "url": "https://picsum.photos/seed/photo8/400/300",
+    "date": "2026-02-01",
+    "description": {
+      "en": "Stray cat in an alley",
+      "fr": "Chat errant dans une ruelle",
+      "mx": "Gato callejero en un callejón",
+      "ht": "Chat pèdi nan yon koulwa"
+    }
+  },
+  {
+    "id": "96bb1a72-8b32-4106-834a-aeff34622bb0",
+    "legacyId": "sculpt-1",
+    "title": {
+      "en": "Clay Figure",
+      "fr": "Figure en argile",
+      "mx": "Figura de arcilla",
+      "ht": "Figi ajil"
+    },
+    "url": "https://picsum.photos/seed/sculpt1/400/300",
+    "date": "2025-02-14",
+    "description": {
+      "en": "Handmade clay sculpture",
+      "fr": "Sculpture en argile faite main",
+      "mx": "Escultura de arcilla hecha a mano",
+      "ht": "Eskilti ajil fè alamen"
+    }
+  },
+  {
+    "id": "509e25cd-b6ee-4d99-b46a-538ef470d3c1",
+    "legacyId": "sculpt-2",
+    "title": {
+      "en": "Bronze Bird",
+      "fr": "Oiseau en bronze",
+      "mx": "Pájaro de bronce",
+      "ht": "Zwazo an bwonz"
+    },
+    "url": "https://picsum.photos/seed/sculpt2/400/300",
+    "date": "2024-06-30"
+  },
+  {
+    "id": "bfaa89d2-0bc2-4686-922b-2163fd64fe16",
+    "legacyId": "sculpt-3",
+    "title": {
+      "en": "Stone Vessel",
+      "fr": "Vase en pierre",
+      "mx": "Vasija de piedra",
+      "ht": "Vaz an wòch"
+    },
+    "url": "https://picsum.photos/seed/sculpt3/400/300",
+    "date": "2025-10-08",
+    "description": {
+      "en": "Carved stone vessel",
+      "fr": "Vase en pierre sculpté",
+      "mx": "Vasija de piedra tallada",
+      "ht": "Vaz an wòch taye"
+    }
+  },
+  {
+    "id": "37a960e6-0614-49c5-9d9f-541095864dff",
+    "legacyId": "sculpt-4",
+    "title": {
+      "en": "Abstract Form",
+      "fr": "Forme abstraite",
+      "mx": "Forma abstracta",
+      "ht": "Fòm abstrè"
+    },
+    "date": "2025-04-25",
+    "description": {
+      "en": "Abstract sculptural form without image",
+      "fr": "Forme sculpturale abstraite sans image",
+      "mx": "Forma escultórica abstracta sin imagen",
+      "ht": "Fòm eskilti abstrè san imaj"
+    }
+  }
+]

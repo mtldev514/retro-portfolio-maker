@@ -1,0 +1,46 @@
+{
+  "categories": [
+    {
+      "id": "painting",
+      "name": { "en": "Painting", "fr": "Peinture", "mx": "Pintura", "ht": "Penti" },
+      "icon": "🎨",
+      "mediaType": "image",
+      "description": "Paintings"
+    },
+    {
+      "id": "drawing",
+      "name": { "en": "Drawing", "fr": "Dessin", "mx": "Dibujo", "ht": "Desen" },
+      "icon": "✏️",
+      "mediaType": "image",
+      "description": "Drawings"
+    },
+    {
+      "id": "photography",
+      "name": { "en": "Photography", "fr": "Photographie", "mx": "Fotografía", "ht": "Fotografi" },
+      "icon": "📷",
+      "mediaType": "image",
+      "description": "Photos"
+    },
+    {
+      "id": "sculpting",
+      "name": { "en": "Sculpting", "fr": "Sculpture", "mx": "Escultura", "ht": "Eskilti" },
+      "icon": "🗿",
+      "mediaType": "image",
+      "description": "Sculptures"
+    },
+    {
+      "id": "music",
+      "name": { "en": "Music", "fr": "Musique", "mx": "Música", "ht": "Mizik" },
+      "icon": "🎵",
+      "mediaType": "audio",
+      "description": "Music"
+    },
+    {
+      "id": "projects",
+      "name": { "en": "Projects", "fr": "Projets", "mx": "Proyectos", "ht": "Pwojè" },
+      "icon": "💻",
+      "mediaType": "link",
+      "description": "Projects"
+    }
+  ]
+}

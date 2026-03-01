@@ -1,0 +1,80 @@
+[
+  {
+    "id": "c9f2193d-3186-4b0c-8f02-62ee9bc7830a",
+    "legacyId": "music-1",
+    "title": {
+      "en": "Summer Breeze",
+      "fr": "Brise d'été",
+      "mx": "Brisa de verano",
+      "ht": "Briz ete"
+    },
+    "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    "date": "2025-05-20",
+    "genre": {
+      "en": "Jazz",
+      "fr": "Jazz",
+      "mx": "Jazz",
+      "ht": "Jazz"
+    },
+    "description": {
+      "en": "Smooth jazz composition",
+      "fr": "Composition de jazz doux",
+      "mx": "Composición de jazz suave",
+      "ht": "Konpozisyon jazz dous"
+    },
+    "lyrics": {
+      "en": "Warm wind through the open window\nSunlight dancing on the keys\nMelody floating through the evening\nSwaying gently with the breeze\n\nSummer days are slowly fading\nBut the music carries on\nEvery note a golden memory\nPlaying softly until dawn",
+      "fr": "Vent chaud par la fenêtre ouverte\nLumière dansant sur les touches\nMélodie flottant dans la soirée\nSe balançant doucement avec la brise"
+    }
+  },
+  {
+    "id": "31cfd465-152c-4e55-875c-7d51b3ba2c16",
+    "legacyId": "music-2",
+    "title": {
+      "en": "Night Drive",
+      "fr": "Conduite de nuit",
+      "mx": "Paseo nocturno",
+      "ht": "Kondwi lannwit"
+    },
+    "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    "date": "2024-12-01",
+    "genre": {
+      "en": "Electronic",
+      "fr": "Électronique",
+      "mx": "Electrónica",
+      "ht": "Elektwonik"
+    },
+    "lyrics": {
+      "en": "City lights blur past the glass\nNeon reflections on wet asphalt\nThe bass drops low, the synths climb high\nWe're chasing signals through the night\n\nNo destination, just the road\nHeadlights cutting through the fog\nEvery frequency a color\nEvery beat a step beyond",
+      "fr": "Les lumières de la ville défilent\nReflets néon sur l'asphalte mouillé\nLa basse descend, les synthés montent\nOn poursuit les signaux dans la nuit"
+    }
+  },
+  {
+    "id": "dd3e25cf-f69f-4cda-96e8-f97cba5ba550",
+    "legacyId": "music-3",
+    "title": {
+      "en": "Acoustic Morning",
+      "fr": "Matin acoustique",
+      "mx": "Mañana acústica",
+      "ht": "Maten akoustik"
+    },
+    "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    "date": "2025-08-30",
+    "genre": {
+      "en": "Folk",
+      "fr": "Folk",
+      "mx": "Folk",
+      "ht": "Folk"
+    },
+    "description": {
+      "en": "Gentle acoustic piece",
+      "fr": "Pièce acoustique douce",
+      "mx": "Pieza acústica suave",
+      "ht": "Moso akoustik dous"
+    },
+    "lyrics": {
+      "en": "Coffee steam rises slowly\nGuitar strings hum in the quiet\nMorning light creeps through the curtain\nAnother day begins in silence\n\nFingers find familiar chords\nA melody half-remembered\nThe world outside can wait a while\nThis moment is enough",
+      "fr": "La vapeur du café monte doucement\nLes cordes de guitare bourdonnent dans le silence\nLa lumière du matin se glisse à travers le rideau\nUn autre jour commence en silence"
+    }
+  }
+]

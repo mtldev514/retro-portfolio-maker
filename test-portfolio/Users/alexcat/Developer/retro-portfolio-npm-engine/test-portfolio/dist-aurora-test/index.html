@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="header_title">Portfolio</title>
+
+    <!-- Fonts: Syne for headings (geometric, bold), Instrument Sans for body -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Config loader MUST be first (sync, not deferred) -->
+    <script src="js/config-loader.js"></script>
+
+    <!-- Core modules (deferred) -->
+    <script src="js/i18n.js" defer></script>
+    <script src="js/page.js" defer></script>
+    <script src="js/audio-player.js" defer></script>
+
+    <!-- View modules (deferred, loaded after core) -->
+    <script src="js/render.js" defer></script>
+    <script src="js/router.js" defer></script>
+    <script src="js/init.js" defer></script>
+</head>
+<body>
+
+    <!-- ═══════════════════ LOADING SCREEN ═══════════════════ -->
+    <div id="loading-screen">
+        <div class="loader">
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-text" data-i18n="loading">Loading</div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ GRAIN OVERLAY ═══════════════════ -->
+    <div class="grain" aria-hidden="true"></div>
+
+    <!-- ═══════════════════ CURSOR GLOW ═══════════════════ -->
+    <div class="cursor-glow" aria-hidden="true"></div>
+
+    <!-- ═══════════════════ HEADER ═══════════════════ -->
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="#/" class="logo">
+                <span class="logo-mark" aria-hidden="true">◆</span>
+                <span class="logo-text" data-i18n="header_title">Portfolio</span>
+            </a>
+
+            <nav class="header-nav">
+                <div class="nav-controls">
+                    <!-- Audio player mini controls -->
+                    <button class="nav-btn audio-toggle" id="audio-toggle" aria-label="Toggle music" title="Toggle music">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path class="audio-on" d="M9 18V5l12-2v13"/>
+                            <circle class="audio-on" cx="6" cy="18" r="3"/>
+                            <circle class="audio-on" cx="18" cy="16" r="3"/>
+                            <line class="audio-off" x1="1" y1="1" x2="23" y2="23" style="display:none"/>
+                        </svg>
+                    </button>
+
+                    <!-- Language selector -->
+                    <div class="lang-selector" id="lang-selector">
+                        <button class="nav-btn lang-toggle" id="lang-toggle" aria-label="Change language">
+                            <span class="lang-current-flag" id="lang-current-flag">🌐</span>
+                        </button>
+                        <div class="settings-dropdown" id="lang-dropdown"></div>
+                    </div>
+
+                    <!-- Theme toggle -->
+                    <button class="nav-btn theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+                        <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                        <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ═══════════════════ NOW PLAYING BAR ═══════════════════ -->
+    <div class="now-playing" id="now-playing">
+        <div class="np-visualizer" id="np-visualizer" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="np-info">
+            <span class="np-label" data-i18n="now_playing">Now Playing</span>
+            <span class="np-track" id="np-track">—</span>
+        </div>
+        <div class="np-controls">
+            <button class="np-btn" id="np-prev" aria-label="Previous">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+            </button>
+            <button class="np-btn np-play" id="np-play" aria-label="Play">
+                <svg class="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                <svg class="pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+            </button>
+            <button class="np-btn" id="np-next" aria-label="Next">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 18h2V6h-2zM6 6v12l8.5-6z"/></svg>
+            </button>
+        </div>
+        <div class="np-progress">
+            <div class="np-progress-bar" id="np-progress-bar"></div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ MAIN CONTENT ═══════════════════ -->
+    <div id="app">
+
+        <!-- Hero / intro -->
+        <section class="hero" id="hero">
+            <div class="hero-inner">
+                <h1 class="hero-title" data-i18n="header_title">Portfolio</h1>
+                <p class="hero-subtitle" data-i18n="header_subtitle">Selected works</p>
+            </div>
+            <div class="hero-scroll-hint" aria-hidden="true">
+                <span>↓</span>
+            </div>
+        </section>
+
+        <!-- Filters -->
+        <section class="filters-section" id="filters-section">
+            <div id="filter-nav" class="filter-nav">
+<!-- Auto-generated filter buttons from categories.json -->
+                    <button class="filter-btn active" data-filter="all" title="All">✱</button>
+                    <button class="filter-btn" data-filter="painting" title="Painting">🎨</button>
+                    <button class="filter-btn" data-filter="drawing" title="Drawing">✏️</button>
+                    <button class="filter-btn" data-filter="photography" title="Photography">📷</button>
+                    <button class="filter-btn" data-filter="sculpting" title="Sculpting">🗿</button>
+                    <button class="filter-btn" data-filter="music" title="Music">🎵</button>
+                    <button class="filter-btn" data-filter="projects" title="Projects">💻</button>
+                    <!-- End filter buttons -->
+                </div>
+        </section>
+
+        <!-- Gallery grid -->
+        <section class="gallery-section" id="gallery-section">
+            <div class="gallery-grid" id="gallery-grid"></div>
+            <div class="gallery-sentinel" id="gallery-sentinel"></div>
+            <button class="load-more-btn" id="load-more" data-i18n="load_more" style="display:none;">Load more</button>
+        </section>
+
+    </div>
+
+    <!-- ═══════════════════ DETAIL OVERLAY ═══════════════════ -->
+    <div class="detail-overlay" id="detail-overlay">
+        <button class="detail-close" id="detail-close" aria-label="Close">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="detail-content" id="detail-content"></div>
+    </div>
+
+    <!-- ═══════════════════ LIGHTBOX ═══════════════════ -->
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" aria-label="Close">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <img class="lightbox-img" id="lightbox-img" src="" alt="">
+    </div>
+
+    <!-- ═══════════════════ FOOTER ═══════════════════ -->
+    <footer class="site-footer">
+        <span data-i18n="footer_copy">&copy; 2026</span>
+    </footer>
+
+</body>
+</html>

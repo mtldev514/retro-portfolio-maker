@@ -1,0 +1,64 @@
+{
+  "mediaTypes": [
+    {
+      "id": "image",
+      "name": "Image",
+      "icon": "🖼️",
+      "dataFile": "data/image.json",
+      "viewer": "ImageViewer",
+      "supportsGallery": true,
+      "supportsMetadata": true,
+      "acceptedFormats": [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"],
+      "uploadDestination": "cloudinary",
+      "description": "Static images"
+    },
+    {
+      "id": "audio",
+      "name": "Audio",
+      "icon": "🎵",
+      "dataFile": "data/audio.json",
+      "viewer": "AudioPlayer",
+      "supportsGallery": false,
+      "supportsMetadata": false,
+      "acceptedFormats": [".mp3", ".wav", ".ogg", ".flac", ".m4a", ".aac"],
+      "uploadDestination": "github",
+      "description": "Audio files"
+    },
+    {
+      "id": "video",
+      "name": "Video",
+      "icon": "🎬",
+      "dataFile": "data/video.json",
+      "viewer": "VideoPlayer",
+      "supportsGallery": false,
+      "supportsMetadata": false,
+      "acceptedFormats": [".mp4", ".webm", ".mov"],
+      "uploadDestination": "cloudinary",
+      "description": "Video files"
+    },
+    {
+      "id": "text",
+      "name": "Text",
+      "icon": "📝",
+      "dataFile": "data/text.json",
+      "viewer": "TextRenderer",
+      "supportsGallery": false,
+      "supportsMetadata": false,
+      "acceptedFormats": [".md", ".txt", ".html"],
+      "uploadDestination": "none",
+      "description": "Text content"
+    },
+    {
+      "id": "link",
+      "name": "Link",
+      "icon": "🔗",
+      "dataFile": "data/link.json",
+      "viewer": "LinkCard",
+      "supportsGallery": false,
+      "supportsMetadata": false,
+      "acceptedFormats": [],
+      "uploadDestination": "none",
+      "description": "External links"
+    }
+  ]
+}
