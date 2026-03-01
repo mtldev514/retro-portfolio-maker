@@ -73,8 +73,8 @@ function initThemeToggle() {
 
     const icon = btn.querySelector('.theme-icon');
     const stored = localStorage.getItem('modern-theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const theme = stored || (prefersDark ? 'dark' : 'light');
+    // Dark-first: default to dark unless user explicitly chose light
+    const theme = stored || 'dark';
 
     applyTheme(theme);
 
