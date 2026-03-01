@@ -581,11 +581,12 @@
                     const idx = bulkFiles.findIndex(f => f.file.name === r.file);
                     if (idx >= 0) {
                         const s = document.getElementById(`bulk-status-${idx}`);
-                        if (s) { s.textContent = 'FAIL'; s.classList.add('con-error'); }
+                        if (s) { s.textContent = 'FAIL'; s.classList.add('con-error'); s.title = r.error || 'Unknown error'; }
                     }
+                    conLog(`> FAILED: ${r.file} — ${r.error || 'Unknown error'}`, 'con-error');
                 });
 
-                conLog(`> Bulk upload complete: ${result.uploaded} uploaded, ${result.failed} failed.`, 'con-success');
+                conLog(`> Bulk upload complete: ${result.uploaded} uploaded, ${result.failed} failed.`, result.failed > 0 ? 'con-error' : 'con-success');
 
                 if (result.uploaded > 0) {
                     autoCommitAndPush(`bulk upload ${result.uploaded} file(s)`);
