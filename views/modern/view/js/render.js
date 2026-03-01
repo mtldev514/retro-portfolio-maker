@@ -201,20 +201,22 @@ const renderer = {
         const title = this.t(item.title);
         const itemId = item.id || title;
 
+        // Determine if this is a compact (non-image) card
+        const isImage = (card.visual === 'image' && item.url) || (!card.visual && item.url);
+        const isCompact = !isImage;
+        if (isCompact) el.classList.add('compact');
+
         // Visual area
         let visualHtml = '';
-        if (card.visual === 'image' && item.url) {
+        if (isCompact) {
+            // Compact cards: small icon area on the left
+            const icon = card.visual === 'play-button' ? '&#9654;'
+                : (this.categoryIcons[item._category] || '');
+            visualHtml = `<div class="gallery-item-compact-icon">${icon}</div>`;
+        } else if (card.visual === 'image' && item.url) {
             visualHtml = `<div class="gallery-item-visual"><img src="${item.url}" alt="${title}" loading="lazy"></div>`;
-        } else if (card.visual === 'play-button') {
-            visualHtml = `<div class="gallery-item-visual"><div class="gallery-item-play">&#9654;</div></div>`;
-        } else if (card.visual === 'icon') {
-            const icon = this.categoryIcons[item._category] || '';
-            visualHtml = `<div class="gallery-item-visual"><div class="gallery-item-icon">${icon}</div></div>`;
         } else if (item.url) {
             visualHtml = `<div class="gallery-item-visual"><img src="${item.url}" alt="${title}" loading="lazy"></div>`;
-        } else {
-            const icon = this.categoryIcons[item._category] || '';
-            visualHtml = `<div class="gallery-item-visual"><div class="gallery-item-icon">${icon}</div></div>`;
         }
 
         // Subtitle
@@ -239,12 +241,29 @@ const renderer = {
             }
         }
 
-        el.innerHTML = visualHtml +
-            `<div class="gallery-item-info">
-                <div class="gallery-item-title">${title}</div>
-                ${subtitleHtml}
-                ${badgesHtml}
-            </div>`;
+        // Description (shown in compact cards for extra context)
+        let descriptionHtml = '';
+        if (isCompact && item.description) {
+            const desc = this.t(item.description);
+            const subtitle = card.subtitle ? this.t(item[card.subtitle.field]) : '';
+            if (desc && desc !== subtitle) {
+                descriptionHtml = `<div class="gallery-item-description">${desc}</div>`;
+            }
+        }
+
+        if (isCompact) {
+            // Compact cards: icon + full info area with text
+            el.innerHTML = visualHtml +
+                `<div class="gallery-item-info">
+                    <div class="gallery-item-title">${title}</div>
+                    ${subtitleHtml}
+                    ${descriptionHtml}
+                    ${badgesHtml}
+                </div>`;
+        } else {
+            // Image cards: picture only, no text overlay
+            el.innerHTML = visualHtml;
+        }
 
         // Actions (card-level links like GitHub, Website)
         if (card.actions) {
