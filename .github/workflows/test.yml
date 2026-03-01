@@ -44,16 +44,24 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Check for publishable changes
         id: check
         run: |
-          # Get changed files from the push event
-          CHANGED='${{ toJson(github.event.commits.*.modified) }} ${{ toJson(github.event.commits.*.added) }}'
+          CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          echo "Changed files:"
+          echo "$CHANGED"
 
-          if echo "$CHANGED" | grep -qE '"(engine/|views/|scripts/|bin/|templates/|index\.js|package\.json|README\.md|LICENSE)"'; then
+          if echo "$CHANGED" | grep -qE '^(engine/|views/|scripts/|bin/|templates/|index\.js|package\.json|README\.md|LICENSE)'; then
             echo "should_publish=true" >> $GITHUB_OUTPUT
+            echo "Publishable changes detected"
           else
             echo "should_publish=false" >> $GITHUB_OUTPUT
+            echo "No publishable changes — skipping publish"
           fi
 
       - name: Trigger publish workflow
