@@ -77,7 +77,8 @@
       "icon": "🎵",
       "card": {
         "visual": "play-button",
-        "subtitle": { "field": "genre" }
+        "subtitle": { "field": "genre" },
+        "body": { "field": "lyrics" }
       },
       "detail": {
         "hero": "play-inline",
@@ -96,9 +97,9 @@
       "icon": "💻",
       "card": {
         "visual": "icon",
-        "subtitle": { "field": "description" },
+        "body": { "field": "description" },
         "badges": [
-          { "field": "visibility", "map": { "private": "🔒", "public": "🌍" } }
+          { "field": "visibility", "map": { "private": "Private" } }
         ],
         "actions": [
           {

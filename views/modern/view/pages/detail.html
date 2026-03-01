@@ -71,6 +71,7 @@
             }
 
             const title = tf(item.title);
+            const resolvedUrl = tf(item.url);
             const schema = window.AppConfig?.getDisplaySchema(from);
             const detail = schema?.detail || {};
             const heroType = detail.hero || 'none';
@@ -84,17 +85,19 @@
             let html = `<div class="detail-page">`;
 
             // Hero
-            if (heroType === 'image-gallery' && item.url) {
+            if (heroType === 'image-gallery' && resolvedUrl) {
                 html += `<div class="detail-hero">
-                    <img src="${item.url}" alt="${title}">
+                    <img src="${resolvedUrl}" alt="${title}">
                     ${(item.gallery && item.gallery.length) ? `<div class="detail-gallery-thumbs">
-                        ${item.gallery.map((img, i) => `<img src="${img}" class="gallery-thumb" alt="Gallery ${i+1}">`).join('')}
+                        ${item.gallery.map((img, i) => `<img src="${tf(img)}" class="gallery-thumb" alt="Gallery ${i+1}">`).join('')}
                     </div>` : ''}
                 </div>`;
-            } else if (heroType === 'play-inline' && item.url) {
-                html += `<div class="detail-hero">
-                    <audio controls src="${item.url}" style="width:100%"></audio>
-                </div>`;
+            } else if (heroType === 'play-inline' && resolvedUrl) {
+                // No inline player — trigger the radio instead
+                if (window.audioPlayer && audioPlayer.playlist.length > 0) {
+                    const trackIdx = audioPlayer.playlist.findIndex(t => t.raw && t.raw.id === item.id);
+                    if (trackIdx >= 0) audioPlayer.switchTrack(trackIdx);
+                }
             }
 
             html += `<div class="detail-info">`;
@@ -161,7 +164,7 @@
             // Lightbox for images
             const heroImg = container.querySelector('.detail-hero img:not(.gallery-thumb)');
             if (heroImg) {
-                const images = [item.url, ...(item.gallery || [])];
+                const images = [resolvedUrl, ...(item.gallery || []).map(g => tf(g))];
                 heroImg.style.cursor = 'pointer';
                 heroImg.addEventListener('click', () => openLightbox(images, 0));
                 container.querySelectorAll('.gallery-thumb').forEach((thumb, i) => {

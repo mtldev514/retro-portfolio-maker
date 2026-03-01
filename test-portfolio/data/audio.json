@@ -21,6 +21,10 @@
       "fr": "Composition de jazz doux",
       "mx": "Composición de jazz suave",
       "ht": "Konpozisyon jazz dous"
+    },
+    "lyrics": {
+      "en": "Warm wind through the open window\nSunlight dancing on the keys\nMelody floating through the evening\nSwaying gently with the breeze\n\nSummer days are slowly fading\nBut the music carries on\nEvery note a golden memory\nPlaying softly until dawn",
+      "fr": "Vent chaud par la fenêtre ouverte\nLumière dansant sur les touches\nMélodie flottant dans la soirée\nSe balançant doucement avec la brise"
     }
   },
   {
@@ -39,6 +43,10 @@
       "fr": "Électronique",
       "mx": "Electrónica",
       "ht": "Elektwonik"
+    },
+    "lyrics": {
+      "en": "City lights blur past the glass\nNeon reflections on wet asphalt\nThe bass drops low, the synths climb high\nWe're chasing signals through the night\n\nNo destination, just the road\nHeadlights cutting through the fog\nEvery frequency a color\nEvery beat a step beyond",
+      "fr": "Les lumières de la ville défilent\nReflets néon sur l'asphalte mouillé\nLa basse descend, les synthés montent\nOn poursuit les signaux dans la nuit"
     }
   },
   {
@@ -63,6 +71,10 @@
       "fr": "Pièce acoustique douce",
       "mx": "Pieza acústica suave",
       "ht": "Moso akoustik dous"
+    },
+    "lyrics": {
+      "en": "Coffee steam rises slowly\nGuitar strings hum in the quiet\nMorning light creeps through the curtain\nAnother day begins in silence\n\nFingers find familiar chords\nA melody half-remembered\nThe world outside can wait a while\nThis moment is enough",
+      "fr": "La vapeur du café monte doucement\nLes cordes de guitare bourdonnent dans le silence\nLa lumière du matin se glisse à travers le rideau\nUn autre jour commence en silence"
     }
   }
 ]

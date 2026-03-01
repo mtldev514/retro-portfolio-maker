@@ -261,6 +261,7 @@
 
         // Current item data, stored for saving back with all languages preserved
         let currentItem = null;
+        let currentAdminSchema = null; // Stored for form submission
         let galleryOrder = []; // Track current gallery order
         let coverUrl = ''; // Track current cover URL
         let draggedIndex = null;
@@ -274,6 +275,7 @@
 
         function populateForm(item, cat, adminSchema) {
             currentItem = item;
+            currentAdminSchema = adminSchema;
             document.getElementById('loading').style.display = 'none';
             document.getElementById('editForm').style.display = 'block';
 
@@ -284,7 +286,8 @@
             document.getElementById('editId').value = idStr;
             document.getElementById('editDate').value = item.date || 'N/A';
             document.getElementById('editTitle').value = titleStr;
-            document.getElementById('editUrl').value = item.url || '';
+            const urlStr = resolveField(item.url);
+            document.getElementById('editUrl').value = urlStr;
 
             document.getElementById('windowTitle').innerText = `EDITING: ${titleStr}`;
             document.getElementById('statusText').innerText = `Editing ${cat}/${idStr}`;
@@ -333,21 +336,21 @@
             const mediaType = getMediaTypeForCategory(cat);
 
             if (mediaType === 'image') {
-                if (item.url) {
+                if (urlStr) {
                     document.getElementById('previewGroup').style.display = 'block';
-                    document.getElementById('previewImg').src = item.url;
+                    document.getElementById('previewImg').src = urlStr;
                 }
                 if (item.gallery && item.gallery.length > 0) {
                     document.getElementById('galleryManagerGroup').style.display = 'block';
-                    coverUrl = item.url;
-                    galleryOrder = [...item.gallery];
+                    coverUrl = urlStr;
+                    galleryOrder = item.gallery.map(g => resolveField(g));
                     renderGalleryManager();
                 }
             }
 
-            if (mediaType === 'audio' && item.url) {
+            if (mediaType === 'audio' && urlStr) {
                 document.getElementById('audioPreviewGroup').style.display = 'block';
-                document.getElementById('audioPreview').src = item.url;
+                document.getElementById('audioPreview').src = urlStr;
             }
 
             log(`Item loaded successfully: "${titleStr}"`, 'cyan');
@@ -720,10 +723,11 @@
                 currentItem.galleryMetadata = {};
             }
 
-            // Store metadata for this image
+            // Store metadata for this image (title & description are translatable)
+            const existingMeta = currentItem.galleryMetadata[imageUrl] || {};
             currentItem.galleryMetadata[imageUrl] = {
-                title: { en: newTitle, fr: newTitle, mx: newTitle, ht: newTitle },
-                description: { en: newDesc, fr: newDesc, mx: newDesc, ht: newDesc }
+                title: makeMultilingualUpdate(existingMeta.title, newTitle),
+                description: makeMultilingualUpdate(existingMeta.description, newDesc)
             };
 
             log(`Metadata updated for image #${index + 1}`, 'lime');
@@ -744,21 +748,29 @@
         document.getElementById('editForm').onsubmit = async (e) => {
             e.preventDefault();
 
+            // Build set of translatable field names from admin schema
+            const translatableFields = new Set();
+            const schemaFields = currentAdminSchema?.optional || [];
+            schemaFields.forEach(f => { if (f.translatable) translatableFields.add(f.name); });
+
             const updates = {
                 title: makeMultilingualUpdate(currentItem.title, document.getElementById('editTitle').value)
             };
 
-            // Collect all dynamic field values from admin-schema-generated inputs
+            // Collect dynamic field values — only wrap translatable fields as multilingual
             document.querySelectorAll('#dynamicFields [data-field-name]').forEach(input => {
                 const fieldName = input.dataset.fieldName;
-                updates[fieldName] = makeMultilingualUpdate(currentItem[fieldName], input.value);
+                if (translatableFields.has(fieldName)) {
+                    updates[fieldName] = makeMultilingualUpdate(currentItem[fieldName], input.value);
+                } else {
+                    updates[fieldName] = input.value;
+                }
             });
 
             // Include gallery changes if gallery manager was visible
             if (document.getElementById('galleryManagerGroup').style.display !== 'none') {
                 updates.url = coverUrl;
                 updates.gallery = galleryOrder;
-                // Include gallery metadata if it exists
                 if (currentItem.galleryMetadata) {
                     updates.galleryMetadata = currentItem.galleryMetadata;
                 }

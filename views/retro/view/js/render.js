@@ -215,17 +215,18 @@ const renderer = {
 
     _renderCardVisual(visualType, item, schema) {
         const icon = schema?.icon || this.categoryIcons[item._category] || '';
+        const resolvedUrl = this.t(item.url);
         switch (visualType) {
             case 'image': {
-                if (!item.url) return `<div class="card-icon">${icon}</div>`;
+                if (!resolvedUrl) return `<div class="card-icon">${icon}</div>`;
                 const pileCount = (item.gallery && item.gallery.length) ? item.gallery.length + 1 : 0;
                 const pileBadge = pileCount > 1 ? `<span class="pile-badge">📷 ${pileCount}</span>` : '';
-                return `<div class="gallery-img-wrap"><img src="${item.url}" alt="${this.t(item.title)}" loading="lazy">${pileBadge}</div>`;
+                return `<div class="gallery-img-wrap"><img src="${resolvedUrl}" alt="${this.t(item.title)}" loading="lazy">${pileBadge}</div>`;
             }
             case 'play-button': {
-                if (item.url) {
+                if (resolvedUrl) {
                     const playLabel = (window.i18n && i18n.translations.music_play_me) || 'Play Me';
-                    return `<button class="music-card-play" data-track-url="${item.url.replace(/"/g, '&quot;')}" title="${playLabel}">&#9654;</button>`;
+                    return `<button class="music-card-play" data-track-url="${resolvedUrl.replace(/"/g, '&quot;')}" title="${playLabel}">&#9654;</button>`;
                 }
                 return `<div class="card-icon">${icon || '&#127925;'}</div>`;
             }

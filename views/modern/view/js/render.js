@@ -201,23 +201,14 @@ const renderer = {
         const title = this.t(item.title);
         const itemId = item.id || title;
 
-        // Determine if this is a compact (non-image) card
-        const isImage = (card.visual === 'image' && item.url) || (!card.visual && item.url);
-        const isCompact = !isImage;
-        if (isCompact) el.classList.add('compact');
+        // Resolve URL (may be a translatable object like {en: "...", fr: "..."})
+        const resolvedUrl = this.t(item.url);
 
-        // Visual area
-        let visualHtml = '';
-        if (isCompact) {
-            // Compact cards: small icon area on the left
-            const icon = card.visual === 'play-button' ? '&#9654;'
-                : (this.categoryIcons[item._category] || '');
-            visualHtml = `<div class="gallery-item-compact-icon">${icon}</div>`;
-        } else if (card.visual === 'image' && item.url) {
-            visualHtml = `<div class="gallery-item-visual"><img src="${item.url}" alt="${title}" loading="lazy"></div>`;
-        } else if (item.url) {
-            visualHtml = `<div class="gallery-item-visual"><img src="${item.url}" alt="${title}" loading="lazy"></div>`;
-        }
+        // Determine card type
+        const isImage = (card.visual === 'image' && resolvedUrl) || (!card.visual && resolvedUrl);
+
+        // Per-category hover zoom disable
+        if (card.hoverZoom === false) el.classList.add('no-zoom');
 
         // Subtitle
         let subtitleHtml = '';
@@ -241,31 +232,8 @@ const renderer = {
             }
         }
 
-        // Description (shown in compact cards for extra context)
-        let descriptionHtml = '';
-        if (isCompact && item.description) {
-            const desc = this.t(item.description);
-            const subtitle = card.subtitle ? this.t(item[card.subtitle.field]) : '';
-            if (desc && desc !== subtitle) {
-                descriptionHtml = `<div class="gallery-item-description">${desc}</div>`;
-            }
-        }
-
-        if (isCompact) {
-            // Compact cards: icon + full info area with text
-            el.innerHTML = visualHtml +
-                `<div class="gallery-item-info">
-                    <div class="gallery-item-title">${title}</div>
-                    ${subtitleHtml}
-                    ${descriptionHtml}
-                    ${badgesHtml}
-                </div>`;
-        } else {
-            // Image cards: picture only, no text overlay
-            el.innerHTML = visualHtml;
-        }
-
         // Actions (card-level links like GitHub, Website)
+        let actionsHtml = '';
         if (card.actions) {
             const evalCond = (cond) => !cond || item[cond.field] === cond.equals;
             for (const action of card.actions) {
@@ -278,9 +246,46 @@ const renderer = {
                         return `<a href="${item[l.field]}" target="_blank" onclick="event.stopPropagation()">${_svgIcons[l.icon] || ''} ${t}</a>`;
                     });
                 if (links.length) {
-                    el.innerHTML += `<div class="gallery-item-actions">${links.join('')}</div>`;
+                    actionsHtml += `<div class="gallery-item-actions">${links.join('')}</div>`;
                 }
             }
+        }
+
+        if (isImage) {
+            // Image card: visual area with image only
+            el.innerHTML = `<div class="gallery-item-visual"><img src="${resolvedUrl}" alt="${title}" loading="lazy"></div>`;
+        } else {
+            // Text card: same size, emoji beside title, body text fills remaining space
+            el.classList.add('text-card');
+            const icon = card.visual === 'play-button' ? '&#9654;'
+                : (this.categoryIcons[item._category] || '');
+
+            // Body text: prefer card.body field (e.g. lyrics), fall back to description
+            let bodyHtml = '';
+            const bodyField = card.body?.field;
+            const bodyText = bodyField ? this.t(item[bodyField]) : null;
+            if (bodyText) {
+                bodyHtml = `<div class="gallery-item-body">${bodyText}</div>`;
+            } else if (item.description) {
+                const desc = this.t(item.description);
+                const subtitle = card.subtitle ? this.t(item[card.subtitle.field]) : '';
+                if (desc && desc !== subtitle) {
+                    bodyHtml = `<div class="gallery-item-body">${desc}</div>`;
+                }
+            }
+
+            el.innerHTML = `<div class="gallery-item-visual text-visual">
+                <div class="gallery-item-info">
+                    <div class="gallery-item-header">
+                        <span class="gallery-item-emoji">${icon}</span>
+                        <div class="gallery-item-title">${title}</div>
+                    </div>
+                    ${subtitleHtml}
+                    ${bodyHtml}
+                    ${badgesHtml}
+                </div>
+                ${actionsHtml}
+            </div>`;
         }
 
         // Click → detail page
